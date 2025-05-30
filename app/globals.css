@@ -43,6 +43,22 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+body {
+  font-family: var(--font-noto-sans-jp), var(--font-host-grotesk), sans-serif;
+}
+
+.font-noto-sans-jp {
+  font-family: var(--font-noto-sans-jp), sans-serif;
+}
+
+.font-host-grotesk {
+  font-family: var(--font-host-grotesk), sans-serif;
+}
+
+.custom-toast {
+  margin-top: 48px;
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
