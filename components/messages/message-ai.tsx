@@ -26,11 +26,11 @@ export const MessageAi = () => {
   // ユーザーメッセージの送信
   useEffect(() => {
     if (userMessages.length === 0) {
-      commentAppend({
-        role: "system",
-        content:
-          "userに記入を促してください。出だしは「こんにちは」で始めてください。",
-      });
+      // commentAppend({
+      //   role: "system",
+      //   content:
+      //     "userに記入を促してください。出だしは「こんにちは」で始めてください。",
+      // });
       return;
     }
     const currentUserMessage = userMessages[userMessages.length - 1];
