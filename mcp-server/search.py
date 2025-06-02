@@ -49,41 +49,6 @@ def search_web(word: str) -> str:
     return search_web_with_tavily(word)
 
 @mcp.tool()
-def search_web_freestyle(word: str) -> str:
-    """
-    株式会社フリースタイル関係の検索ワードを受け取り、検索結果を文字列で返す関数。
-
-    Args:
-        word (str): 検索ワード
-
-    Returns:
-        str: 検索の結果
-    """
-    
-    def search_web_with_tavily(query: str, num_results: int = 5) -> str:
-        url = "https://api.tavily.com/search"
-        headers = {
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "api_key": TAVILY_API_KEY,
-            "query": query,
-            "search_depth": "basic",
-            "max_results": num_results,
-        }
-
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        results = response.json()
-
-        # 結果をテキストとして結合
-        snippets = [item.get("content", "") for item in results.get("results", [])]
-        return "\n\n".join(snippets)
-    
-    query = "site:freestyles.jp " + word
-    return search_web_with_tavily(query)
-
-@mcp.tool()
 def search_weather(area: str) -> str:
     """
     地域を受け取り、今日・明日の天気予報の検索結果を文字列で返す関数。

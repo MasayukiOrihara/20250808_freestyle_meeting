@@ -7,7 +7,7 @@ import { LangChainAdapter, Message as VercelChatMessage } from "ai";
 
 // 定数
 const PYTHON_PATH = process.cwd() + "/mcp-server/.venv/Scripts/python.exe";
-const SEARCH_PY_PATH = process.cwd() + "/mcp-server/search.py";
+const SEARCH_PY_PATH = process.cwd() + "/mcp-server/freestyle.py";
 const ANTHROPIC_MODEL_3_5 = "claude-3-5-haiku-20241022";
 
 // OPENAI
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
-    console.log("🔎 TEACHER API");
+    console.log("🏢 FS API");
 
     const currentUserMessage = messages[messages.length - 1].content;
     const formatMessage = (message: VercelChatMessage) => {
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 
     /** AI */
     const prompt = PromptTemplate.fromTemplate(
-      "あなたは教えたがりの真面目なAIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。メッセージに対する反応はいりません。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: "
+      "あなたは株式会社フリースタイルの社員AIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。メッセージに対する反応はいりません。もしinfo情報とuserメッセージの関連性が低い場合、「関連性なし」と出力してください。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: "
     );
     const stream = await prompt.pipe(openAi).stream({
       history: formattedPreviousMessages,

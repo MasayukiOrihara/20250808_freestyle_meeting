@@ -45,13 +45,15 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
+    console.log("💬 COMMENT API");
+
     const currentUserMessage = messages[messages.length - 1].content;
     const formatMessage = (message: VercelChatMessage) => {
       return `${message.role}: ${message.content}`;
     };
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
     let prompt = PromptTemplate.fromTemplate(
-      "あなたは陽気なAIです。userのメッセージに対して次の文章をかきだせるようなコメントやアドバイスしてください。出力は140文字程度です。\n\nCurrent conversation: ---\n{history}\n---\n\nuser: {user_message}\nassistant: "
+      "あなたは絵文字を多用する陽気なAIです。userのメッセージに対して次の文章をかきだせるようなコメントやアドバイスしてください。出力は140文字程度です。\n\nCurrent conversation: ---\n{history}\n---\n\nuser: {user_message}\nassistant: "
     );
 
     // 悩み相談かどうかの判断
@@ -66,7 +68,7 @@ export async function POST(req: Request) {
       if (checkJudgeMentor.includes("YES")) {
         console.log("💛 悩み相談: " + checkJudgeMentor);
         prompt = PromptTemplate.fromTemplate(
-          "あなたは陽気なメンターAIです。userのメッセージに対して、文脈に沿うように以下の Question List から質問文を1つ選んで140文字程度でuserに質問してください。質問は140文字以内です。\n\nCurrent conversation: ---\n{history}\n---\n\nQuestion List: ---\n{question_list}\n---\n\nuser: {user_message}\nassistant: "
+          "あなたは絵文字を多用する陽気なメンターAIです。userのメッセージに対して、文脈に沿うように以下の Question List から質問文を1つ選んで140文字程度でuserに質問してください。質問は140文字以内です。\n\nCurrent conversation: ---\n{history}\n---\n\nQuestion List: ---\n{question_list}\n---\n\nuser: {user_message}\nassistant: "
         );
       }
     }
@@ -76,8 +78,6 @@ export async function POST(req: Request) {
       history: formattedPreviousMessages,
       user_message: currentUserMessage,
     });
-
-    console.log(currentUserMessage);
 
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
