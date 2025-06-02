@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import requests
 from datetime import datetime
 import re
+import json
 
 load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -85,7 +86,8 @@ def search_web_freestyle(word: str) -> str:
 @mcp.tool()
 def search_weather(area: str) -> str:
     """
-    地域を受け取り、天気予報の検索結果を文字列で返す関数。
+    地域を受け取り、今日・明日の天気予報の検索結果を文字列で返す関数。
+    地域の指定がない場合は「東京」を指定の地域とし検索します。
 
     Args:
         area (str): 検索対象の地域
@@ -115,7 +117,6 @@ def search_weather(area: str) -> str:
 
     pathCode_find = find_codes_by_keyword(data, area)
     pathCode = [re.findall(r'\d+', path)[-1] for path in pathCode_find]
-    print(pathCode)
 
     # 気象庁データの取得
     for code in pathCode:
@@ -126,8 +127,11 @@ def search_weather(area: str) -> str:
             continue
 
         jma_date = jma_json[0]
+        
+        json_str = json.dumps(jma_date, ensure_ascii=False, separators=(",", ":"))
+        cleaned_str = json_str.replace("\n", "").replace("\"", "").replace("\\", "")
     
-    return jma_date
+    return cleaned_str
 
 @mcp.tool()
 def get_today() -> str:
