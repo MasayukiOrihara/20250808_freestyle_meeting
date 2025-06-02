@@ -1,27 +1,29 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-type MessageContextType = {
-  messages: string[];
-  addMessage: (msg: string) => void;
+type UserMessageContextType = {
+  userMessages: string[];
+  addUserMessage: (msg: string) => void;
 };
 
-const MessageContext = createContext<MessageContextType | undefined>(undefined);
+const MessageContext = createContext<UserMessageContextType | undefined>(
+  undefined
+);
 
 export const MessageProvider = ({ children }: { children: ReactNode }) => {
-  const [messages, setMessages] = useState<string[]>([]);
+  const [userMessages, setUserMessages] = useState<string[]>([]);
 
-  const addMessage = (msg: string) => {
-    setMessages((prev) => [...prev, msg]);
+  const addUserMessage = (msg: string) => {
+    setUserMessages((prev) => [...prev, msg]);
   };
 
   return (
-    <MessageContext.Provider value={{ messages, addMessage }}>
+    <MessageContext.Provider value={{ userMessages, addUserMessage }}>
       {children}
     </MessageContext.Provider>
   );
 };
 
-export const useMessages = () => {
+export const useUserMessages = () => {
   const context = useContext(MessageContext);
   if (!context)
     throw new Error("useMessages must be used within MessageProvider");

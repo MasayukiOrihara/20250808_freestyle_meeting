@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { useMessages } from "./message-provider";
+import { useUserMessages } from "./message-provider";
 
 export const MessageInput = () => {
   const [text, setText] = useState("");
-  const { addMessage } = useMessages();
+  const { addUserMessage } = useUserMessages();
 
   const handleEnterkey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (text.trim()) {
-        addMessage(text.trim());
+        addUserMessage(text.trim());
         setText("");
       }
     }

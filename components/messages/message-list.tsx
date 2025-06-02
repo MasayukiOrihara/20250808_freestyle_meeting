@@ -1,11 +1,11 @@
-import { useMessages } from "./message-provider";
+import { useUserMessages } from "./message-provider";
 
 export const MessageList = () => {
-  const { messages } = useMessages();
+  const { userMessages } = useUserMessages();
 
   return (
     <div className="mb-2">
-      {messages.map((msg, idx) => (
+      {userMessages.map((msg, idx) => (
         <div key={idx}>{msg}</div>
       ))}
     </div>
