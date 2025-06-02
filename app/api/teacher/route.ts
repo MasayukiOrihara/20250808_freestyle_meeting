@@ -43,6 +43,8 @@ export async function POST(req: Request) {
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
     /** MCPサーバー */
+    console.log("PYTHON_PATH" + PYTHON_PATH);
+    console.log("SEARCH_PY_PATH" + SEARCH_PY_PATH);
     const transportSearch = new StdioClientTransport({
       command: PYTHON_PATH,
       args: [SEARCH_PY_PATH],
