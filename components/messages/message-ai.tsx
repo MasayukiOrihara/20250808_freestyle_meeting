@@ -38,7 +38,7 @@ export const MessageAi = () => {
     commentAppend({ role: "user", content: currentUserMessage });
     teacherAppend({ role: "user", content: currentUserMessage });
     freestyleAppend({ role: "user", content: currentUserMessage });
-  }, [userMessages]);
+  }, [userMessages, commentAppend, teacherAppend, freestyleAppend]);
 
   // AI1 コメントAI
   const aiCommentMessages = commentMessages.filter(
