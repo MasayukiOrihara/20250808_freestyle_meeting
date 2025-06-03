@@ -42,8 +42,8 @@ export const MessageAi = () => {
     const currentUserMessage = userMessages[userMessages.length - 1];
 
     commentAppend({ role: "user", content: currentUserMessage });
-    teacherAppend({ role: "user", content: currentUserMessage });
-    freestyleAppend({ role: "user", content: currentUserMessage });
+    // teacherAppend({ role: "user", content: currentUserMessage });
+    // freestyleAppend({ role: "user", content: currentUserMessage });
   }, [userMessages]);
 
   // AI1 コメントAI

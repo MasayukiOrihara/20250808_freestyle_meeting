@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
-    console.log("💬 COMMENT API");
+    console.log("---💬 COMMENT API");
 
     const currentUserMessage = messages[messages.length - 1].content;
     const formatMessage = (message: VercelChatMessage) => {
@@ -79,6 +79,8 @@ export async function POST(req: Request) {
       history: formattedPreviousMessages,
       user_message: currentUserMessage,
     });
+
+    console.log("💬 COMMENT API END ---");
 
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
