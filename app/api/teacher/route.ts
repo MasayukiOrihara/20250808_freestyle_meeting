@@ -8,7 +8,7 @@ import { LangChainAdapter, Message as VercelChatMessage } from "ai";
 // 定数
 // const PYTHON_PATH = process.cwd() + "/mcp-server/.venv/Scripts/python.exe";
 // const SEARCH_PY_PATH = process.cwd() + "/mcp-server/search.py";
-const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server.js";
+const SEARCH_JS_PATH = process.cwd() + "/stdio/dist/search-server.js";
 const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 const ANTHROPIC_MODEL_3_5 = "claude-3-5-haiku-20241022";
 
