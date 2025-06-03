@@ -8,13 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const fastmcp_1 = require("fastmcp");
 const zod_1 = require("zod");
+const dotenv_1 = __importDefault(require("dotenv"));
 // 環境変数からTavily API Keyを取得
-// dotenv.config();
-require('dotenv').config();
-const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
+dotenv_1.default.config();
+require("dotenv").config();
+const TAVILY_API_KEY1 = process.env.TAVILY_API_KEY;
+const TAVILY_API_KEY2 = process.env.NEXT_PUBLIC_TAVILY_API_KEY;
 const server = new fastmcp_1.FastMCP({
     name: "My Server",
     version: "1.0.0",
@@ -24,15 +29,17 @@ const server = new fastmcp_1.FastMCP({
  */
 function searchWebWithTavily(query_1) {
     return __awaiter(this, arguments, void 0, function* (query, numResults = 5) {
-        if (!TAVILY_API_KEY) {
-            throw new Error("TAVILY_API_KEY environment variable is not set: " + TAVILY_API_KEY);
+        if (!TAVILY_API_KEY1) {
+            throw new Error("TAVILY_API_KEY environment variable is not set: " +
+                TAVILY_API_KEY1 +
+                TAVILY_API_KEY2);
         }
         const url = "https://api.tavily.com/search";
         const headers = {
             "Content-Type": "application/json",
         };
         const payload = {
-            api_key: TAVILY_API_KEY,
+            api_key: TAVILY_API_KEY1,
             query: query,
             search_depth: "basic",
             max_results: numResults,
