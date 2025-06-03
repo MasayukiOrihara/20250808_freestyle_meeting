@@ -1,27 +1,33 @@
 import { useChat } from "@ai-sdk/react";
 import { useUserMessages } from "./message-provider";
 import { useEffect } from "react";
+import { UIMessage } from "ai";
+
+// useChatの共通化関数
+function useMyChat(apiPath: string) {
+  return useChat({
+    api: apiPath,
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+}
+
+// 最後のメッセージを取り出す共通化関数
+function getLatestAssistantMessage(messages: UIMessage[]) {
+  const assistantMessages = messages.filter((m) => m.role === "assistant");
+  return assistantMessages[assistantMessages.length - 1];
+}
 
 export const MessageAi = () => {
   const { userMessages } = useUserMessages();
-  const { messages: commentMessages, append: commentAppend } = useChat({
-    api: "api/comment",
-    onError: (error) => {
-      console.log(error);
-    },
-  });
-  const { messages: teacherMessages, append: teacherAppend } = useChat({
-    api: "api/teacher",
-    onError: (error) => {
-      console.log(error);
-    },
-  });
-  const { messages: freestyleMessages, append: freestyleAppend } = useChat({
-    api: "api/freestyle",
-    onError: (error) => {
-      console.log(error);
-    },
-  });
+
+  const { messages: commentMessages, append: commentAppend } =
+    useMyChat("api/comment");
+  const { messages: teacherMessages, append: teacherAppend } =
+    useMyChat("api/teacher");
+  const { messages: freestyleMessages, append: freestyleAppend } =
+    useMyChat("api/freestyle");
 
   // ユーザーメッセージの送信
   useEffect(() => {
@@ -38,28 +44,15 @@ export const MessageAi = () => {
     commentAppend({ role: "user", content: currentUserMessage });
     teacherAppend({ role: "user", content: currentUserMessage });
     freestyleAppend({ role: "user", content: currentUserMessage });
-  }, [userMessages, commentAppend, teacherAppend, freestyleAppend]);
+  }, [userMessages]);
 
   // AI1 コメントAI
-  const aiCommentMessages = commentMessages.filter(
-    (m) => m.role === "assistant"
-  );
-  const currentAiCommentMessage =
-    aiCommentMessages[aiCommentMessages.length - 1];
-
+  const currentAiCommentMessage = getLatestAssistantMessage(commentMessages);
   // AI2 情報AI
-  const aiTeacherMessages = teacherMessages.filter(
-    (m) => m.role === "assistant"
-  );
-  const currentAiTeacherMessage =
-    aiTeacherMessages[aiTeacherMessages.length - 1];
-
+  const currentAiTeacherMessage = getLatestAssistantMessage(teacherMessages);
   // AI3 フリースタイル社員AI
-  const aiFreestyleMessages = freestyleMessages.filter(
-    (m) => m.role === "assistant"
-  );
   const currentAiFreestyleMessage =
-    aiFreestyleMessages[aiFreestyleMessages.length - 1];
+    getLatestAssistantMessage(freestyleMessages);
 
   return (
     <div className="w-full h-full">

@@ -5,6 +5,7 @@ import { LangChainAdapter, Message as VercelChatMessage } from "ai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
 const ANTHROPIC_MODEL_3_5 = "claude-3-5-haiku-20241022";
+// const ANTHROPIC_MODEL_3 = "claude-3-haiku-20240307";
 
 // openAI
 const openAi = new ChatOpenAI({

@@ -6,8 +6,9 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { LangChainAdapter, Message as VercelChatMessage } from "ai";
 
 // 定数
-const PYTHON_PATH = process.cwd() + "/mcp-server/.venv/Scripts/python.exe";
-const SEARCH_PY_PATH = process.cwd() + "/mcp-server/freestyle.py";
+// const PYTHON_PATH = process.cwd() + "/mcp-server/.venv/Scripts/python.exe";
+// const SEARCH_PY_PATH = process.cwd() + "/mcp-server/freestyle.py";
+const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server-freestyle.js";
 const ANTHROPIC_MODEL_3_5 = "claude-3-5-haiku-20241022";
 
 // OPENAI
@@ -44,8 +45,8 @@ export async function POST(req: Request) {
 
     /** MCPサーバー */
     const transportSearch = new StdioClientTransport({
-      command: PYTHON_PATH,
-      args: [SEARCH_PY_PATH],
+      command: "node",
+      args: [SEARCH_JS_PATH],
     });
     const client = new Client({
       name: "mcp-client",
