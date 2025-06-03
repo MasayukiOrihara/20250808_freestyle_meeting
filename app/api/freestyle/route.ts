@@ -8,8 +8,8 @@ import { LangChainAdapter, Message as VercelChatMessage } from "ai";
 // 定数
 // const PYTHON_PATH = process.cwd() + "/mcp-server/.venv/Scripts/python.exe";
 // const SEARCH_PY_PATH = process.cwd() + "/mcp-server/freestyle.py";
-const SEARCH_JS_PATH =
-  process.cwd() + "/app/api/mcp-server/search-server-freestyle.js";
+const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
+const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server-freestyle.js";
 const ANTHROPIC_MODEL_3_5 = "claude-3-5-haiku-20241022";
 
 // OPENAI
@@ -44,11 +44,18 @@ export async function POST(req: Request) {
     };
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
+    if (!TAVILY_API_KEY) {
+      throw new Error("TAVILY_API_KEY environment variable is not set: ");
+    }
+
     /** MCPサーバー */
     console.log(SEARCH_JS_PATH);
     const transportSearch = new StdioClientTransport({
       command: "node",
       args: [SEARCH_JS_PATH],
+      env: {
+        API_KEY: TAVILY_API_KEY,
+      },
     });
     const client = new Client({
       name: "mcp-client",

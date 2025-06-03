@@ -8,13 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const fastmcp_1 = require("fastmcp");
 const zod_1 = require("zod");
+const dotenv_1 = __importDefault(require("dotenv"));
 // 環境変数からTavily API Keyを取得
-// dotenv.config();
-require("dotenv").config();
-const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
+dotenv_1.default.config();
+const TAVILY_API_KEY = process.env.API_KEY;
 const server = new fastmcp_1.FastMCP({
     name: "My Server",
     version: "1.0.0",

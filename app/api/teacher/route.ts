@@ -9,6 +9,7 @@ import { LangChainAdapter, Message as VercelChatMessage } from "ai";
 // const PYTHON_PATH = process.cwd() + "/mcp-server/.venv/Scripts/python.exe";
 // const SEARCH_PY_PATH = process.cwd() + "/mcp-server/search.py";
 const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server.js";
+const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 const ANTHROPIC_MODEL_3_5 = "claude-3-5-haiku-20241022";
 
 // OPENAI
@@ -43,11 +44,18 @@ export async function POST(req: Request) {
     };
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
+    if (!TAVILY_API_KEY) {
+      throw new Error("TAVILY_API_KEY environment variable is not set: ");
+    }
+
     /** MCPサーバー */
     console.log("SEARCH_PY_PATH" + SEARCH_JS_PATH);
     const transportSearch = new StdioClientTransport({
       command: "node",
       args: [SEARCH_JS_PATH],
+      env: {
+        API_KEY: TAVILY_API_KEY,
+      },
     });
     const client = new Client({
       name: "mcp-client",
@@ -62,6 +70,7 @@ export async function POST(req: Request) {
       description: tool.description,
       schema: tool.inputSchema,
     }));
+
     const selectTools = await anthropic.invoke(currentUserMessage, {
       tools: availableTools,
     });
@@ -96,6 +105,7 @@ export async function POST(req: Request) {
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
     if (error instanceof Error) {
+      console.log(error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
