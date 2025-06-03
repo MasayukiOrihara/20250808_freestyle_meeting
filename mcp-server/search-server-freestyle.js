@@ -18,7 +18,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 // 環境変数からTavily API Keyを取得
 dotenv_1.default.config();
 const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
-console.log(TAVILY_API_KEY);
 const server = new fastmcp_1.FastMCP({
     name: "My Server",
     version: "1.0.0",
@@ -29,7 +28,7 @@ const server = new fastmcp_1.FastMCP({
 function searchWebWithTavily(query_1) {
     return __awaiter(this, arguments, void 0, function* (query, numResults = 5) {
         if (!TAVILY_API_KEY) {
-            throw new Error("TAVILY_API_KEY environment variable is not set");
+            throw new Error("TAVILY_API_KEY environment variable is not set: " + TAVILY_API_KEY);
         }
         const url = "https://api.tavily.com/search";
         const headers = {
