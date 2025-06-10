@@ -49,18 +49,36 @@ export async function POST(req: Request) {
     }
 
     /** MCPサーバー */
-    console.log("SEARCH_PY_PATH" + SEARCH_JS_PATH);
+    // console.log("SEARCH_PY_PATH" + SEARCH_JS_PATH);
+    // const transportSearch = new StdioClientTransport({
+    //   command: "node",
+    //   args: [SEARCH_JS_PATH],
+    //   env: {
+    //     API_KEY: TAVILY_API_KEY,
+    //   },
+    // });
+    // const client = new Client({
+    //   name: "mcp-client",
+    //   version: "1.0.0",
+    // });
+
+    /** tavily MCPサーバー */
     const transportSearch = new StdioClientTransport({
-      command: "node",
-      args: [SEARCH_JS_PATH],
+      command: "npx",
+      args: ["-y", "tavily-mcp@0.1.2"],
       env: {
         API_KEY: TAVILY_API_KEY,
       },
     });
-    const client = new Client({
-      name: "mcp-client",
-      version: "1.0.0",
-    });
+    const client = new Client(
+      {
+        name: "tavily-client",
+        version: "1.0.0",
+      },
+      {
+        capabilities: {},
+      }
+    );
     await client.connect(transportSearch);
 
     /** ツール */
