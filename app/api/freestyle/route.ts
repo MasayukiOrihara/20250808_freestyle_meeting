@@ -1,105 +1,41 @@
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { ChatOpenAI } from "@langchain/openai";
-import { ChatAnthropic } from "@langchain/anthropic";
-import { LangChainAdapter, Message as VercelChatMessage } from "ai";
+import { LangChainAdapter } from "ai";
 
-// 定数
-// const PYTHON_PATH = process.cwd() + "/mcp-server/.venv/Scripts/python.exe";
-// const SEARCH_PY_PATH = process.cwd() + "/mcp-server/freestyle.py";
-const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
-const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server-freestyle.js";
-const ANTHROPIC_MODEL_3_5 = "claude-3-5-haiku-20241022";
-
-// OPENAI
-const openAi = new ChatOpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-  model: "gpt-4o",
-  temperature: 0.8,
-  cache: true,
-  tags: ["reflect_whiteboard"],
-});
-
-// ANTHROPIC
-const anthropic = new ChatAnthropic({
-  model: ANTHROPIC_MODEL_3_5,
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-  maxTokens: 256,
-  temperature: 0.3,
-  cache: true,
-  tags: ["reflect_whiteboard"],
-});
+import { formatMessage, getInfoUsingTools } from "@/lib/utils";
+import { FREESTYLE_PROMPT, TAVILY_CLIENT, TAVILY_ERROR } from "@/lib/contents";
+import { client, openAi, transportSearch } from "@/lib/models";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
 
-    console.log("🏢 FS API");
+    console.log(" --- \n🏢 FS API");
 
+    // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const formatMessage = (message: VercelChatMessage) => {
-      return `${message.role}: ${message.content}`;
-    };
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
-    if (!TAVILY_API_KEY) {
-      throw new Error("TAVILY_API_KEY environment variable is not set: ");
-    }
+    const queryMessage = "site:freestyles.jp/ " + currentUserMessage;
+
+    // API チェック
+    if (!process.env.TAVILY_API_KEY) throw new Error(TAVILY_ERROR);
 
     /** MCPサーバー */
-    console.log(SEARCH_JS_PATH);
-    const transportSearch = new StdioClientTransport({
-      command: "node",
-      args: [SEARCH_JS_PATH],
-      env: {
-        API_KEY: TAVILY_API_KEY,
-      },
-    });
-    const client = new Client({
-      name: "mcp-client",
-      version: "1.0.0",
-    });
-    await client.connect(transportSearch);
-
-    /** ツール */
-    const listRes = await client.listTools();
-    const availableTools = listRes.tools.map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      schema: tool.inputSchema,
-    }));
-    const selectTools = await anthropic.invoke(currentUserMessage, {
-      tools: availableTools,
-    });
-    console.log(selectTools.content);
-    console.log(selectTools.tool_calls);
-
-    /**
-     * 応答処理とツール・コールの処理
-     */
-    let info = "";
-    if (selectTools.tool_calls && selectTools.tool_calls.length > 0) {
-      for (const tool of selectTools.tool_calls) {
-        const result = await client.callTool({
-          name: tool.name,
-          arguments: tool.args,
-        });
-        info = JSON.stringify(result.content);
-        console.log(info);
-      }
-    }
+    const transport = transportSearch();
+    const tavilyClient = client({ mcpName: TAVILY_CLIENT });
+    await tavilyClient.connect(transport);
 
     /** AI */
-    const prompt = PromptTemplate.fromTemplate(
-      "あなたは株式会社フリースタイルの社員AIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。メッセージに対する反応はいりません。もしinfo情報とuserメッセージの関連性が低い場合、「関連性なし」と出力してください。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: "
-    );
+    const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
+    const info = await getInfoUsingTools(tavilyClient, queryMessage);
     const stream = await prompt.pipe(openAi).stream({
       history: formattedPreviousMessages,
       user_message: currentUserMessage,
       info: info,
     });
+
+    console.log("🏢 COMPLITE \n --- ");
 
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
