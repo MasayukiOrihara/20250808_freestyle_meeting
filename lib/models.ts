@@ -43,8 +43,19 @@ export const client = ({ mcpName }: { mcpName: string }) =>
 // TAVILY: MCPサーバー接続
 export const transportSearch = () =>
   new StdioClientTransport({
-    command: "npx",
-    args: ["-y", "tavily-mcp@0.1.2"],
+    command: "cmd",
+    args: [
+      "/c",
+      "npx",
+      "-y",
+      "@smithery/cli@latest",
+      "run",
+      "@tavily-ai/tavily-mcp",
+      "--key",
+      "b8370370-2226-41e7-8390-4392770ab70d",
+      "--config",
+      '"{\\"tavilyApiKey\\":\\"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\\"}"',
+    ],
     env: {
       API_KEY: process.env.TAVILY_API_KEY!,
     },
