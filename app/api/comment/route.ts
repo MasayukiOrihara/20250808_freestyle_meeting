@@ -15,8 +15,6 @@ export async function POST(req: Request) {
     const messages = body.messages ?? [];
 
     console.log(" --- \n💬 COMMENT API");
-    console.log("LANGSMITH_TRACING:", process.env.LANGSMITH_TRACING);
-    process.env.LANGSMITH_TRACING = "false";
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;

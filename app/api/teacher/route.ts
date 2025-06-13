@@ -18,10 +18,11 @@ export async function POST(req: Request) {
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
     // TAVILY APIチェック
-    if (!process.env.TAVILY_API_KEY) throw new Error(TAVILY_ERROR);
+    const tavily = process.env.TAVILY_API_KEY;
+    if (!tavily) throw new Error(TAVILY_ERROR);
 
     /** MCPサーバー */
-    const transport = transportSearch();
+    const transport = transportSearch({ apiKey: tavily });
     const tavilyClient = client({ mcpName: TAVILY_CLIENT });
     await tavilyClient.connect(transport);
 

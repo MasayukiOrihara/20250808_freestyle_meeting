@@ -45,5 +45,6 @@ export async function getInfoUsingTools(
       info = JSON.stringify(result.content);
     }
   }
+  console.log("[getInfoUsingTools] 取得情報: \n" + info);
   return info;
 }

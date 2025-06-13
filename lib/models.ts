@@ -41,11 +41,11 @@ export const client = ({ mcpName }: { mcpName: string }) =>
   );
 
 // TAVILY: MCPサーバー接続
-export const transportSearch = () =>
+export const transportSearch = ({ apiKey }: { apiKey: string }) =>
   new StdioClientTransport({
     command: "npx",
     args: ["-y", "tavily-mcp@0.1.2"],
     env: {
-      API_KEY: process.env.TAVILY_API_KEY!,
+      TAVILY_API_KEY: apiKey,
     },
   });
