@@ -1,41 +1,51 @@
-export const TimelineAi = ({ aiMessages }: { aiMessages: string[] }) => {
+import { AiMessage } from "@/lib/types";
+import { Icon } from "./timeline-icon";
+import RelativeTime from "./format-timestamp";
+import { Heart, Import } from "lucide-react";
+
+const CAT_ICON_PATH = "/icon/cat_comment.png";
+const DOG_ICON_PATH = "/icon/dog_teacher.png";
+
+export const TimelineAi = ({ aiMessages }: { aiMessages: AiMessage[] }) => {
   return (
-    <div className="grow-[5] h-full px-4 py-2 border">
-      {aiMessages.map((msg, idx) => (
-        <div key={idx}>{msg}</div>
-      ))}
-    </div>
-    /*
-    <div className="w-full h-full">
-      <div className="mb-2 text-blue-300">ここにAI💬</div>
-      {currentAiCommentMessage && (
-        <div
-          className="my-2 py-2 px-6 bg-zinc-800/60 rounded"
-          key={currentAiCommentMessage.id}
-        >
-          <span className="text-white">{currentAiCommentMessage.content}</span>
-        </div>
-      )}
-      {currentAiTeacherMessage && (
-        <div
-          className="my-2 py-2 px-6 bg-zinc-800/60 rounded"
-          key={currentAiTeacherMessage.id}
-        >
-          <span className="text-white">{currentAiTeacherMessage.content}</span>
-        </div>
-      )}
-      {currentAiFreestyleMessage &&
-        currentAiFreestyleMessage.content !== "関連性なし" && (
-          <div
-            className="my-2 py-2 px-6 bg-zinc-800/60 rounded"
-            key={currentAiFreestyleMessage.id}
-          >
-            <span className="text-white">
-              {currentAiFreestyleMessage.content}
-            </span>
+    <div className="grow-[5] h-full pt-10 border overflow-y-auto">
+      {aiMessages
+        .slice()
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .map((msg, idx) => (
+          <div key={idx} className="flex items-start border-t px-4 py-2">
+            {/** アイコン */}
+            {(() => {
+              switch (msg.key) {
+                case "comment":
+                  return <Icon iconSrc={CAT_ICON_PATH} />;
+                case "teacher":
+                  return <Icon iconSrc={DOG_ICON_PATH} />;
+                default:
+                  return <Icon />;
+              }
+            })()}
+            <div className="ml-2">
+              <div className="text-right text-sm text-zinc-400 mb-1">
+                {/** 時間表記 */}
+                {<RelativeTime timestamp={msg.timestamp} />}
+              </div>
+              {/** コンテンツ */}
+              <div className="mb-1">{msg.content}</div>
+              <ul className="flex">
+                <li className="mr-10">
+                  <Heart className="w-4 h-4 text-zinc-400" />
+                </li>
+                <li>
+                  <Import className="w-4 h-4 text-zinc-400" />
+                </li>
+              </ul>
+            </div>
           </div>
-        )}
+        ))}
+      <div className="border-t text-center text-sm text-zinc-400">
+        <p className="m-4">ここがはじめてのメッセージです</p>
+      </div>
     </div>
-  );*/
   );
 };

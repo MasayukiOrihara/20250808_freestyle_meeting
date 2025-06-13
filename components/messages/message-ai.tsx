@@ -2,10 +2,8 @@ import { useChat } from "@ai-sdk/react";
 import { useUserMessages } from "./message-provider";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { UIMessage } from "ai";
-
-// 定数
-const START_MESSAGE =
-  "userに記入を促してください。出だしは「こんにちは」で始めてください。";
+import { AiMessage } from "@/lib/types";
+import { START_MESSAGE } from "@/lib/contents";
 
 // 変数
 const chatTargets = ["comment", "teacher", "freestyle"] as const;
@@ -20,7 +18,7 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
 export const MessageAi = ({
   setAiMessages,
 }: {
-  setAiMessages: Dispatch<SetStateAction<string[]>>;
+  setAiMessages: Dispatch<SetStateAction<AiMessage[]>>;
 }) => {
   const { userMessages } = useUserMessages();
 
@@ -67,7 +65,10 @@ export const MessageAi = ({
         // 最新AIメッセージの送信
         const latestMessage = getLatestAssistantMessage(chatMap[key].messages);
         if (!latestMessage.content.includes("関連性なし")) {
-          setAiMessages((prev) => [...prev, latestMessage.content]);
+          setAiMessages((prev) => [
+            ...prev,
+            { key: key, content: latestMessage.content, timestamp: Date.now() },
+          ]);
         }
       }
     }, [chatMap[key].status]);

@@ -16,6 +16,8 @@ export const SEARCH_PY_PATH = process.cwd() + "/mcp-server/search.py";
 export const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server.js";
 
 // プロンプト
+export const START_MESSAGE =
+  "userに記入を促してください。出だしは「こんにちは」で始めてください。";
 export const TEACHER_PROMPT =
   "あなたは教えたがりの真面目なAIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。メッセージに対する反応はいりません。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: ";
 export const FREESTYLE_PROMPT =

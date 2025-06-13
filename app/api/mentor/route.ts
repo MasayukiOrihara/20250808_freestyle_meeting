@@ -7,11 +7,10 @@ import {
   MENTOR_JUDGE_PROMPT,
   MENTOR_PROMPT,
   MENTOR_QUESTIONS,
+  START_MESSAGE,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
-import { Haiku3_5, openAi, strParser } from "@/lib/models";
-
-const STANDUP_MESSAGE = "こんにちは";
+import { Haiku3_5_YN, openAi, strParser } from "@/lib/models";
 
 export async function POST(req: Request) {
   try {
@@ -26,10 +25,10 @@ export async function POST(req: Request) {
 
     // 悩み相談かどうかの判断
     let isUserWorried = false;
-    if (!currentUserMessage.includes(STANDUP_MESSAGE)) {
+    if (!currentUserMessage.includes(START_MESSAGE)) {
       const judgeTemplate = MENTOR_JUDGE_PROMPT;
       const checkJudgeMentor = await PromptTemplate.fromTemplate(judgeTemplate)
-        .pipe(Haiku3_5)
+        .pipe(Haiku3_5_YN)
         .pipe(strParser)
         .invoke({ question: currentUserMessage });
 
@@ -54,7 +53,7 @@ export async function POST(req: Request) {
     } else {
       //  フェイク用のモデルを使用して、そのまま応答を送信
       const fakeModel = new FakeListChatModel({
-        responses: ["NO"],
+        responses: ["関連性なし"],
       });
       const prompt = PromptTemplate.fromTemplate("TEMPLATE1");
       const stream = await prompt.pipe(fakeModel).stream({});
