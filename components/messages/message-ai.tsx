@@ -1,17 +1,15 @@
 import { useChat } from "@ai-sdk/react";
 import { useUserMessages } from "./message-provider";
-import { useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { UIMessage } from "ai";
 
-// useChatの共通化関数
-function useMyChat(apiPath: string) {
-  return useChat({
-    api: apiPath,
-    onError: (error) => {
-      console.log(error);
-    },
-  });
-}
+// 定数
+const START_MESSAGE =
+  "userに記入を促してください。出だしは「こんにちは」で始めてください。";
+
+// 変数
+const chatTargets = ["comment", "teacher", "freestyle"] as const;
+type ChatKey = (typeof chatTargets)[number];
 
 // 最後のメッセージを取り出す共通化関数
 function getLatestAssistantMessage(messages: UIMessage[]) {
@@ -19,71 +17,61 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
   return assistantMessages[assistantMessages.length - 1];
 }
 
-export const MessageAi = () => {
+export const MessageAi = ({
+  setAiMessages,
+}: {
+  setAiMessages: Dispatch<SetStateAction<string[]>>;
+}) => {
   const { userMessages } = useUserMessages();
 
-  const { messages: commentMessages, append: commentAppend } =
-    useMyChat("api/comment");
-  const { messages: teacherMessages, append: teacherAppend } =
-    useMyChat("api/teacher");
-  const { messages: freestyleMessages, append: freestyleAppend } =
-    useMyChat("api/freestyle");
+  // API別にuseChatを定義
+  const chatMap = Object.fromEntries(
+    chatTargets.map((key) => [
+      key,
+      useChat({
+        api: `api/${key}`,
+        onError: (error) => {
+          console.log(error);
+        },
+      }),
+    ])
+  ) as Record<ChatKey, ReturnType<typeof useChat>>;
 
   // ユーザーメッセージの送信
   useEffect(() => {
     if (userMessages.length === 0) {
-      commentAppend({
+      // 初期メッセージの取得
+      chatMap.comment.append({
         role: "system",
-        content:
-          "userに記入を促してください。出だしは「こんにちは」で始めてください。",
+        content: START_MESSAGE,
       });
       return;
     }
     const currentUserMessage = userMessages[userMessages.length - 1];
 
-    commentAppend({ role: "user", content: currentUserMessage });
-    teacherAppend({ role: "user", content: currentUserMessage });
-    freestyleAppend({ role: "user", content: currentUserMessage });
+    // それぞれのAPIにユーザーメッセージを送信
+    chatTargets.forEach((key) => {
+      chatMap[key].append({ role: "user", content: currentUserMessage });
+    });
   }, [userMessages]);
 
-  // AI1 コメントAI
-  const currentAiCommentMessage = getLatestAssistantMessage(commentMessages);
-  // AI2 情報AI
-  const currentAiTeacherMessage = getLatestAssistantMessage(teacherMessages);
-  // // AI3 フリースタイル社員AI
-  const currentAiFreestyleMessage =
-    getLatestAssistantMessage(freestyleMessages);
+  // メッセージ送信
+  chatTargets.forEach((key) => {
+    useEffect(() => {
+      if (chatMap[key].messages.length === 0) return;
 
-  return (
-    <div className="w-full h-full">
-      <div className="mb-2 text-blue-300">ここにAI💬</div>
-      {currentAiCommentMessage && (
-        <div
-          className="my-2 py-2 px-6 bg-zinc-800/60 rounded"
-          key={currentAiCommentMessage.id}
-        >
-          <span className="text-white">{currentAiCommentMessage.content}</span>
-        </div>
-      )}
-      {currentAiTeacherMessage && (
-        <div
-          className="my-2 py-2 px-6 bg-zinc-800/60 rounded"
-          key={currentAiTeacherMessage.id}
-        >
-          <span className="text-white">{currentAiTeacherMessage.content}</span>
-        </div>
-      )}
-      {currentAiFreestyleMessage &&
-        currentAiFreestyleMessage.content !== "関連性なし" && (
-          <div
-            className="my-2 py-2 px-6 bg-zinc-800/60 rounded"
-            key={currentAiFreestyleMessage.id}
-          >
-            <span className="text-white">
-              {currentAiFreestyleMessage.content}
-            </span>
-          </div>
-        )}
-    </div>
-  );
+      // メッセージが受付状態になった
+      if (chatMap[key].status === "ready") {
+        console.log(`${key} が ready に到達しました`);
+
+        // 最新AIメッセージの送信
+        const latestMessage = getLatestAssistantMessage(chatMap[key].messages);
+        if (!latestMessage.content.includes("関連性なし")) {
+          setAiMessages((prev) => [...prev, latestMessage.content]);
+        }
+      }
+    }, [chatMap[key].status]);
+  });
+
+  return null;
 };
