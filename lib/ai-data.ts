@@ -4,6 +4,7 @@ import {
   DOG_ICON_PATH,
   FREESTYLE_PROMPT,
   MENTOR_PROMPT,
+  OWL_ICON_PATH,
   TEACHER_PROMPT,
 } from "./contents";
 
@@ -76,11 +77,12 @@ export const aiData: Record<string, AiData> = {
     id: "mentor",
     name: "メンターAI",
     isUse: false,
+    icon: OWL_ICON_PATH,
     aiMeta: {
       version: "1.0",
       model: "OpenAi",
       prompt: MENTOR_PROMPT,
-      description: "絵文字を多用する陽気なメンターAIです。",
+      description: "ちょっと見栄っ張りなメンターAIです。",
       exampleMessages: [""],
     },
   },

@@ -18,6 +18,7 @@ export const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server.js";
 // アイコンパス
 export const CAT_ICON_PATH = "/icon/cat_comment.png";
 export const DOG_ICON_PATH = "/icon/dog_teacher.png";
+export const OWL_ICON_PATH = "/icon/owl_mentor.png";
 export const DUMMY_ICON_PATH = "/icon/human_dummy.png";
 
 // プロンプト
