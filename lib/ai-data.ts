@@ -3,6 +3,7 @@ import {
   COMMENT_PROMPT,
   DOG_ICON_PATH,
   FREESTYLE_PROMPT,
+  MENTOR_PROMPT,
   TEACHER_PROMPT,
 } from "./contents";
 
@@ -19,6 +20,10 @@ type AiData = {
   isUse: boolean; // AIの使用可否
   icon?: string; // AIのアイコンURL
   aiMeta: AiMeta; // AIのメタデータ
+};
+
+export type AiDataState = {
+  [id: string]: AiData;
 };
 
 /** AIのデータ */
@@ -64,6 +69,18 @@ export const aiData: Record<string, AiData> = {
       model: "OpenAi",
       prompt: FREESTYLE_PROMPT,
       description: "株式会社フリースタイルの社員AIです。",
+      exampleMessages: [""],
+    },
+  },
+  mentor: {
+    id: "mentor",
+    name: "メンターAI",
+    isUse: false,
+    aiMeta: {
+      version: "1.0",
+      model: "OpenAi",
+      prompt: MENTOR_PROMPT,
+      description: "絵文字を多用する陽気なメンターAIです。",
       exampleMessages: [""],
     },
   },

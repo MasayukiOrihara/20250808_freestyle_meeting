@@ -4,9 +4,11 @@ import { Dispatch, SetStateAction, useEffect } from "react";
 import { UIMessage } from "ai";
 import { AiMessage } from "@/lib/types";
 import { START_MESSAGE } from "@/lib/contents";
+import { aiData, AiDataState } from "@/lib/ai-data";
 
 // 変数
-const chatTargets = ["comment", "teacher", "freestyle"] as const;
+// const chatTargets = ["comment", "teacher", "freestyle"] as const;
+const chatTargets = Object.keys(aiData) as (keyof typeof aiData)[];
 type ChatKey = (typeof chatTargets)[number];
 
 // 最後のメッセージを取り出す共通化関数
@@ -15,11 +17,12 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
   return assistantMessages[assistantMessages.length - 1];
 }
 
-export const MessageAi = ({
-  setAiMessages,
-}: {
-  setAiMessages: Dispatch<SetStateAction<AiMessage[]>>;
-}) => {
+type MessageAiProps = {
+  setAiMessages: (v: SetStateAction<AiMessage[]>) => void;
+  aiDataState: AiDataState;
+};
+
+export const MessageAi = ({ setAiMessages, aiDataState }: MessageAiProps) => {
   const { userMessages } = useUserMessages();
 
   // API別にuseChatを定義
@@ -49,7 +52,9 @@ export const MessageAi = ({
 
     // それぞれのAPIにユーザーメッセージを送信
     chatTargets.forEach((key) => {
-      chatMap[key].append({ role: "user", content: currentUserMessage });
+      if (aiDataState[key]?.isUse) {
+        chatMap[key].append({ role: "user", content: currentUserMessage });
+      }
     });
   }, [userMessages]);
 
