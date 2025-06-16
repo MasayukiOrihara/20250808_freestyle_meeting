@@ -1,9 +1,22 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
+import { FakeListChatModel } from "@langchain/core/utils/testing";
 
 import { formatMessage, getInfoUsingTools } from "@/lib/utils";
-import { FREESTYLE_PROMPT, TAVILY_CLIENT, TAVILY_ERROR } from "@/lib/contents";
-import { client, openAi, transportSearch } from "@/lib/models";
+import {
+  FREESTYLE_COMPANY_SUMMARY,
+  FREESTYLE_PROMPT,
+  START_MESSAGE,
+  TAVILY_CLIENT,
+  TAVILY_ERROR,
+} from "@/lib/contents";
+import {
+  client,
+  Haiku3_5_YN,
+  openAi,
+  strParser,
+  transportSearch,
+} from "@/lib/models";
 
 export async function POST(req: Request) {
   try {
@@ -18,27 +31,59 @@ export async function POST(req: Request) {
 
     const queryMessage = "site:freestyles.jp/ " + currentUserMessage;
 
-    // API チェック
-    const tavily = process.env.TAVILY_API_KEY;
-    if (!tavily) throw new Error(TAVILY_ERROR);
+    // フリースタイルの話かどうかの判断
+    let isFreestyle = false;
+    if (!currentUserMessage.includes(START_MESSAGE)) {
+      const judgeTemplate =
+        "{input}\n\nこの文章は 以下の会社の話ですか？\n「YES」または「NO」のどちらかのみを出力してください。\n\n{summry}";
+      const summry = FREESTYLE_COMPANY_SUMMARY;
+      const checkJudgeFreestyle = await PromptTemplate.fromTemplate(
+        judgeTemplate
+      )
+        .pipe(Haiku3_5_YN)
+        .pipe(strParser)
+        .invoke({ input: currentUserMessage, summry: summry });
 
-    /** MCPサーバー */
-    const transport = transportSearch({ apiKey: tavily });
-    const tavilyClient = client({ mcpName: TAVILY_CLIENT });
-    await tavilyClient.connect(transport);
+      console.log("🏢 フリースタイルの話: " + checkJudgeFreestyle);
+      if (checkJudgeFreestyle.includes("YES")) {
+        isFreestyle = true;
+      }
+    }
 
-    /** AI */
-    const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
-    const info = await getInfoUsingTools(tavilyClient, queryMessage);
-    const stream = await prompt.pipe(openAi).stream({
-      history: formattedPreviousMessages,
-      user_message: currentUserMessage,
-      info: info,
-    });
+    if (isFreestyle) {
+      // API チェック
+      const tavily = process.env.TAVILY_API_KEY;
+      if (!tavily) throw new Error(TAVILY_ERROR);
 
-    console.log("🏢 COMPLITE \n --- ");
+      /** MCPサーバー */
+      const transport = transportSearch({ apiKey: tavily });
+      const tavilyClient = client({ mcpName: TAVILY_CLIENT });
+      await tavilyClient.connect(transport);
 
-    return LangChainAdapter.toDataStreamResponse(stream);
+      /** AI */
+      const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
+      const info = await getInfoUsingTools(tavilyClient, queryMessage);
+      const stream = await prompt.pipe(openAi).stream({
+        history: formattedPreviousMessages,
+        user_message: currentUserMessage,
+        info: info,
+      });
+
+      console.log("🏢 COMPLITE \n --- ");
+
+      return LangChainAdapter.toDataStreamResponse(stream);
+    } else {
+      //  フェイク用のモデルを使用して、そのまま応答を送信
+      const fakeModel = new FakeListChatModel({
+        responses: ["関連性なし"],
+      });
+      const prompt = PromptTemplate.fromTemplate("TEMPLATE1");
+      const stream = await prompt.pipe(fakeModel).stream({});
+
+      console.log("🏢 COMPLITE (NO USE) \n --- ");
+
+      return LangChainAdapter.toDataStreamResponse(stream);
+    }
   } catch (error) {
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
