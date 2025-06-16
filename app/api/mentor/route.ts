@@ -10,7 +10,7 @@ import {
   START_MESSAGE,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
-import { Haiku3_5_YN, openAi, strParser } from "@/lib/models";
+import { Haiku3_5_YN, OpenAi, strParser } from "@/lib/models";
 
 export async function POST(req: Request) {
   try {
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     if (isUserWorried) {
       // 悩みがあった場合
       const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
-      const stream = await prompt.pipe(openAi).stream({
+      const stream = await prompt.pipe(OpenAi).stream({
         question_list: MENTOR_QUESTIONS,
         history: formattedPreviousMessages,
         user_message: currentUserMessage,

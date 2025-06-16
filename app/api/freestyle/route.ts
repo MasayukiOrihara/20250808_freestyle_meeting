@@ -13,7 +13,7 @@ import {
 import {
   client,
   Haiku3_5_YN,
-  openAi,
+  OpenAi,
   strParser,
   transportSearch,
 } from "@/lib/models";
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       /** AI */
       const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
       const info = await getInfoUsingTools(tavilyClient, queryMessage);
-      const stream = await prompt.pipe(openAi).stream({
+      const stream = await prompt.pipe(OpenAi).stream({
         history: formattedPreviousMessages,
         user_message: currentUserMessage,
         info: info,

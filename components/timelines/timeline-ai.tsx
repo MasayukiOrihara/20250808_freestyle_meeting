@@ -2,9 +2,7 @@ import { AiMessage } from "@/lib/types";
 import { Icon } from "./timeline-icon";
 import RelativeTime from "./format-timestamp";
 import { Heart, Import } from "lucide-react";
-
-const CAT_ICON_PATH = "/icon/cat_comment.png";
-const DOG_ICON_PATH = "/icon/dog_teacher.png";
+import { aiData } from "@/lib/ai-data";
 
 export const TimelineAi = ({ aiMessages }: { aiMessages: AiMessage[] }) => {
   return (
@@ -15,16 +13,8 @@ export const TimelineAi = ({ aiMessages }: { aiMessages: AiMessage[] }) => {
         .map((msg, idx) => (
           <div key={idx} className="flex items-start border-t px-4 py-2">
             {/** アイコン */}
-            {(() => {
-              switch (msg.key) {
-                case "comment":
-                  return <Icon iconSrc={CAT_ICON_PATH} />;
-                case "teacher":
-                  return <Icon iconSrc={DOG_ICON_PATH} />;
-                default:
-                  return <Icon />;
-              }
-            })()}
+            <Icon iconSrc={aiData[msg.key]?.icon} />
+
             <div className="ml-2">
               <div className="text-right text-sm text-zinc-400 mb-1">
                 {/** 時間表記 */}

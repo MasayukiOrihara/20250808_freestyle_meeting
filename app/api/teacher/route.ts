@@ -3,7 +3,7 @@ import { LangChainAdapter } from "ai";
 
 import { formatMessage, getInfoUsingTools } from "@/lib/utils";
 import { TAVILY_ERROR, TEACHER_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
-import { client, openAi, transportSearch } from "@/lib/models";
+import { client, OpenAi, transportSearch } from "@/lib/models";
 import { TAVILY_CLIENT } from "../../../lib/contents";
 
 export async function POST(req: Request) {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     /** AI */
     const prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
     const info = await getInfoUsingTools(tavilyClient, currentUserMessage);
-    const stream = await prompt.pipe(openAi).stream({
+    const stream = await prompt.pipe(OpenAi).stream({
       history: formattedPreviousMessages,
       user_message: currentUserMessage,
       info: info,

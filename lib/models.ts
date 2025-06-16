@@ -10,7 +10,7 @@ import * as CONTENTS from "./contents";
 export const strParser = new StringOutputParser();
 
 // OPENAI
-export const openAi = new ChatOpenAI({
+export const OpenAi = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
   model: CONTENTS.OPEN_AI_4O,
   temperature: 0.8,

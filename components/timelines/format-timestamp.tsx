@@ -11,7 +11,6 @@ const formatTimestamp = (time: string | number) => {
 
   const diffMinutes = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMinutes < 1) return "just now"; // 1分未満
   if (diffMinutes < 60) return `${diffMinutes}m`; // 1分〜59分

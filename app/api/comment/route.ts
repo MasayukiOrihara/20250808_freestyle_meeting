@@ -7,7 +7,7 @@ import {
   MENTOR_QUESTIONS,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
-import { openAi } from "@/lib/models";
+import { OpenAi } from "@/lib/models";
 
 export async function POST(req: Request) {
   try {
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
     const prompt = PromptTemplate.fromTemplate(COMMENT_PROMPT);
 
-    const stream = await prompt.pipe(openAi).stream({
+    const stream = await prompt.pipe(OpenAi).stream({
       question_list: MENTOR_QUESTIONS,
       history: formattedPreviousMessages,
       user_message: currentUserMessage,

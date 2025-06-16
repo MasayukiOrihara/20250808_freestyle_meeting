@@ -15,6 +15,11 @@ export const PYTHON_PATH =
 export const SEARCH_PY_PATH = process.cwd() + "/mcp-server/search.py";
 export const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server.js";
 
+// アイコンパス
+export const CAT_ICON_PATH = "/icon/cat_comment.png";
+export const DOG_ICON_PATH = "/icon/dog_teacher.png";
+export const DUMMY_ICON_PATH = "/icon/human_dummy.png";
+
 // プロンプト
 export const START_MESSAGE =
   "userに記入を促してください。出だしは「こんにちは」で始めてください。";
