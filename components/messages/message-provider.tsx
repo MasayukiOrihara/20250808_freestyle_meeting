@@ -1,18 +1,31 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { v4 as uuidv4 } from "uuid";
 
-type UserMessageContextType = {
-  userMessages: string[];
-  addUserMessage: (msg: string) => void;
-};
+import {
+  UserMessage,
+  UserMessageContextType,
+  UserMessageInput,
+} from "@/lib/types";
 
 const MessageContext = createContext<UserMessageContextType | undefined>(
   undefined
 );
 
 export const MessageProvider = ({ children }: { children: ReactNode }) => {
-  const [userMessages, setUserMessages] = useState<string[]>([]);
+  const [userMessages, setUserMessages] = useState<UserMessage[]>([]);
 
-  const addUserMessage = (msg: string) => {
+  // ユーザー側のメッセージを追加する関数
+  const addUserMessage = ({
+    content,
+    isImport,
+    importMessageId,
+  }: UserMessageInput) => {
+    const msg: UserMessage = {
+      id: uuidv4(),
+      content: content,
+      isImport: isImport,
+      importMessageId: importMessageId,
+    };
     setUserMessages((prev) => [...prev, msg]);
   };
 

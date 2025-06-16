@@ -6,7 +6,7 @@ export const MessageList = () => {
   return (
     <div className="mb-2">
       {userMessages.map((msg, idx) => (
-        <div key={idx}>{msg}</div>
+        <div key={idx}>{msg.content}</div>
       ))}
     </div>
   );

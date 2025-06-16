@@ -9,7 +9,7 @@ export const MessageInput = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (text.trim()) {
-        addUserMessage(text.trim());
+        addUserMessage({ content: text.trim() });
         setText("");
       }
     }

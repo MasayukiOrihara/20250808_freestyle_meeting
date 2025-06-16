@@ -1,16 +1,9 @@
-import { aiData, AiDataState } from "@/lib/ai-data";
+import { aiData } from "@/lib/ai-data";
 import { Icon } from "./timeline-icon";
-import { Dispatch, SetStateAction } from "react";
+import { useAiData } from "./timeline-provider";
 
-type TimelineSidebarProps = {
-  aiDataState: AiDataState;
-  setAiDataState: Dispatch<SetStateAction<AiDataState>>;
-};
-
-export const TimelineSidebar = ({
-  aiDataState,
-  setAiDataState,
-}: TimelineSidebarProps) => {
+export const TimelineSidebar = () => {
+  const { aiDataState, setAiDataState } = useAiData();
   const aiList = Object.values(aiDataState);
 
   // アイコンをクリックしたときの処理
@@ -26,7 +19,7 @@ export const TimelineSidebar = ({
   };
 
   return (
-    <div className="grow-[2] h-full mx-1">
+    <div className="h-full mx-1">
       {aiList.map((ai) => (
         <ul key={ai.id} className="flex items-center my-1">
           <li className="border p-1">

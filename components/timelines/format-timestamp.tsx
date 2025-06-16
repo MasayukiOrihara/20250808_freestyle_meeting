@@ -1,8 +1,6 @@
 import React from "react";
 
-type Props = {
-  timestamp: string | number; // UNIXミリ秒 or ISO8601文字列想定
-};
+import { Props } from "@/lib/types";
 
 const formatTimestamp = (time: string | number) => {
   const now = Date.now();

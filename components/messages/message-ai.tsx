@@ -1,13 +1,14 @@
+import { useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
-import { useUserMessages } from "./message-provider";
-import { Dispatch, SetStateAction, useEffect } from "react";
 import { UIMessage } from "ai";
-import { AiMessage } from "@/lib/types";
+
+import { useUserMessages } from "./message-provider";
 import { START_MESSAGE } from "@/lib/contents";
-import { aiData, AiDataState } from "@/lib/ai-data";
+import { aiData } from "@/lib/ai-data";
+import { useAiData } from "../timelines/timeline-provider";
+import { useAiMessages } from "./message-ai-provider";
 
 // 変数
-// const chatTargets = ["comment", "teacher", "freestyle"] as const;
 const chatTargets = Object.keys(aiData) as (keyof typeof aiData)[];
 type ChatKey = (typeof chatTargets)[number];
 
@@ -17,13 +18,10 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
   return assistantMessages[assistantMessages.length - 1];
 }
 
-type MessageAiProps = {
-  setAiMessages: (v: SetStateAction<AiMessage[]>) => void;
-  aiDataState: AiDataState;
-};
-
-export const MessageAi = ({ setAiMessages, aiDataState }: MessageAiProps) => {
+export const MessageAi = () => {
   const { userMessages } = useUserMessages();
+  const { aiDataState } = useAiData();
+  const { addAiMessage } = useAiMessages();
 
   // API別にuseChatを定義
   const chatMap = Object.fromEntries(
@@ -48,7 +46,7 @@ export const MessageAi = ({ setAiMessages, aiDataState }: MessageAiProps) => {
       });
       return;
     }
-    const currentUserMessage = userMessages[userMessages.length - 1];
+    const currentUserMessage = userMessages[userMessages.length - 1].content;
 
     // それぞれのAPIにユーザーメッセージを送信
     chatTargets.forEach((key) => {
@@ -70,10 +68,7 @@ export const MessageAi = ({ setAiMessages, aiDataState }: MessageAiProps) => {
         // 最新AIメッセージの送信
         const latestMessage = getLatestAssistantMessage(chatMap[key].messages);
         if (!latestMessage.content.includes("関連性なし")) {
-          setAiMessages((prev) => [
-            ...prev,
-            { key: key, content: latestMessage.content, timestamp: Date.now() },
-          ]);
+          addAiMessage({ key: key, content: latestMessage.content });
         }
       }
     }, [chatMap[key].status]);

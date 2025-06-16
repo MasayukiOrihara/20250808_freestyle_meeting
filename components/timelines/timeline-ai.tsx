@@ -1,18 +1,28 @@
-import { AiMessage } from "@/lib/types";
+import { motion } from "framer-motion";
+import { Heart, Import } from "lucide-react";
+
 import { Icon } from "./timeline-icon";
 import RelativeTime from "./format-timestamp";
-import { Heart, Import } from "lucide-react";
-import { AiDataState } from "@/lib/ai-data";
-import { motion } from "framer-motion";
+import { useUserMessages } from "../messages/message-provider";
+import { useAiData } from "./timeline-provider";
+import { useAiMessages } from "../messages/message-ai-provider";
 
-type TimelineAiProps = {
-  aiMessages: AiMessage[];
-  aiDataState: AiDataState;
-};
+export const TimelineAi = () => {
+  const { aiDataState } = useAiData();
+  const { addUserMessage } = useUserMessages();
+  const { aiMessages } = useAiMessages();
 
-export const TimelineAi = ({ aiMessages, aiDataState }: TimelineAiProps) => {
+  // メッセージを追加するハンドラー
+  const handleAddMessage = (msg: string, key: string) => {
+    addUserMessage({
+      content: msg,
+      isImport: true,
+      importMessageId: key,
+    });
+  };
+
   return (
-    <div className="grow-[5] h-full pt-10 border overflow-y-auto">
+    <div className="h-full pt-10 border overflow-y-auto">
       {aiMessages
         .slice()
         .sort((a, b) => b.timestamp - a.timestamp)
@@ -45,7 +55,12 @@ export const TimelineAi = ({ aiMessages, aiDataState }: TimelineAiProps) => {
                   <Heart className="w-4 h-4 text-zinc-400" />
                 </li>
                 <li>
-                  <Import className="w-4 h-4 text-zinc-400" />
+                  <button
+                    onClick={() => handleAddMessage(msg.content, msg.key)}
+                    className="opacity-80 hover:cursor-pointer hover:opacity-100"
+                  >
+                    <Import className="w-4 h-4 text-zinc-400" />
+                  </button>
                 </li>
               </ul>
             </div>

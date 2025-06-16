@@ -1,11 +1,7 @@
-import { DUMMY_ICON_PATH } from "@/lib/contents";
 import Image from "next/image";
 
-type IconProps = {
-  iconSrc?: string;
-  size?: number;
-  title?: string;
-};
+import { IconProps } from "@/lib/types";
+import { DUMMY_ICON_PATH } from "@/lib/contents";
 
 export const Icon: React.FC<IconProps> = ({
   iconSrc,
