@@ -32,7 +32,7 @@ export const Haiku3_5 = new ChatAnthropic({
 export const Haiku3_5_YN = new ChatAnthropic({
   model: CONTENTS.ANTHROPIC_HAIKU_3_5,
   apiKey: process.env.ANTHROPIC_API_KEY!,
-  maxTokens: 3,
+  maxTokens: 64,
   temperature: 0,
   cache: true,
   tags: CONTENTS.TAGS,

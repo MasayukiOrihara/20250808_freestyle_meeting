@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     let isFreestyle = false;
     if (!currentUserMessage.includes(START_MESSAGE)) {
       const judgeTemplate =
-        "{input}\n\nこの文章は 以下の会社の話ですか？\n「YES」または「NO」のどちらかのみを出力してください。\n\n{summry}";
+        "{input}\n\nこの文章は 以下の会社に関係する話ですか？\n「YES」または「NO」のどちらかのみを出力してください。\n\n{summry}";
       const summry = FREESTYLE_COMPANY_SUMMARY;
       const checkJudgeFreestyle = await PromptTemplate.fromTemplate(
         judgeTemplate
