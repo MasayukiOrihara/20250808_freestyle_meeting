@@ -16,7 +16,6 @@ export const TimelineAi = () => {
   const handleAddMessage = (msg: string, key: string) => {
     addUserMessage({
       content: msg,
-      isImport: true,
       importMessageId: key,
     });
   };

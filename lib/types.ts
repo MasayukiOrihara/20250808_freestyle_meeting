@@ -23,21 +23,15 @@ export type Props = {
 export type UserMessage = {
   id: string;
   content: string;
-  isImport?: boolean;
   importMessageId?: string;
 };
 export type UserMessageInput = {
   content: string;
-  isImport?: boolean;
   importMessageId?: string;
 };
 export type UserMessageContextType = {
   userMessages: UserMessage[];
-  addUserMessage: ({
-    content,
-    isImport,
-    importMessageId,
-  }: UserMessageInput) => void;
+  addUserMessage: ({ content, importMessageId }: UserMessageInput) => void;
 };
 
 /** message-ai-provider で使う型 */

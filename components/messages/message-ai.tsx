@@ -46,14 +46,30 @@ export const MessageAi = () => {
       });
       return;
     }
-    const currentUserMessage = userMessages[userMessages.length - 1].content;
 
-    // それぞれのAPIにユーザーメッセージを送信
-    chatTargets.forEach((key) => {
-      if (aiDataState[key]?.isUse) {
-        chatMap[key].append({ role: "user", content: currentUserMessage });
-      }
-    });
+    const currentUserMessage = userMessages[userMessages.length - 1];
+    if (!currentUserMessage.importMessageId) {
+      // それぞれのAPIにユーザーメッセージを送信
+      chatTargets.forEach((key) => {
+        if (aiDataState[key]?.isUse) {
+          chatMap[key].append({
+            role: "user",
+            content: currentUserMessage.content,
+          });
+        }
+      });
+    } else {
+      // importがある場合は、AIメッセージなことを明示して送信
+      const aiMessagePrompt = "これはAIから取得したメッセージです:\n";
+      chatTargets.forEach((key) => {
+        if (aiDataState[key]?.isUse) {
+          chatMap[key].append({
+            role: "user",
+            content: aiMessagePrompt + currentUserMessage.content,
+          });
+        }
+      });
+    }
   }, [userMessages]);
 
   // メッセージ送信

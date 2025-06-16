@@ -15,15 +15,10 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
   const [userMessages, setUserMessages] = useState<UserMessage[]>([]);
 
   // ユーザー側のメッセージを追加する関数
-  const addUserMessage = ({
-    content,
-    isImport,
-    importMessageId,
-  }: UserMessageInput) => {
+  const addUserMessage = ({ content, importMessageId }: UserMessageInput) => {
     const msg: UserMessage = {
       id: uuidv4(),
       content: content,
-      isImport: isImport,
       importMessageId: importMessageId,
     };
     setUserMessages((prev) => [...prev, msg]);
