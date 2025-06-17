@@ -12,6 +12,8 @@ import {
 } from "@/lib/contents";
 import { Haiku3_5_YN, OpenAi, strParser } from "@/lib/models";
 
+let isUserWorried = false;
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -24,7 +26,7 @@ export async function POST(req: Request) {
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
     // 悩み相談かどうかの判断
-    let isUserWorried = false;
+
     if (!currentUserMessage.includes(START_MESSAGE)) {
       const judgeTemplate = MENTOR_JUDGE_PROMPT;
       const checkJudgeMentor = await PromptTemplate.fromTemplate(judgeTemplate)
