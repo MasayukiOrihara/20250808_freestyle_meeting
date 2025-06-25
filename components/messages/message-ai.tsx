@@ -7,6 +7,7 @@ import { START_MESSAGE } from "@/lib/contents";
 import { aiData } from "@/lib/ai-data";
 import { useAiData } from "../timelines/timeline-provider";
 import { useAiMessages } from "./message-ai-provider";
+import { useAllChats } from "@/hooks/chathooks";
 
 // 変数
 const chatTargets = Object.keys(aiData) as (keyof typeof aiData)[];
@@ -18,51 +19,35 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
   return assistantMessages[assistantMessages.length - 1];
 }
 
-// useChat共通化
-const commonChatOptions = {
-  onError: (error: Error) => {
-    console.error("Chat error:", error);
-  },
-};
-
 /**
  * LLMとメッセージのやり取りを行う
  * @returns
  */
 export const MessageAi = () => {
   // usechat（Reactルールでトップレベルで呼び出さなきゃダメらしい）
-  const comment = useChat({ api: "api/comment", ...commonChatOptions });
-  const teacher = useChat({ api: "api/teacher", ...commonChatOptions });
-  const freestyle = useChat({ api: "api/freestyle", ...commonChatOptions });
-  const mentor = useChat({ api: "api/mentor", ...commonChatOptions });
+  const chatMap = useAllChats() as Record<ChatKey, ReturnType<typeof useChat>>;
 
   // プロバイダーから取得
   const { userMessages } = useUserMessages();
   const { aiDataState } = useAiData();
   const { addAiMessage } = useAiMessages();
 
-  // すべてのusechatをまとめる
-  const chatMap = {
-    comment: comment,
-    teacher: teacher,
-    freestyle: freestyle,
-    mentor: mentor,
-  } as Record<ChatKey, ReturnType<typeof useChat>>;
-
   // AIのメッセージを取得する共通関数
   const handleChatReady = (key: ChatKey) => {
-    if (chatMap[key].messages.length === 0) return;
+    useEffect(() => {
+      if (chatMap[key].messages.length === 0) return;
 
-    // メッセージが受付状態になった
-    if (chatMap[key].status === "ready") {
-      console.log(`${key} が ready に到達しました`);
+      // メッセージが受付状態になった
+      if (chatMap[key].status === "ready") {
+        console.log(`${key} が ready に到達しました`);
 
-      // 最新AIメッセージの送信
-      const latestMessage = getLatestAssistantMessage(chatMap[key].messages);
-      if (!latestMessage.content.includes("関連性なし")) {
-        addAiMessage({ key: key, content: latestMessage.content });
+        // 最新AIメッセージの送信
+        const latestMessage = getLatestAssistantMessage(chatMap[key].messages);
+        if (!latestMessage.content.includes("関連性なし")) {
+          addAiMessage({ key: key, content: latestMessage.content });
+        }
       }
-    }
+    }, [chatMap[key].status]);
   };
 
   // ユーザーメッセージの送信
@@ -102,21 +87,14 @@ export const MessageAi = () => {
   }, [userMessages]);
 
   // 各APIごとの個別useEffect
-  useEffect(() => {
-    handleChatReady("comment");
-  }, [chatMap.comment.status]);
-
-  useEffect(() => {
-    handleChatReady("teacher");
-  }, [chatMap.teacher.status]);
-
-  useEffect(() => {
-    handleChatReady("freestyle");
-  }, [chatMap.freestyle.status]);
-
-  useEffect(() => {
-    handleChatReady("mentor");
-  }, [chatMap.mentor.status]);
+  handleChatReady("comment");
+  handleChatReady("teacher");
+  handleChatReady("freestyle");
+  handleChatReady("mentor");
+  handleChatReady("logic");
+  handleChatReady("story");
+  handleChatReady("dark");
+  handleChatReady("repeat");
 
   return null;
 };

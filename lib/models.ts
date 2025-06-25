@@ -72,5 +72,8 @@ export const getTavilyInfo = async (query: string) => {
     includeGeneratedAnswer: true,
   });
 
-  return await tavily.invoke(query);
+  const result = await tavily.invoke(query);
+  console.log("検索結果: \n" + JSON.stringify(result, null, 2));
+
+  return result;
 };

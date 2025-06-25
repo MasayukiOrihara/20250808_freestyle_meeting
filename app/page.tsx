@@ -1,6 +1,6 @@
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { SideMenu } from "@/components/side-menu";
+import { Header } from "@/components/common/header";
+import { Footer } from "@/components/common/footer";
+import { SideMenu } from "@/components/common/side-menu";
 import { MainPage } from "@/components/main-page";
 
 export default function Home() {
