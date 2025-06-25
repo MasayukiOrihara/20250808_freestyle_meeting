@@ -1,6 +1,5 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
-import { FakeListChatModel } from "@langchain/core/utils/testing";
 
 import { formatMessage } from "@/lib/utils";
 import {
@@ -10,7 +9,12 @@ import {
   START_MESSAGE,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
-import { Haiku3_5_YN, OpenAi, strParser } from "@/lib/models";
+import {
+  Sonnet4YN,
+  OpenAi4oMini,
+  strParser,
+  getFakeStream,
+} from "@/lib/models";
 
 let isUserWorried = false;
 
@@ -30,7 +34,7 @@ export async function POST(req: Request) {
     if (!currentUserMessage.includes(START_MESSAGE)) {
       const judgeTemplate = MENTOR_JUDGE_PROMPT;
       const checkJudgeMentor = await PromptTemplate.fromTemplate(judgeTemplate)
-        .pipe(Haiku3_5_YN)
+        .pipe(Sonnet4YN)
         .pipe(strParser)
         .invoke({ question: currentUserMessage });
 
@@ -43,28 +47,20 @@ export async function POST(req: Request) {
     if (isUserWorried) {
       // 悩みがあった場合
       const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
-      const stream = await prompt.pipe(OpenAi).stream({
+      const stream = await prompt.pipe(OpenAi4oMini).stream({
         question_list: MENTOR_QUESTIONS,
         history: formattedPreviousMessages,
         user_message: currentUserMessage,
       });
 
       console.log("🔮 COMPLITE \n --- ");
-
       return LangChainAdapter.toDataStreamResponse(stream);
     } else {
-      //  フェイク用のモデルを使用して、そのまま応答を送信
-      const fakeModel = new FakeListChatModel({
-        responses: ["関連性なし"],
-      });
-      const prompt = PromptTemplate.fromTemplate("TEMPLATE1");
-      const stream = await prompt.pipe(fakeModel).stream({});
-
       console.log("🔮 COMPLITE (NO USE) \n --- ");
-
-      return LangChainAdapter.toDataStreamResponse(stream);
+      return LangChainAdapter.toDataStreamResponse(await getFakeStream());
     }
   } catch (error) {
+    console.log("🔮 MENTOR API error :\n" + error);
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,

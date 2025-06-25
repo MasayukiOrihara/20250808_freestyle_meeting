@@ -1,7 +1,11 @@
 // モデル名
 export const OPEN_AI_4O = "gpt-4o";
+export const OPEN_AI_4O_MINI = "gpt-4o-mini";
 export const ANTHROPIC_HAIKU_3 = "claude-3-haiku-20240307";
 export const ANTHROPIC_HAIKU_3_5 = "claude-3-5-haiku-20241022";
+export const ANTHROPIC_OPUS_4 = "claude-opus-4-20250514";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
+export const ANTHROPIC_SONNET_3_7 = "claude-3-7-sonnet-20250219";
 
 // タグ名
 export const TAGS = ["reflect_whiteboard"];
@@ -28,6 +32,8 @@ export const TEACHER_PROMPT =
   "あなたは教えたがりの真面目なAIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。メッセージに対する反応はいりません。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: ";
 export const FREESTYLE_PROMPT =
   "あなたは株式会社フリースタイルの社員AIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。メッセージに対する反応はいりません。もしinfo情報とuserメッセージの関連性が低い場合、「関連性なし」と出力してください。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: ";
+export const FREESTYLE_JUDGE_PROMPT =
+  "以下の会社概要に、次のユーザーの文章は関連していますか？「YES」または「NO」のみを出力してください。\n\n[会社概要: {summry}]\n[ユーザーの文章: {input}]\n\n出力: ";
 export const COMMENT_PROMPT =
   "あなたは絵文字を多用する陽気なAIです。userのメッセージに対して次の文章をかきだせるようなコメントやアドバイスしてください。出力は140文字程度です。\n\nCurrent conversation: ---\n{history}\n---\n\nuser: {user_message}\nassistant: ";
 export const MENTOR_JUDGE_PROMPT =

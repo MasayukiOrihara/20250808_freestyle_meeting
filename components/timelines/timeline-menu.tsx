@@ -16,14 +16,8 @@ export const TimelineMenu = () => {
           2 時間
           <p>{time}</p>
         </li>
-        <li>
-          3 現在地
-          <p>愛知県名古屋市</p>
-        </li>
-        <li>
-          4 名前
-          <p>オリハラ</p>
-        </li>
+        <li>3 現在地</li>
+        <li>4 名前</li>
       </ul>
     </div>
   );

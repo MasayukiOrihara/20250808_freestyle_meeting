@@ -1,10 +1,9 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { formatMessage, getInfoUsingTools } from "@/lib/utils";
-import { TAVILY_ERROR, TEACHER_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
-import { client, OpenAi, transportSearch } from "@/lib/models";
-import { TAVILY_CLIENT } from "../../../lib/contents";
+import { formatMessage } from "@/lib/utils";
+import { TEACHER_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
+import { getTavilyInfo, OpenAi4oMini } from "@/lib/models";
 
 export async function POST(req: Request) {
   try {
@@ -17,28 +16,19 @@ export async function POST(req: Request) {
     const currentUserMessage = messages[messages.length - 1].content;
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
-    // TAVILY APIチェック
-    const tavily = process.env.TAVILY_API_KEY;
-    if (!tavily) throw new Error(TAVILY_ERROR);
-
-    /** MCPサーバー */
-    const transport = transportSearch({ apiKey: tavily });
-    const tavilyClient = client({ mcpName: TAVILY_CLIENT });
-    await tavilyClient.connect(transport);
-
     /** AI */
     const prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
-    const info = await getInfoUsingTools(tavilyClient, currentUserMessage);
-    const stream = await prompt.pipe(OpenAi).stream({
+    const info = await getTavilyInfo(currentUserMessage);
+    const stream = await prompt.pipe(OpenAi4oMini).stream({
       history: formattedPreviousMessages,
       user_message: currentUserMessage,
       info: info,
     });
 
     console.log("🔎 COMPLITE \n --- ");
-
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
+    console.log("🔎 Teacher API error :\n" + error);
     if (error instanceof Error) {
       console.log(error);
       return new Response(JSON.stringify({ error: error.message }), {

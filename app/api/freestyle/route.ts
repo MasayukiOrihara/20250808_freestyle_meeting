@@ -1,21 +1,19 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
-import { FakeListChatModel } from "@langchain/core/utils/testing";
 
-import { formatMessage, getInfoUsingTools } from "@/lib/utils";
+import { formatMessage } from "@/lib/utils";
 import {
   FREESTYLE_COMPANY_SUMMARY,
+  FREESTYLE_JUDGE_PROMPT,
   FREESTYLE_PROMPT,
   START_MESSAGE,
-  TAVILY_CLIENT,
-  TAVILY_ERROR,
 } from "@/lib/contents";
 import {
-  client,
-  Haiku3_5_YN,
-  OpenAi,
+  Sonnet4YN,
+  OpenAi4oMini,
   strParser,
-  transportSearch,
+  getTavilyInfo,
+  getFakeStream,
 } from "@/lib/models";
 
 export async function POST(req: Request) {
@@ -34,15 +32,16 @@ export async function POST(req: Request) {
     // フリースタイルの話かどうかの判断
     let isFreestyle = false;
     if (!currentUserMessage.includes(START_MESSAGE)) {
-      const judgeTemplate =
-        "以下の会社概要に、次のユーザーの文章は関連していますか？「YES」または「NO」のみを出力してください。\n\n[会社概要: {summry}]\n[ユーザーの文章: {input}]\n\n出力: ";
-      const summry = FREESTYLE_COMPANY_SUMMARY;
+      const judgeTemplate = FREESTYLE_JUDGE_PROMPT;
       const checkJudgeFreestyle = await PromptTemplate.fromTemplate(
         judgeTemplate
       )
-        .pipe(Haiku3_5_YN)
+        .pipe(Sonnet4YN)
         .pipe(strParser)
-        .invoke({ input: currentUserMessage, summry: summry });
+        .invoke({
+          input: currentUserMessage,
+          summry: FREESTYLE_COMPANY_SUMMARY,
+        });
 
       console.log("🏢 フリースタイルの話: " + checkJudgeFreestyle);
       if (checkJudgeFreestyle.includes("YES")) {
@@ -51,40 +50,23 @@ export async function POST(req: Request) {
     }
 
     if (isFreestyle) {
-      // API チェック
-      const tavily = process.env.TAVILY_API_KEY;
-      if (!tavily) throw new Error(TAVILY_ERROR);
-
-      /** MCPサーバー */
-      const transport = transportSearch({ apiKey: tavily });
-      const tavilyClient = client({ mcpName: TAVILY_CLIENT });
-      await tavilyClient.connect(transport);
-
       /** AI */
       const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
-      const info = await getInfoUsingTools(tavilyClient, queryMessage);
-      const stream = await prompt.pipe(OpenAi).stream({
+      const info = await getTavilyInfo(queryMessage);
+      const stream = await prompt.pipe(OpenAi4oMini).stream({
         history: formattedPreviousMessages,
         user_message: currentUserMessage,
         info: info,
       });
 
       console.log("🏢 COMPLITE \n --- ");
-
       return LangChainAdapter.toDataStreamResponse(stream);
     } else {
-      //  フェイク用のモデルを使用して、そのまま応答を送信
-      const fakeModel = new FakeListChatModel({
-        responses: ["関連性なし"],
-      });
-      const prompt = PromptTemplate.fromTemplate("TEMPLATE1");
-      const stream = await prompt.pipe(fakeModel).stream({});
-
       console.log("🏢 COMPLITE (NO USE) \n --- ");
-
-      return LangChainAdapter.toDataStreamResponse(stream);
+      return LangChainAdapter.toDataStreamResponse(await getFakeStream());
     }
   } catch (error) {
+    console.log("🏢 Freestyle API error :\n" + error);
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,

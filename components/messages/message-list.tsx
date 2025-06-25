@@ -1,10 +1,25 @@
+import { useChat } from "@ai-sdk/react";
 import { Icon } from "../timelines/timeline-icon";
 import { useAiData } from "../timelines/timeline-provider";
 import { useUserMessages } from "./message-provider";
+import { useEffect } from "react";
 
 export const MessageList = () => {
   const { userMessages } = useUserMessages();
   const { aiDataState } = useAiData();
+  const { messages, append } = useChat({
+    api: `api/analysis`,
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+
+  // ユーザーメッセージの解析
+  useEffect(() => {
+    if (userMessages.length === 0) return;
+
+    append({ role: "user", content: "初期メッセージ" });
+  }, [userMessages]);
 
   return (
     <div className="mb-2">
