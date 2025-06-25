@@ -61,11 +61,17 @@ export const getTavilyInfo = async (query: string) => {
   if (!api) throw new Error(CONTENTS.TAVILY_ERROR);
 
   // Tavilyツールの準備
-  const tavily = new TavilySearchAPIRetriever({
-    apiKey: api,
-    k: 1,
-    includeGeneratedAnswer: true,
-  });
+  let tavily;
+  try {
+    tavily = new TavilySearchAPIRetriever({
+      apiKey: api,
+      k: 1,
+      includeGeneratedAnswer: true,
+    });
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
 
   return await tavily.invoke(query);
 };
