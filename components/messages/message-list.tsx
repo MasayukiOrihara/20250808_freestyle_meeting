@@ -7,7 +7,7 @@ import { useEffect } from "react";
 export const MessageList = () => {
   const { userMessages } = useUserMessages();
   const { aiDataState } = useAiData();
-  const { messages, append } = useChat({
+  const { append } = useChat({
     api: `api/analysis`,
     onError: (error) => {
       console.log(error);
