@@ -60,18 +60,17 @@ export const getTavilyInfo = async (query: string) => {
   const api = process.env.TAVILY_API_KEY;
   if (!api) throw new Error(CONTENTS.TAVILY_ERROR);
 
-  // Tavilyツールの準備
-  let tavily;
-  try {
-    tavily = new TavilySearchAPIRetriever({
-      apiKey: api,
-      k: 1,
-      includeGeneratedAnswer: true,
-    });
-  } catch (e) {
-    console.log(e);
-    throw e;
+  // query チェック
+  if (!query || query.trim().length === 0) {
+    throw new Error("Tavilyに渡すqueryが空です");
   }
+
+  // Tavilyツールの準備
+  const tavily = new TavilySearchAPIRetriever({
+    apiKey: api,
+    k: 1,
+    includeGeneratedAnswer: true,
+  });
 
   return await tavily.invoke(query);
 };
