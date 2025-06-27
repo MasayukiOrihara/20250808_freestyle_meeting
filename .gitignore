@@ -43,3 +43,6 @@ next-env.d.ts
 # 社内文書
 /public/line-works
 /qdrant_data/
+
+# Git
+/reflect-whiteboard.git/

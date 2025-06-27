@@ -54,128 +54,77 @@ export const textSplitter = new RecursiveCharacterTextSplitter({
 });
 
 // マークダウンドキュメントの作成
-export const buildMdDocumentChunks = async () => {
-  const boardDir = path.resolve(process.cwd(), "public", "line-works", "board");
-  const files = await fs.readdir(boardDir);
-  const mdFiles = files.filter((f) => f.endsWith(".md"));
-
-  // すべてのテキストとIDをためる
+export const buildDocumentChunks = async (dir: string) => {
+  const files = await fs.readdir(dir);
   const documents: Document[] = [];
 
-  for (const file of mdFiles) {
-    const content = await fs.readFile(path.join(boardDir, file), "utf-8");
-    // メールアドレスやURLの正規化
-    const normalText = normalizeUrlsAndEmails(content);
-    // マークダウン形式を除去
-    const plainText = await remark().use(strip).process(normalText);
-    // 開業などの除去
-    const cleanedText = cleanText(String(plainText));
+  const results = await Promise.allSettled(
+    files.map(async (file) => {
+      console.log("ファイル: " + file);
+      const ext = path.extname(file);
 
-    // チャンク分割
-    const chunks = await textSplitter.splitText(cleanedText);
+      // 1. ファイルの読み込み
+      try {
+        const content = await fs.readFile(path.join(dir, file));
 
-    chunks.forEach((chunk, i) => {
-      documents.push(
-        new Document({
-          pageContent: chunk,
-          metadata: {
-            source: file,
-            chunkIndex: i,
-          },
-        })
-      );
-    });
-  }
-  console.log("md ドキュメント完了");
-  return documents;
-};
+        // 2. ファイルごとの処理
+        let text = "";
+        switch (ext) {
+          case ".md":
+            // マークダウン形式を除去
+            const plainText = await remark()
+              .use(strip)
+              .process(content.toString("utf-8"));
+            text = String(plainText);
+            console.log("Markdown処理完了");
+            break;
+          case ".pdf":
+            const pdfData = await pdfParse(content);
+            text = pdfData.text;
+            console.log("PDF処理完了");
+            break;
+          case ".txt":
+            text = await content.toString("utf-8");
+            console.log("TXT処理完了");
+            break;
+          default:
+            console.log(`未対応: ${file}`);
+            return;
+        }
 
-// pdfドキュメントの作成
-export const buildPdfDocumentChunks = async () => {
-  const regulationsDir = path.resolve(
-    process.cwd(),
-    "public",
-    "line-works",
-    "regulations"
+        // メールアドレスやURLの正規化
+        const normalText = normalizeUrlsAndEmails(text);
+        // テキストを前処理（改行除去や正規化など）
+        const cleanedText = cleanText(normalText);
+
+        // チャンク分割
+        const chunks = await textSplitter.splitText(cleanedText);
+
+        return chunks.map(
+          (chunk, i) =>
+            new Document({
+              pageContent: chunk,
+              metadata: {
+                source: file,
+                chunkIndex: i,
+              },
+            })
+        );
+      } catch (err) {
+        console.warn(`処理失敗: ${file}`, err);
+        return;
+      }
+    })
   );
-  // 動的インポートでpdf-parseを読み込み
-  const files = await fs.readdir(regulationsDir);
-  const pdfFiles = files.filter((f) => f.endsWith(".pdf"));
 
-  // すべてのテキストとIDをためる
-  const documents: Document[] = [];
-
-  for (const file of pdfFiles) {
-    const filePath = path.join(regulationsDir, file);
-    console.log("ファイル" + filePath);
-
-    const dataBuffer = await fs.readFile(filePath);
-    const pdfData = await pdfParse(dataBuffer);
-
-    // 開業などの除去
-    const cleanedText = cleanText(pdfData.text);
-
-    // チャンク分割
-    const chunks = await textSplitter.splitText(cleanedText);
-
-    chunks.forEach((chunk, i) => {
-      documents.push(
-        new Document({
-          pageContent: chunk,
-          metadata: {
-            source: file,
-            chunkIndex: i,
-          },
-        })
-      );
-    });
-  }
-  console.log("pdf ドキュメント完了");
-  return documents;
-};
-
-// txtドキュメントの作成
-export const buildTextDocumentChunks = async () => {
-  const historyDir = path.resolve(
-    process.cwd(),
-    "public",
-    "line-works",
-    "history"
-  );
-  const files = await fs.readdir(historyDir);
-  const txtFiles = files.filter((f) => f.endsWith(".txt"));
-
-  // すべてのテキストとIDをためる
-  const documents: Document[] = [];
-
-  for (const file of txtFiles) {
-    const filePath = path.join(historyDir, file);
-    console.log("読み込み中: " + filePath);
-
-    // ファイルの中身を取得
-    const rawText = await fs.readFile(filePath, "utf-8");
-
-    // メールアドレスやURLの正規化
-    const normalText = normalizeUrlsAndEmails(rawText);
-    // テキストを前処理（改行除去や正規化など）
-    const cleanedText = cleanText(normalText);
-    // チャンク分割
-    const chunks = await textSplitter.splitText(cleanedText);
-
-    chunks.forEach((chunk, i) => {
-      documents.push(
-        new Document({
-          pageContent: chunk,
-          metadata: {
-            source: file,
-            chunkIndex: i,
-          },
-        })
-      );
-    });
+  // 成功した分だけを結合
+  for (const result of results) {
+    if (result.status === "fulfilled" && result.value) {
+      documents.push(...result.value);
+    }
   }
 
-  console.log("txt ドキュメント完了");
+  console.log("ドキュメント完了");
   return documents;
 };
 

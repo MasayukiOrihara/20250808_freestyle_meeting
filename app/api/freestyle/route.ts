@@ -19,13 +19,12 @@ import { QdrantVectorStore } from "@langchain/qdrant";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { QdrantClient } from "@qdrant/js-client-rest";
 import {
-  buildMdDocumentChunks,
-  buildPdfDocumentChunks,
-  buildTextDocumentChunks,
+  buildDocumentChunks,
   embeddings,
   qdrantClient,
   saveEmbeddingQdrant,
 } from "./embedding";
+import path from "path";
 
 export async function POST(req: Request) {
   try {
@@ -62,14 +61,42 @@ export async function POST(req: Request) {
 
     // 社内情報RAG
     const collectionName = "md_docs";
+    // ディレクトリパス
+    const boardDir = path.resolve(
+      process.cwd(),
+      "public",
+      "line-works",
+      "board"
+    );
+    const regulationsDir = path.resolve(
+      process.cwd(),
+      "public",
+      "line-works",
+      "regulations"
+    );
+    const historyDir = path.resolve(
+      process.cwd(),
+      "public",
+      "line-works",
+      "history"
+    );
 
     // コレクション削除
     // await qdrantClient.deleteCollection(collectionName);
 
-    // mdファイルの登録
-    // await saveEmbeddingQdrant(await buildMdDocumentChunks(), collectionName);
-    // await saveEmbeddingQdrant(await buildPdfDocumentChunks(), collectionName);
-    //await saveEmbeddingQdrant(await buildTextDocumentChunks(), collectionName);
+    // // ファイルの登録
+    // await saveEmbeddingQdrant(
+    //   await buildDocumentChunks(boardDir),
+    //   collectionName
+    // );
+    // await saveEmbeddingQdrant(
+    //   await buildDocumentChunks(regulationsDir),
+    //   collectionName
+    // );
+    // await saveEmbeddingQdrant(
+    //   await buildDocumentChunks(historyDir),
+    //   collectionName
+    // );
 
     async function searchDocs(query: string) {
       const vectorStore = await QdrantVectorStore.fromExistingCollection(
