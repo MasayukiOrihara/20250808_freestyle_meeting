@@ -10,7 +10,6 @@ import strip from "strip-markdown";
 import path from "path";
 import fs from "fs/promises";
 import pdfParse from "pdf-parse";
-import { nameList } from "./namelist";
 
 // Qdrantクライアントと埋め込み初期化
 export const qdrantClient = new QdrantClient({ url: "http://localhost:6333" });
@@ -46,14 +45,6 @@ function normalizeUrlsAndEmails(text: string) {
     .replace(urlRegex, "[URL]")
     .replace(emailRegex, "[メールアドレス]")
     .replace(phoneRegex, "[電話番号]");
-}
-
-// 名前の変更
-function redactNames(text: string): string {
-  for (const name of nameList) {
-    text = text.replaceAll(name, "[氏名]");
-  }
-  return text;
 }
 
 // チャンク分割器を作成（例: 500文字, 100文字オーバーラップ）
@@ -166,9 +157,8 @@ export const buildTextDocumentChunks = async () => {
 
     // メールアドレスやURLの正規化
     const normalText = normalizeUrlsAndEmails(rawText);
-    const maskNameText = redactNames(normalText);
     // テキストを前処理（改行除去や正規化など）
-    const cleanedText = cleanText(maskNameText);
+    const cleanedText = cleanText(normalText);
     // チャンク分割
     const chunks = await textSplitter.splitText(cleanedText);
 
