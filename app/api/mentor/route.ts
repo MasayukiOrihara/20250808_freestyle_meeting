@@ -16,7 +16,7 @@ import {
   getFakeStream,
 } from "@/lib/models";
 
-let isUserWorried = false;
+let isUserWorried = true;
 
 export async function POST(req: Request) {
   try {
@@ -31,24 +31,39 @@ export async function POST(req: Request) {
 
     // 悩み相談かどうかの判断
 
-    if (!currentUserMessage.includes(START_MESSAGE)) {
-      const judgeTemplate = MENTOR_JUDGE_PROMPT;
-      const checkJudgeMentor = await PromptTemplate.fromTemplate(judgeTemplate)
-        .pipe(Sonnet4YN)
-        .pipe(strParser)
-        .invoke({ question: currentUserMessage });
+    // if (!currentUserMessage.includes(START_MESSAGE)) {
+    //   const judgeTemplate = MENTOR_JUDGE_PROMPT;
+    //   const checkJudgeMentor = await PromptTemplate.fromTemplate(judgeTemplate)
+    //     .pipe(Sonnet4YN)
+    //     .pipe(strParser)
+    //     .invoke({ question: currentUserMessage });
 
-      if (checkJudgeMentor.includes("YES")) {
-        console.log("💛 悩み相談: " + checkJudgeMentor);
-        isUserWorried = true;
-      }
-    }
+    //   if (checkJudgeMentor.includes("YES")) {
+    //     console.log("💛 悩み相談: " + checkJudgeMentor);
+    //     isUserWorried = true;
+    //   }
+    // }
+
+    /* mentor graph API */
+    const host = req.headers.get("host") ?? "";
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const baseUrl = `${protocol}://${host}`;
+    const response = await fetch(baseUrl + "/api/mentor-graph", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+      },
+      body: JSON.stringify({ messages }),
+    });
+    const graph = await response.json();
 
     if (isUserWorried) {
       // 悩みがあった場合
       const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
       const stream = await prompt.pipe(OpenAi4oMini).stream({
-        question_list: MENTOR_QUESTIONS,
+        question_context: graph.contexts,
         history: formattedPreviousMessages,
         user_message: currentUserMessage,
       });

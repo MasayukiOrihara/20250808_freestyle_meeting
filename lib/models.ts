@@ -2,6 +2,7 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { ChatOpenAI } from "@langchain/openai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
+import { Client } from "langsmith";
 
 import * as CONTENTS from "./contents";
 import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
@@ -9,6 +10,11 @@ import { PromptTemplate } from "@langchain/core/prompts";
 
 // パサー
 export const strParser = new StringOutputParser();
+
+// langsmithからプロンプトの取得
+export const langsmithClient = new Client({
+  apiKey: process.env.LANGSMITH_API_KEY,
+});
 
 // OPENAI(4o)
 export const OpenAi4o = new ChatOpenAI({
