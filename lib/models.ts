@@ -68,12 +68,13 @@ export const getTavilyInfo = async (query: string) => {
   // Tavilyツールの準備
   const tavily = new TavilySearchAPIRetriever({
     apiKey: api,
-    k: 1,
+    k: 2,
     includeGeneratedAnswer: true,
   });
 
   const result = await tavily.invoke(query);
-  console.log("検索結果: \n" + JSON.stringify(result, null, 2));
+  console.log("検索結果: ");
+  console.log(result);
 
   return result;
 };

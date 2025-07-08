@@ -2,29 +2,16 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import { formatMessage } from "@/lib/utils";
-import {
-  FREESTYLE_COMPANY_SUMMARY,
-  FREESTYLE_JUDGE_PROMPT,
-  FREESTYLE_PROMPT,
-  START_MESSAGE,
-} from "@/lib/contents";
-import {
-  Sonnet4YN,
-  OpenAi4oMini,
-  strParser,
-  getTavilyInfo,
-  getFakeStream,
-} from "@/lib/models";
-import { QdrantVectorStore } from "@langchain/qdrant";
-import { OpenAIEmbeddings } from "@langchain/openai";
-import { QdrantClient } from "@qdrant/js-client-rest";
+import { OpenAi4oMini, getTavilyInfo } from "@/lib/models";
 import {
   buildDocumentChunks,
-  embeddings,
+  checkUpdateDocuments,
   qdrantClient,
   saveEmbeddingQdrant,
+  searchDocs,
 } from "./embedding";
-import path from "path";
+import { collectionName, resolvedDirs } from "./contents";
+import { FREESTYLE_PROMPT } from "@/lib/contents";
 
 export async function POST(req: Request) {
   try {
@@ -37,101 +24,42 @@ export async function POST(req: Request) {
     const currentUserMessage = messages[messages.length - 1].content;
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
-    // const queryMessage = "site:freestyles.jp/ " + currentUserMessage;
+    const queryMessage = "site:freestyles.jp/ " + currentUserMessage;
 
-    // フリースタイルの話かどうかの判断
-    let isFreestyle = true;
-    // if (!currentUserMessage.includes(START_MESSAGE)) {
-    //   const judgeTemplate = FREESTYLE_JUDGE_PROMPT;
-    //   const checkJudgeFreestyle = await PromptTemplate.fromTemplate(
-    //     judgeTemplate
-    //   )
-    //     .pipe(Sonnet4YN)
-    //     .pipe(strParser)
-    //     .invoke({
-    //       input: currentUserMessage,
-    //       summry: FREESTYLE_COMPANY_SUMMARY,
-    //     });
+    /* 社内情報RAG　*/
+    // コレクションのアップデートが必要か調べる
+    const needsUpdate = await checkUpdateDocuments(resolvedDirs);
+    if (needsUpdate) {
+      // コレクション削除
+      await qdrantClient.deleteCollection(collectionName);
 
-    //   console.log("🏢 フリースタイルの話: " + checkJudgeFreestyle);
-    //   if (checkJudgeFreestyle.includes("YES")) {
-    //     isFreestyle = true;
-    //   }
-    // }
-
-    // 社内情報RAG
-    const collectionName = "md_docs";
-    // ディレクトリパス
-    const boardDir = path.resolve(
-      process.cwd(),
-      "public",
-      "line-works",
-      "board"
-    );
-    const regulationsDir = path.resolve(
-      process.cwd(),
-      "public",
-      "line-works",
-      "regulations"
-    );
-    const historyDir = path.resolve(
-      process.cwd(),
-      "public",
-      "line-works",
-      "history"
-    );
-
-    // コレクション削除
-    // await qdrantClient.deleteCollection(collectionName);
-
-    // // ファイルの登録
-    // await saveEmbeddingQdrant(
-    //   await buildDocumentChunks(boardDir),
-    //   collectionName
-    // );
-    // await saveEmbeddingQdrant(
-    //   await buildDocumentChunks(regulationsDir),
-    //   collectionName
-    // );
-    // await saveEmbeddingQdrant(
-    //   await buildDocumentChunks(historyDir),
-    //   collectionName
-    // );
-
-    async function searchDocs(query: string) {
-      const vectorStore = await QdrantVectorStore.fromExistingCollection(
-        embeddings,
-        {
-          client: qdrantClient,
-          collectionName: collectionName,
-        }
-      );
-
-      const results = await vectorStore.similaritySearch(query, 6);
-      console.log(results);
-
-      return results;
+      // すべてを登録
+      for (const [, dirPath] of Object.entries(resolvedDirs)) {
+        await saveEmbeddingQdrant(
+          await buildDocumentChunks(dirPath),
+          collectionName
+        );
+      }
     }
 
-    if (isFreestyle) {
-      /** AI */
-      // const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
-      const template =
-        "あなたは株式会社フリースタイルの社員AIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: ";
-      const prompt = PromptTemplate.fromTemplate(template);
-      // const info = await getTavilyInfo(queryMessage);
-      const stream = await prompt.pipe(OpenAi4oMini).stream({
-        history: formattedPreviousMessages,
-        user_message: currentUserMessage,
-        info: await searchDocs(currentUserMessage),
-      });
+    // RAG準備
+    const tavily = await getTavilyInfo(queryMessage);
+    const company = await searchDocs(currentUserMessage, collectionName);
+    const info = [
+      ...tavily.map((page) => page.pageContent),
+      ...company.map((page) => page.pageContent),
+    ];
 
-      console.log("🏢 COMPLITE \n --- ");
-      return LangChainAdapter.toDataStreamResponse(stream);
-    } else {
-      console.log("🏢 COMPLITE (NO USE) \n --- ");
-      return LangChainAdapter.toDataStreamResponse(await getFakeStream());
-    }
+    /** AI */
+    const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
+    const stream = await prompt.pipe(OpenAi4oMini).stream({
+      history: formattedPreviousMessages,
+      user_message: currentUserMessage,
+      info: info,
+    });
+
+    console.log("🏢 COMPLITE \n --- ");
+    return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
     console.log("🏢 Freestyle API error :\n" + error);
     if (error instanceof Error) {

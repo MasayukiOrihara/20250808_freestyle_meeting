@@ -6,10 +6,11 @@ import { Document } from "langchain/document";
 
 import { remark } from "remark";
 import strip from "strip-markdown";
-
+import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
 import pdfParse from "pdf-parse";
+import _ from "lodash";
 
 // Qdrantクライアントと埋め込み初期化
 export const qdrantClient = new QdrantClient({ url: "http://localhost:6333" });
@@ -53,7 +54,61 @@ export const textSplitter = new RecursiveCharacterTextSplitter({
   chunkOverlap: 100,
 });
 
-// マークダウンドキュメントの作成
+// ハッシュ化
+function hashDocContent(buffer: Buffer<ArrayBufferLike>) {
+  return crypto.createHash("sha256").update(buffer).digest("hex");
+}
+
+// でーぷコピー
+function deepCopyString2DArray(arr: string[][]): string[][] {
+  return arr.map((inner) => [...inner]);
+}
+
+// 順番関係なしに比較
+function isEqualIgnoreOrder(a: string[][], b: string[][]): boolean {
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    const sortedA = [...a[i]].sort();
+    const sortedB = [...b[i]].sort();
+    if (!_.isEqual(sortedA, sortedB)) return false;
+  }
+
+  return true;
+}
+
+/** 更新チェック */
+let globalHashData: string[][] = [];
+export async function checkUpdateDocuments(resolvedDirs: {
+  [k: string]: string;
+}) {
+  const hashData: string[][] = [];
+  for (const [, dirPath] of Object.entries(resolvedDirs)) {
+    const files = await fs.readdir(dirPath);
+
+    const hash: string[] = [];
+    await Promise.allSettled(
+      files.map(async (file) => {
+        try {
+          const content = await fs.readFile(path.join(dirPath, file));
+          hash.push(hashDocContent(content));
+        } catch (error) {
+          console.warn(`処理失敗: ${file}`, error);
+          return;
+        }
+      })
+    );
+    hashData.push(hash);
+  }
+  // 比較
+  const isEqual = isEqualIgnoreOrder(globalHashData, hashData);
+  if (!isEqual) {
+    globalHashData = deepCopyString2DArray(hashData);
+  }
+  return !isEqual;
+}
+
+/* ベクターストアに入れるドキュメントの作成 */
 export const buildDocumentChunks = async (dir: string) => {
   const files = await fs.readdir(dir);
   const documents: Document[] = [];
@@ -76,16 +131,13 @@ export const buildDocumentChunks = async (dir: string) => {
               .use(strip)
               .process(content.toString("utf-8"));
             text = String(plainText);
-            console.log("Markdown処理完了");
             break;
           case ".pdf":
             const pdfData = await pdfParse(content);
             text = pdfData.text;
-            console.log("PDF処理完了");
             break;
           case ".txt":
             text = await content.toString("utf-8");
-            console.log("TXT処理完了");
             break;
           default:
             console.log(`未対応: ${file}`);
@@ -128,6 +180,7 @@ export const buildDocumentChunks = async (dir: string) => {
   return documents;
 };
 
+/** ドキュメントを埋め込む */
 export async function saveEmbeddingQdrant(
   documets: Document[],
   collectionName: string
@@ -139,4 +192,20 @@ export async function saveEmbeddingQdrant(
   });
 
   console.log("Qdrantへの登録完了");
+}
+
+/* すでにあるストアへ検索 */
+export async function searchDocs(query: string, collectionName: string) {
+  const vectorStore = await QdrantVectorStore.fromExistingCollection(
+    embeddings,
+    {
+      client: qdrantClient,
+      collectionName: collectionName,
+    }
+  );
+  const results = await vectorStore.similaritySearch(query, 4);
+
+  console.log("検索結果:");
+  console.log(results);
+  return results;
 }
