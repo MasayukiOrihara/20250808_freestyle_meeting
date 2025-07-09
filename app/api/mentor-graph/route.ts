@@ -12,18 +12,16 @@ import { prepareContextNode } from "./node/prepareContextNode";
 
 /** mentorAPIでの状態定義 */
 export type MentorStates = {
-  isConsulting: boolean;
   hasQuestion: boolean;
+  count: number;
 };
 
 // 遷移の状態保存
 const transitionStates: MentorStates = {
-  isConsulting: false, // メンターモードか
   hasQuestion: true, // 質問することがあるか
+  count: 0, // 繰り返した数
 };
 
-// 繰り返した回数
-let count = 0;
 // チェックリスト
 let checklistUse: ChecklistItem[][] = checklist.map((group) =>
   group.map((item) => ({ ...item }))
@@ -38,7 +36,6 @@ async function initializeStates() {
   const { states, step } = await initializeStatesNode({
     states: transitionStates,
     checklist: checklistUse,
-    count: count,
   });
 
   return {
@@ -72,10 +69,17 @@ async function prepareContext(state: typeof MentorAnnotation.State) {
 }
 
 /** データを保存するノード */
-async function saveData() {
+async function saveData(state: typeof MentorAnnotation.State) {
   console.log("💾 データ保存ノード");
 
-  count++;
+  if (state.transition.hasQuestion) {
+    state.transition.count++;
+    transitionStates.count = state.transition.count;
+  } else {
+    // 初期化
+    transitionStates.hasQuestion = true;
+    transitionStates.count = 0;
+  }
 }
 
 /**
@@ -88,8 +92,8 @@ const MentorAnnotation = Annotation.Root({
   transition: Annotation<MentorStates>({
     value: (
       state: MentorStates = {
-        isConsulting: false,
         hasQuestion: true,
+        count: 0,
       },
       action: Partial<MentorStates>
     ) => ({

@@ -4,8 +4,10 @@ import { LangsmithOutput } from "./preprocessAINode";
 
 // 定数
 const CONSULTING_FINISH_MESSAGE = `AI指示:
-- 架空の自身の思い出について、記憶を断片的に語り、ユーザーに想像させてください。
-- ユーザーに質問しなくてもかまいません。`;
+過去の体験を思い出すような語り口（ナツカシ風）で、やんわりと気づきを与えてください。
+
+その語りは、直接的なアドバイスではなく、
+「昔こんなことがあってね……」と架空の思い出を語るようなものにしてください。`;
 
 type ContextNode = {
   aiContexts: LangsmithOutput;
@@ -24,6 +26,7 @@ export function prepareContextNode({
   if (aiContexts.checkContenueTalk.includes("NO")) {
     // 会話の終了処理
     transition.hasQuestion = false;
+    transition.count = 0;
     contexts.push(CONSULTING_FINISH_MESSAGE);
     return { transition, checklist, contexts };
   }

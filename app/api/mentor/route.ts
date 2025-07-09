@@ -2,7 +2,11 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import { formatMessage } from "@/lib/utils";
-import { MENTOR_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
+import {
+  MENTOR_PROMPT,
+  NATSUKASHI_PROMPT,
+  UNKNOWN_ERROR,
+} from "@/lib/contents";
 import { OpenAi4oMini, getFakeStream } from "@/lib/models";
 
 export async function POST(req: Request) {

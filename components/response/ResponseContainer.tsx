@@ -30,14 +30,13 @@ export const ResponseContainer: React.FC = () => {
             </div>
             <div className="min-h-30 py-2">
               {/* コンテンツ */}
-
               {assistantMessages.map((msg) => (
                 <motion.div
                   key={msg.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="mb-2"
+                  className="mb-2 text-sm"
                 >
                   {msg.key === id ? msg.content : ""}
                 </motion.div>
