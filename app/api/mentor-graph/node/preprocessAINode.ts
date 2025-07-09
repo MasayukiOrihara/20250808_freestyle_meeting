@@ -35,6 +35,10 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
 
   // AIに次の質問を渡す用として整形
   let checklistQuestion = "";
+  console.log("\n --- \n");
+  console.log(step);
+  console.log(checklist[step]);
+  console.log("\n --- \n");
   for (const item of checklist[step]) {
     checklistQuestion += "・" + item.question + "\n";
   }

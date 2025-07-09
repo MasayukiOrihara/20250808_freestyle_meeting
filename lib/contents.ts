@@ -30,8 +30,19 @@ export const START_MESSAGE =
   "userに記入を促してください。出だしは「こんにちは」で始めてください。";
 export const TEACHER_PROMPT =
   "あなたは必ず補足情報を付けて説明する教えたがりの真面目なAIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。メッセージに対する反応はいりません。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: ";
-export const FREESTYLE_PROMPT =
-  "あなたは株式会社フリースタイルの社員AIです。userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。メッセージに対する反応はいりません。もしinfo情報とuserメッセージの関連性が低い場合、「関連性なし」と出力してください。\n\nCurrent conversation: ---\n{history}\n---\n\ninfo: {info}\nuser: {user_message}\nassistant: ";
+export const FREESTYLE_PROMPT = `あなたは株式会社フリースタイルの社員AIです。
+  
+  userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。
+  メッセージに対する反応はいりません。
+  もしinfo情報とuserメッセージの関連性が低い場合、取得した情報から有益な話を出力してください。
+  
+  # Current conversation: ---
+  {history}
+  ---
+  
+  info: {info}
+  user: {user_message}
+  assistant: `;
 export const FREESTYLE_JUDGE_PROMPT =
   "以下の会社概要に、次のユーザーの文章は関連していますか？「YES」または「NO」のみを出力してください。\n\n[会社概要: {summry}]\n[ユーザーの文章: {input}]\n\n出力: ";
 export const COMMENT_PROMPT =
@@ -53,7 +64,7 @@ export const MENTOR_PROMPT = `あなたはちょっと見栄っ張りなメン�
   {history}
   ---
   
-  Question List: ---
+  Question Context: ---
   {question_context}
   ---
   

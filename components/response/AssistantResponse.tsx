@@ -42,13 +42,11 @@ export const AssistantResponse = () => {
 
         // 最新AIメッセージの送信（関連性なしと返ってきた場合は送信しない）
         const latestMessage = getLatestAssistantMessage(chatMap[key].messages);
-        if (!latestMessage.content.includes("関連性なし")) {
-          addChatMessage({
-            content: latestMessage.content,
-            role: "assistant",
-            assistantId: key,
-          });
-        }
+        addChatMessage({
+          content: latestMessage.content,
+          role: "assistant",
+          assistantId: key,
+        });
       }
     }, [chatMap[key].status]);
   };
