@@ -2,15 +2,15 @@ import { useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import { UIMessage } from "ai";
 
-import { useUserMessages } from "./message-provider";
-import { START_MESSAGE } from "@/lib/contents";
-import { aiData } from "@/lib/ai-data";
-import { useAiData } from "../timelines/timeline-provider";
-import { useAiMessages } from "./message-ai-provider";
+import { useChatMessages } from "../provider/ChatMessageProvider";
+import { assistantData } from "@/lib/assistantData";
+import { useAssistantData } from "../provider/AssistantDataProvider";
 import { useAllChats } from "@/hooks/chathooks";
 
 // 変数
-const chatTargets = Object.keys(aiData) as (keyof typeof aiData)[];
+const chatTargets = Object.keys(
+  assistantData
+) as (keyof typeof assistantData)[];
 type ChatKey = (typeof chatTargets)[number];
 
 // 最後のメッセージを取り出す共通化関数
@@ -23,14 +23,13 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
  * LLMとメッセージのやり取りを行う
  * @returns
  */
-export const MessageAi = () => {
+export const AssistantResponse = () => {
   // usechat（Reactルールでトップレベルで呼び出さなきゃダメらしい）
   const chatMap = useAllChats() as Record<ChatKey, ReturnType<typeof useChat>>;
 
   // プロバイダーから取得
-  const { userMessages } = useUserMessages();
-  const { aiDataState } = useAiData();
-  const { addAiMessage } = useAiMessages();
+  const { chatMessages, addChatMessage } = useChatMessages();
+  const assistantData = useAssistantData();
 
   // AIのメッセージを取得する共通関数
   const handleChatReady = (key: ChatKey) => {
@@ -41,10 +40,14 @@ export const MessageAi = () => {
       if (chatMap[key].status === "ready") {
         console.log(`${key} が ready に到達しました`);
 
-        // 最新AIメッセージの送信
+        // 最新AIメッセージの送信（関連性なしと返ってきた場合は送信しない）
         const latestMessage = getLatestAssistantMessage(chatMap[key].messages);
         if (!latestMessage.content.includes("関連性なし")) {
-          addAiMessage({ key: key, content: latestMessage.content });
+          addChatMessage({
+            content: latestMessage.content,
+            role: "assistant",
+            assistantId: key,
+          });
         }
       }
     }, [chatMap[key].status]);
@@ -52,49 +55,25 @@ export const MessageAi = () => {
 
   // ユーザーメッセージの送信
   useEffect(() => {
-    if (userMessages.length === 0) {
-      // 初期メッセージの取得
-      chatMap.comment.append({
-        role: "system",
-        content: START_MESSAGE,
-      });
-      return;
-    }
-
-    const currentUserMessage = userMessages[userMessages.length - 1];
-    if (!currentUserMessage.importMessageId) {
+    const currentUserMessage = chatMessages[chatMessages.length - 1];
+    if (currentUserMessage && currentUserMessage.role === "user") {
       // それぞれのAPIにユーザーメッセージを送信
       chatTargets.forEach((key) => {
-        if (aiDataState[key]?.isUse) {
+        if (assistantData[key]?.isUse) {
           chatMap[key].append({
             role: "user",
             content: currentUserMessage.content,
           });
         }
       });
-    } else {
-      // importがある場合は、AIメッセージなことを明示して送信
-      const aiMessagePrompt = "これはAIから取得したメッセージです:\n";
-      chatTargets.forEach((key) => {
-        if (aiDataState[key]?.isUse) {
-          chatMap[key].append({
-            role: "user",
-            content: aiMessagePrompt + currentUserMessage.content,
-          });
-        }
-      });
     }
-  }, [userMessages]);
+  }, [chatMessages]);
 
   // 各APIごとの個別useEffect
   handleChatReady("comment");
   handleChatReady("teacher");
   handleChatReady("freestyle");
   handleChatReady("mentor");
-  handleChatReady("logic");
-  handleChatReady("story");
-  handleChatReady("dark");
-  handleChatReady("repeat");
 
   return null;
 };

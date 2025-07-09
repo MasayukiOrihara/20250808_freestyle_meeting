@@ -18,11 +18,11 @@ export async function POST(req: Request) {
 
     /** AI */
     const prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
-    const info = await getTavilyInfo(currentUserMessage);
+    // const info = await getTavilyInfo(currentUserMessage);
     const stream = await prompt.pipe(OpenAi4oMini).stream({
       history: formattedPreviousMessages,
       user_message: currentUserMessage,
-      info: info,
+      info: "今日の天気は晴れ",
     });
 
     console.log("🔎 COMPLITE \n --- ");

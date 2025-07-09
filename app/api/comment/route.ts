@@ -4,7 +4,7 @@ import { LangChainAdapter } from "ai";
 import { formatMessage } from "@/lib/utils";
 import { UNKNOWN_ERROR } from "@/lib/contents";
 import { OpenAi4oMini } from "@/lib/models";
-import { aiData } from "@/lib/ai-data";
+import { assistantData } from "@/lib/assistantData";
 
 export async function POST(req: Request) {
   try {
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
 
     // bot情報取得
-    const bot = Object.values(aiData).find((item) => item.id === id);
+    const bot = Object.values(assistantData).find((item) => item.id === id);
 
     // プロンプトの確認
     if (!bot?.aiMeta.prompt) throw new Error("プロンプトが設定されていません");

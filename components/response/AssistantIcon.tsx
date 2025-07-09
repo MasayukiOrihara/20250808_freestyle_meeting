@@ -3,7 +3,7 @@ import Image from "next/image";
 import { IconProps } from "@/lib/types";
 import { DUMMY_ICON_PATH } from "@/lib/contents";
 
-export const Icon: React.FC<IconProps> = ({
+export const AssistantIcon: React.FC<IconProps> = ({
   iconSrc,
   size = 60,
   title = "",

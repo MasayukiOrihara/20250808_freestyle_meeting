@@ -22,31 +22,5 @@ export const useAllChats = () => {
     freestyle: useChat({ api: "api/freestyle", ...commonChatOptions }),
     // メンターAI
     mentor: useChat({ api: "api/mentor", ...commonChatOptions }),
-    // ロジックAI
-    logic: useChat({
-      api: "api/comment",
-      headers: { id: "logic" },
-      ...commonChatOptions,
-    }),
-    // じいじAI
-    story: useChat({
-      api: "api/comment",
-      headers: { id: "story" },
-      ...commonChatOptions,
-    }),
-    // 中二病AI
-    dark: useChat({
-      api: "api/comment",
-      headers: { id: "dark" },
-      ...commonChatOptions,
-    }),
-    // リピートAI
-    repeat: useChat({
-      api: "api/comment",
-      headers: { id: "repeat" },
-      ...commonChatOptions,
-    }),
-
-    // 必要なら増やす
   };
 };
