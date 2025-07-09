@@ -1,7 +1,6 @@
 import {
   CAT_ICON_PATH,
   COMMENT_PROMPT,
-  COMMON_PROMPT,
   DOG_ICON_PATH,
   FREESTYLE_PROMPT,
   MENTOR_PROMPT,
@@ -40,10 +39,7 @@ export const assistantData: Record<string, AssistantData> = {
       model: "OpenAi",
       prompt: COMMENT_PROMPT,
       description: "絵文字を多用する陽気なAIです。",
-      exampleMessages: [
-        "こんにちは🌟！今日はどんな素敵なことを書いてみたいですか？📚✨",
-        "どんなアイデアでも、まずは一歩踏み出すことが大切です！あなたの言葉を楽しみにしていますよ😊✍️💕",
-      ],
+      exampleMessages: [""],
     },
   },
   teacher: {
@@ -56,10 +52,7 @@ export const assistantData: Record<string, AssistantData> = {
       model: "OpenAi",
       prompt: TEACHER_PROMPT,
       description: "教えたがりの真面目なAIです。",
-      exampleMessages: [
-        "AIツイッターのオブジェクトにmetadataを追加することは良い考えです。",
-        "英語で「ニックネーム」は「nickname」と綴ります。",
-      ],
+      exampleMessages: [""],
     },
   },
   freestyle: {

@@ -10,9 +10,6 @@ import { initializeStatesNode } from "./node/initializeStatesNode";
 import { LangsmithOutput, preprocessAINode } from "./node/preprocessAINode";
 import { prepareContextNode } from "./node/prepareContextNode";
 
-// 定数
-const CONSULTING_FINISH_MESSAGE = "--相談の終了--\n";
-
 /** mentorAPIでの状態定義 */
 export type MentorStates = {
   isConsulting: boolean;
@@ -85,7 +82,7 @@ async function saveData() {
  * グラフ定義
  */
 const MentorAnnotation = Annotation.Root({
-  contexts: Annotation<string>(),
+  contexts: Annotation<string[]>(),
   aiContexts: Annotation<LangsmithOutput>(),
   step: Annotation<number>(),
   transition: Annotation<MentorStates>({
@@ -142,7 +139,7 @@ export async function POST(req: Request) {
       messages: currentMessageContent,
     });
 
-    const text = result.contexts;
+    const text = result.contexts.join("\n");
     console.log("📈 LangGraph: \n" + text);
 
     return new Response(JSON.stringify(result));

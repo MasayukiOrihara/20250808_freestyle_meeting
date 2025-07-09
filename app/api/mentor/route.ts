@@ -2,21 +2,8 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import { formatMessage } from "@/lib/utils";
-import {
-  MENTOR_JUDGE_PROMPT,
-  MENTOR_PROMPT,
-  MENTOR_QUESTIONS,
-  START_MESSAGE,
-  UNKNOWN_ERROR,
-} from "@/lib/contents";
-import {
-  Sonnet4YN,
-  OpenAi4oMini,
-  strParser,
-  getFakeStream,
-} from "@/lib/models";
-
-let isUserWorried = true;
+import { MENTOR_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
+import { OpenAi4oMini, getFakeStream } from "@/lib/models";
 
 export async function POST(req: Request) {
   try {
@@ -28,21 +15,6 @@ export async function POST(req: Request) {
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
-
-    // 悩み相談かどうかの判断
-
-    // if (!currentUserMessage.includes(START_MESSAGE)) {
-    //   const judgeTemplate = MENTOR_JUDGE_PROMPT;
-    //   const checkJudgeMentor = await PromptTemplate.fromTemplate(judgeTemplate)
-    //     .pipe(Sonnet4YN)
-    //     .pipe(strParser)
-    //     .invoke({ question: currentUserMessage });
-
-    //   if (checkJudgeMentor.includes("YES")) {
-    //     console.log("💛 悩み相談: " + checkJudgeMentor);
-    //     isUserWorried = true;
-    //   }
-    // }
 
     /* mentor graph API */
     const host = req.headers.get("host") ?? "";
@@ -59,21 +31,16 @@ export async function POST(req: Request) {
     });
     const graph = await response.json();
 
-    if (isUserWorried) {
-      // 悩みがあった場合
-      const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
-      const stream = await prompt.pipe(OpenAi4oMini).stream({
-        question_context: graph.contexts,
-        history: formattedPreviousMessages,
-        user_message: currentUserMessage,
-      });
+    // 悩みがあった場合
+    const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
+    const stream = await prompt.pipe(OpenAi4oMini).stream({
+      question_context: graph.contexts,
+      history: formattedPreviousMessages,
+      user_message: currentUserMessage,
+    });
 
-      console.log("🔮 COMPLITE \n --- ");
-      return LangChainAdapter.toDataStreamResponse(stream);
-    } else {
-      console.log("🔮 COMPLITE (NO USE) \n --- ");
-      return LangChainAdapter.toDataStreamResponse(await getFakeStream());
-    }
+    console.log("🔮 COMPLITE \n --- ");
+    return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
     console.log("🔮 MENTOR API error :\n" + error);
     if (error instanceof Error) {

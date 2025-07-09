@@ -10,7 +10,11 @@ import {
   saveEmbeddingQdrant,
   searchDocs,
 } from "./embedding";
-import { collectionName, resolvedDirs } from "./contents";
+import {
+  collectionName,
+  FREESTYLE_COMPANY_SUMMARY,
+  resolvedDirs,
+} from "./contents";
 import { FREESTYLE_PROMPT } from "@/lib/contents";
 
 export async function POST(req: Request) {
@@ -23,8 +27,6 @@ export async function POST(req: Request) {
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
     const formattedPreviousMessages = messages.slice(1).map(formatMessage);
-
-    const queryMessage = "site:freestyles.jp/ " + currentUserMessage;
 
     /* 社内情報RAG　*/
     // コレクションのアップデートが必要か調べる
@@ -43,19 +45,15 @@ export async function POST(req: Request) {
     }
 
     // RAG準備
-    const tavily = await getTavilyInfo(queryMessage);
     const company = await searchDocs(currentUserMessage, collectionName);
-    const info = [
-      ...tavily.map((page) => page.pageContent),
-      ...company.map((page) => page.pageContent),
-    ];
 
     /** AI */
     const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
     const stream = await prompt.pipe(OpenAi4oMini).stream({
       history: formattedPreviousMessages,
       user_message: currentUserMessage,
-      info: info,
+      freestyle_summary: FREESTYLE_COMPANY_SUMMARY,
+      info: company,
     });
 
     console.log("🏢 COMPLITE \n --- ");

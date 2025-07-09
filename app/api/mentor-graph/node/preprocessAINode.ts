@@ -1,4 +1,4 @@
-import { Haiku3_5, langsmithClient, strParser } from "@/lib/models";
+import { Haiku3_5, langsmithClient, Sonnet4YN, strParser } from "@/lib/models";
 import { BaseMessage } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { ChecklistItem } from "../checklist";
@@ -14,7 +14,7 @@ export type LangsmithOutput = {
   checkContenueTalk: string;
   checkUserMessage: string;
   selectNextQuestion: string;
-  summarizeMessage: string;
+  /*summarizeMessage: string;*/
 };
 
 /**
@@ -47,11 +47,11 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
     checkContenueTalk,
     checkUserMessage,
     selectNextQuestion,
-    summarizeMessage,
+    /*summarizeMessage,*/
   ] = await Promise.all([
     /* 2. 会話の意思を確認 */
     PromptTemplate.fromTemplate(contenueTemplate)
-      .pipe(Haiku3_5)
+      .pipe(Sonnet4YN)
       .pipe(strParser)
       .invoke({ user_message: userMessage }),
 
@@ -75,22 +75,22 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
 
     /* 5. チェックリストを参考に総括をする */
     // ※※ 現在のターンの入力がありません
-    PromptTemplate.fromTemplate(summarizeTemplate)
-      .pipe(Haiku3_5)
-      .pipe(strParser)
-      .invoke({ checklist_text: formattedChecklistToText(checklist) }),
+    // PromptTemplate.fromTemplate(summarizeTemplate)
+    //   .pipe(Haiku3_5)
+    //   .pipe(strParser)
+    //   .invoke({ checklist_text: formattedChecklistToText(checklist) }),
   ]);
 
-  console.log("会話終了の意思: " + checkContenueTalk);
+  console.log("会話継続の意思: " + checkContenueTalk);
   console.log("一致項目の回答結果:\n" + checkUserMessage);
   console.log("一致項目の回答結果:\n" + selectNextQuestion);
-  console.log("総括:\n" + summarizeMessage);
+  // console.log("総括:\n" + summarizeMessage);
 
   const aiContexts: LangsmithOutput = {
     checkContenueTalk,
     checkUserMessage,
     selectNextQuestion,
-    summarizeMessage,
+    /*summarizeMessage*/
   };
   return { aiContexts };
 }

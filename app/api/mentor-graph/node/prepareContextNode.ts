@@ -2,6 +2,11 @@ import { ChecklistItem } from "../checklist";
 import { MentorStates } from "../route";
 import { LangsmithOutput } from "./preprocessAINode";
 
+// 定数
+const CONSULTING_FINISH_MESSAGE = `AI指示:
+- 架空の自身の思い出について、記憶を断片的に語り、ユーザーに想像させてください。
+- ユーザーに質問しなくてもかまいません。`;
+
 type ContextNode = {
   aiContexts: LangsmithOutput;
   transition: MentorStates;
@@ -13,13 +18,13 @@ export function prepareContextNode({
   transition,
   checklist,
 }: ContextNode) {
-  let contexts = "";
+  let contexts: string[] = [];
 
   // 会話継続の意思を確認
-  if (aiContexts.checkContenueTalk.includes("YES")) {
+  if (aiContexts.checkContenueTalk.includes("NO")) {
     // 会話の終了処理
     transition.hasQuestion = false;
-    contexts = "";
+    contexts.push(CONSULTING_FINISH_MESSAGE);
     return { transition, checklist, contexts };
   }
 
@@ -55,6 +60,6 @@ export function prepareContextNode({
     }
   }
   // コンテキストを準備
-  contexts = aiContexts.selectNextQuestion;
+  contexts.push(aiContexts.selectNextQuestion);
   return { transition, checklist, contexts };
 }

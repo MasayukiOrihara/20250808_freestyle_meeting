@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const stream = await prompt.pipe(OpenAi4oMini).stream({
       history: formattedPreviousMessages,
       user_message: currentUserMessage,
-      info: "今日の天気は晴れ",
+      info: info,
     });
 
     console.log("🔎 COMPLITE \n --- ");
