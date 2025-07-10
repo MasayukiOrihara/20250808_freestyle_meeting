@@ -14,7 +14,6 @@ export type LangsmithOutput = {
   checkContenueTalk: string;
   checkUserMessage: string;
   selectNextQuestion: string;
-  /*summarizeMessage: string;*/
 };
 
 /**
@@ -28,17 +27,12 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
   const contenueTemplate = langsmithPrompts[0].manifest.kwargs.template;
   const userTemplate = langsmithPrompts[1].manifest.kwargs.template;
   const selectTemplate = langsmithPrompts[2].manifest.kwargs.template;
-  const summarizeTemplate = langsmithPrompts[3].manifest.kwargs.template;
 
   // ユーザーの発言を取得
   const userMessage = messages[messages.length - 1].content;
 
   // AIに次の質問を渡す用として整形
   let checklistQuestion = "";
-  console.log("\n --- \n");
-  console.log(step);
-  console.log(checklist[step]);
-  console.log("\n --- \n");
   for (const item of checklist[step]) {
     checklistQuestion += "・" + item.question + "\n";
   }
@@ -72,25 +66,15 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
         checklist_question: checklistQuestion,
         user_message: userMessage,
       }),
-
-    /* 5. チェックリストを参考に総括をする */
-    // ※※ 現在のターンの入力がありません
-    // PromptTemplate.fromTemplate(summarizeTemplate)
-    //   .pipe(Haiku3_5)
-    //   .pipe(strParser)
-    //   .invoke({ checklist_text: formattedChecklistToText(checklist) }),
   ]);
 
   console.log("会話継続の意思: " + checkContenueTalk);
-  console.log("一致項目の回答結果:\n" + checkUserMessage);
   console.log("一致項目の回答結果:\n" + selectNextQuestion);
-  // console.log("総括:\n" + summarizeMessage);
 
   const aiContexts: LangsmithOutput = {
     checkContenueTalk,
     checkUserMessage,
     selectNextQuestion,
-    /*summarizeMessage*/
   };
   return { aiContexts };
 }

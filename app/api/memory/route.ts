@@ -18,16 +18,12 @@ const MEMORY_SUMMARY_PROMPT =
 
 /** メッセージを挿入する処理 */
 async function insartMessages(state: typeof GraphAnnotation.State) {
-  console.log("📩 insart messages");
-
   const messages = state.messages;
   return { messages: messages };
 }
 
 /** 要約したメッセージを追加する処理 */
 async function prepareMessages(state: typeof GraphAnnotation.State) {
-  console.log("📧 prepare messages");
-
   const summary = state.summary;
   // 要約をシステムメッセージとして追加
   const systemMessage = `Previous conversation summary: ${summary}`;
@@ -38,7 +34,6 @@ async function prepareMessages(state: typeof GraphAnnotation.State) {
 
 /** 会話を行うか要約するかの判断処理 */
 async function shouldContenue(state: typeof GraphAnnotation.State) {
-  console.log("❓ should contenue");
   const messages = state.messages;
 
   if (messages.length > 6) return "summarize";
@@ -47,7 +42,6 @@ async function shouldContenue(state: typeof GraphAnnotation.State) {
 
 /** 会話の要約処理 */
 async function summarizeConversation(state: typeof GraphAnnotation.State) {
-  console.log("📃 summarize conversation");
   const summary = state.summary;
 
   let summaryMessage;

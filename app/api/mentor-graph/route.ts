@@ -1,5 +1,6 @@
 import {
   Annotation,
+  MemorySaver,
   MessagesAnnotation,
   StateGraph,
 } from "@langchain/langgraph";
@@ -14,12 +15,6 @@ export type MentorStates = {
   count: number;
 };
 
-// 遷移の状態保存
-const transitionStates: MentorStates = {
-  hasQuestion: true, // 質問することがあるか
-  count: 0, // 繰り返した数
-};
-
 // チェックリスト
 let checklistUse: ChecklistItem[][] = checklist.map((group) =>
   group.map((item) => ({ ...item }))
@@ -28,16 +23,17 @@ let checklistUse: ChecklistItem[][] = checklist.map((group) =>
 /**
  * ノード定義
  */
-async function initializeStates() {
+async function initializeStates(state: typeof MentorAnnotation.State) {
   console.log("🔧 初期設定ノード");
 
-  const { states, step } = await initializeStatesNode({
-    states: transitionStates,
+  const { count, step, hasQuestion } = await initializeStatesNode({
+    count: state.count,
     checklist: checklistUse,
   });
 
   return {
-    transition: { ...states },
+    hasQuestion: hasQuestion,
+    count: count,
     step: step,
   };
 }
@@ -56,28 +52,29 @@ async function preprocessAI(state: typeof MentorAnnotation.State) {
 async function prepareContext(state: typeof MentorAnnotation.State) {
   console.log("📝 コンテキスト準備ノード");
 
-  const { transition, checklist, contexts } = prepareContextNode({
+  const { hasQuestion, checklist, contexts } = prepareContextNode({
     aiContexts: state.aiContexts,
-    transition: state.transition,
+    hasQuestion: state.hasQuestion,
     checklist: checklistUse,
   });
 
   checklistUse = checklist.map((group) => group.map((item) => ({ ...item })));
-  return { transition: transition, contexts: contexts };
+  return { hasQuestion: hasQuestion, contexts: contexts };
 }
 
 /** データを保存するノード */
 async function saveData(state: typeof MentorAnnotation.State) {
   console.log("💾 データ保存ノード");
 
-  if (state.transition.hasQuestion) {
-    state.transition.count++;
-    transitionStates.count = state.transition.count;
+  if (state.hasQuestion) {
+    state.count++;
   } else {
     // 初期化
-    transitionStates.hasQuestion = true;
-    transitionStates.count = 0;
+    state.hasQuestion = true;
+    state.count = 0;
   }
+
+  return { hasQuestion: state.hasQuestion, count: state.count };
 }
 
 /**
@@ -86,19 +83,10 @@ async function saveData(state: typeof MentorAnnotation.State) {
 const MentorAnnotation = Annotation.Root({
   contexts: Annotation<string[]>(),
   aiContexts: Annotation<LangsmithOutput>(),
+  hasQuestion: Annotation<boolean>(),
   step: Annotation<number>(),
-  transition: Annotation<MentorStates>({
-    value: (
-      state: MentorStates = {
-        hasQuestion: true,
-        count: 0,
-      },
-      action: Partial<MentorStates>
-    ) => ({
-      ...state,
-      ...action,
-    }),
-  }),
+  count: Annotation<number>(),
+
   ...MessagesAnnotation.spec,
 });
 
@@ -116,7 +104,9 @@ const MentorGraph = new StateGraph(MentorAnnotation)
   .addEdge("save", "__end__");
 
 // コンパイル
-const app = MentorGraph.compile();
+// 記憶の追加
+const memory = new MemorySaver();
+const app = MentorGraph.compile({ checkpointer: memory });
 
 /**
  * チャット応答AI
@@ -127,24 +117,24 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
-    const modelName = body.model ?? "fake-llm";
 
     console.log("💛 メンターチャットAPI ");
-    console.log("🧠 モデル: ", modelName);
     console.log("---");
 
     /** メッセージ */
     const currentMessageContent = messages[messages.length - 1].content;
 
     /** LangGraph */
-    const result = await app.invoke({
-      messages: currentMessageContent,
-    });
+    const config = { configurable: { thread_id: "abc123" } };
+    const results = await app.invoke(
+      { messages: currentMessageContent },
+      config
+    );
 
-    const text = result.contexts.join("\n");
+    const text = results.contexts.join("\n");
     console.log("📈 LangGraph: \n" + text);
 
-    return new Response(JSON.stringify(result));
+    return new Response(JSON.stringify(results));
   } catch (error) {
     if (error instanceof Error) {
       console.error("API 500 error: " + error);

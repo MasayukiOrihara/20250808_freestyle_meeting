@@ -11,13 +11,13 @@ const CONSULTING_FINISH_MESSAGE = `AI指示:
 
 type ContextNode = {
   aiContexts: LangsmithOutput;
-  transition: MentorStates;
+  hasQuestion: boolean;
   checklist: ChecklistItem[][];
 };
 
 export function prepareContextNode({
   aiContexts,
-  transition,
+  hasQuestion,
   checklist,
 }: ContextNode) {
   let contexts: string[] = [];
@@ -25,14 +25,14 @@ export function prepareContextNode({
   // 会話継続の意思を確認
   if (aiContexts.checkContenueTalk.includes("NO")) {
     // 会話の終了処理
-    transition.hasQuestion = false;
-    transition.count = 0;
+    hasQuestion = false;
     contexts.push(CONSULTING_FINISH_MESSAGE);
-    return { transition, checklist, contexts };
+    return { hasQuestion, checklist, contexts };
   }
 
   // チェックリストの質問との一致項目を特定
   // ※※ anthropicくんの機嫌で崩れたフォーマット送ってくる可能性もあるからフォーマットチェックはした方がいい
+  const COMMENT_LABEL = "comment: ";
   const blocks = aiContexts.checkUserMessage
     .split("---")
     .map((block) => block.trim())
@@ -50,11 +50,11 @@ export function prepareContextNode({
           item.checked = calams[1]?.toLowerCase().includes("true") ?? false;
 
           if (calams[2]) {
-            const index = calams[2].indexOf("COMMENT: ");
+            const index = calams[2].indexOf(COMMENT_LABEL);
             if (index !== -1) {
               item.comment =
                 (item.comment ?? "") +
-                calams[2].slice(index + "COMMENT: ".length) +
+                calams[2].slice(index + COMMENT_LABEL.length) +
                 ", ";
             }
           }
@@ -64,5 +64,5 @@ export function prepareContextNode({
   }
   // コンテキストを準備
   contexts.push(aiContexts.selectNextQuestion);
-  return { transition, checklist, contexts };
+  return { hasQuestion, checklist, contexts };
 }
