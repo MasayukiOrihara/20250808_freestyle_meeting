@@ -1,6 +1,9 @@
 import { ChatAnthropic } from "@langchain/anthropic";
 import { ChatOpenAI } from "@langchain/openai";
-import { StringOutputParser } from "@langchain/core/output_parsers";
+import {
+  JsonOutputParser,
+  StringOutputParser,
+} from "@langchain/core/output_parsers";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { Client } from "langsmith";
 
@@ -10,6 +13,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 
 // パサー
 export const strParser = new StringOutputParser();
+export const jsonParser = new JsonOutputParser();
 
 // langsmithからプロンプトの取得
 export const langsmithClient = new Client({

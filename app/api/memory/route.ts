@@ -17,7 +17,7 @@ const MEMORY_SUMMARY_PROMPT =
   "Summarize the input above concisely to preserve its key intent, information, and conversational flow, so it can be stored as memory for future context.";
 
 /** メッセージを挿入する処理 */
-async function insartMessages(state: typeof GraphAnnotation.State) {
+async function insertMessages(state: typeof GraphAnnotation.State) {
   const messages = state.messages;
   return { messages: messages };
 }
@@ -72,13 +72,13 @@ const GraphAnnotation = Annotation.Root({
 // グラフ
 const workflow = new StateGraph(GraphAnnotation)
   // ノード追加
-  .addNode("insart", insartMessages)
+  .addNode("insert", insertMessages)
   .addNode("prepare", prepareMessages)
   .addNode("summarize", summarizeConversation)
 
   // エッジ追加
-  .addEdge("__start__", "insart")
-  .addConditionalEdges("insart", shouldContenue)
+  .addEdge("__start__", "insert")
+  .addConditionalEdges("insert", shouldContenue)
   .addEdge("summarize", "prepare")
   .addEdge("prepare", "__end__");
 

@@ -5,6 +5,7 @@ import { ResponseContainer } from "./response/ResponseContainer";
 import { MessageInput } from "./message/MessageInput";
 import { AssistantDataProvider } from "./provider/AssistantDataProvider";
 import { MessageOutput } from "./message/MessageOutput";
+import { MetaAssistant } from "./response/MetaAssistant";
 
 export const MainPage: React.FC = () => {
   return (
@@ -12,6 +13,7 @@ export const MainPage: React.FC = () => {
       <AssistantDataProvider>
         <ChatMessageProvider>
           <ResponseContainer />
+          <MetaAssistant />
           <MessageOutput />
           <MessageInput />
         </ChatMessageProvider>

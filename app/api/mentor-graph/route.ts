@@ -103,8 +103,7 @@ const MentorGraph = new StateGraph(MentorAnnotation)
   .addEdge("context", "save")
   .addEdge("save", "__end__");
 
-// コンパイル
-// 記憶の追加
+// コンパイル 記憶の追加
 const memory = new MemorySaver();
 const app = MentorGraph.compile({ checkpointer: memory });
 

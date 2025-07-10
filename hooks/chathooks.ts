@@ -1,7 +1,7 @@
 import { useChat } from "@ai-sdk/react";
 
 // useChat共通化
-const commonChatOptions = {
+export const commonChatOptions = {
   onError: (error: Error) => {
     console.error("Chat error:", error);
   },

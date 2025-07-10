@@ -27,13 +27,13 @@ type HumanLife = {
   dislikes: WithMeta; // 利用者の嫌いなこと
 };
 
-export type HumanProfile = {
+type HumanProfile = {
   data: HumanData;
   personality: HumanPersonality;
   life: HumanLife;
 };
 
-export const emptyHumanProfile: HumanProfile = {
+const emptyHumanProfile: HumanProfile = {
   data: {
     name: { value: "", description: "利用者のフルネームまたはニックネーム" },
     age: {
