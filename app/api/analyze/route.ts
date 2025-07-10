@@ -6,12 +6,13 @@ import {
   StateGraph,
 } from "@langchain/langgraph";
 
-import { jsonParser, OpenAi4_1Mini } from "@/lib/models";
+import { jsonParser, OpenAi4_1Mini, strParser } from "@/lib/models";
 import {
   humanProfileDescriptions,
   validateProfile,
   HumanProfile,
 } from "./personal";
+import { PromptTemplate } from "@langchain/core/prompts";
 
 // /** メッセージを挿入する処理 */
 async function insertMessages(state: typeof GraphAnnotation.State) {
@@ -37,14 +38,12 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
   console.log("📃 analyze conversation");
   let analyzeContext = state.analyze;
 
-  console.log(analyzeContext);
-
   let analyzeMessage;
   if (analyzeContext) {
     analyzeMessage = `これまでのユーザー分析: ${analyzeContext}
     
     上記の新しいメッセージを考慮してユーザー分析を拡張してください。
-    以下のフォーマットに従って、これまでのユーザー分析に追記、もしくは発展する形で更新して出力してください。
+    以下のフォーマットに従って、これまでのユーザー分析に追記、もしくは発展する形で更新して、出力をJSON形式で生成してください。
     
     出力形式：
       ${humanProfileDescriptions} `;
@@ -61,8 +60,8 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
   const messages = [...state.messages, new SystemMessage(analyzeMessage)];
   const response = await OpenAi4_1Mini.pipe(jsonParser).invoke(messages);
 
+  console.log(response);
   const validProfile = validateProfile(response);
-  console.log(validProfile);
   if (validProfile) analyzeContext = validProfile;
 
   // 要約したメッセージ除去
@@ -73,9 +72,27 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
   return { analyze: analyzeContext, messages: deleteMessages };
 }
 
+async function generateUserText(state: typeof GraphAnnotation.State) {
+  const analyzeContext = state.analyze;
+
+  let context = "";
+  if (analyzeContext) {
+    const template = `以下のユーザー分析をほかの LLM が情報を扱いやすいように具体的な文章として要約してください。\n\n{analyze_context}`;
+
+    const prompt = PromptTemplate.fromTemplate(template);
+    context = await prompt
+      .pipe(OpenAi4_1Mini)
+      .pipe(strParser)
+      .invoke({ analyze_context: analyzeContext });
+  }
+  console.log(context);
+  return { context: context };
+}
+
 // アノテーションの追加
 const GraphAnnotation = Annotation.Root({
   analyze: Annotation<HumanProfile>(),
+  context: Annotation<string>(),
   ...MessagesAnnotation.spec,
 });
 
@@ -84,11 +101,13 @@ const workflow = new StateGraph(GraphAnnotation)
   // ノード追加
   .addNode("insertNode", insertMessages)
   .addNode("analyzeNode", analyzeConversation)
+  .addNode("textNode", generateUserText)
 
   // エッジ追加
   .addEdge("__start__", "insertNode")
   .addConditionalEdges("insertNode", shouldAnalyze)
-  .addEdge("analyzeNode", "__end__");
+  .addEdge("analyzeNode", "textNode")
+  .addEdge("textNode", "__end__");
 
 // 記憶の追加
 const memory = new MemorySaver();
@@ -108,10 +127,10 @@ export async function POST(req: Request) {
     const currentUserMessages = userMessages[userMessages.length - 1];
 
     // 履歴用キー
-    const config = { configurable: { thread_id: "abc123" } };
+    const config = { configurable: { thread_id: "analyze-abc123" } };
     const results = await app.invoke({ messages: currentUserMessages }, config);
 
-    return new Response(JSON.stringify(results.analyze), {
+    return new Response(JSON.stringify(results), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

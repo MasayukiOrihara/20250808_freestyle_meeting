@@ -24,3 +24,28 @@ export type AiMessageContextType = {
   setAiMessages: Dispatch<SetStateAction<AiMessage[]>>;
   addAiMessage: (msg: Omit<AiMessage, "timestamp">) => void;
 };
+
+/** chat message provider で使う型 */
+export type ChatMessage = {
+  id: string;
+  role: string;
+  content: string;
+  timestamp: string;
+  assistantId?: string;
+};
+export type ChatMessageInput = {
+  role: string;
+  content: string;
+  assistantId?: string;
+};
+export type ChatMessageContextType = {
+  chatMessages: ChatMessage[];
+  userMessages: ChatMessage[];
+  assistantMessages: AssistantMessages[];
+  addChatMessage: ({ content, role, assistantId }: ChatMessageInput) => void;
+};
+export type AssistantMessages = {
+  id: string;
+  key: string;
+  content: string;
+};

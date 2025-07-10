@@ -124,7 +124,7 @@ export async function POST(req: Request) {
     const currentMessageContent = messages[messages.length - 1].content;
 
     /** LangGraph */
-    const config = { configurable: { thread_id: "abc123" } };
+    const config = { configurable: { thread_id: "mentor-abc123" } };
     const results = await app.invoke(
       { messages: currentMessageContent },
       config

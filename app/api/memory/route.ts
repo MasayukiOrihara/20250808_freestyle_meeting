@@ -101,7 +101,7 @@ export async function POST(req: Request) {
     const previousMessage = messages.slice(Math.max(0, len - 2), len);
 
     // 履歴用キー
-    const config = { configurable: { thread_id: "abc123" } };
+    const config = { configurable: { thread_id: "memory-abc123" } };
     const results = await app.invoke({ messages: previousMessage }, config);
 
     // 履歴メッセージの加工

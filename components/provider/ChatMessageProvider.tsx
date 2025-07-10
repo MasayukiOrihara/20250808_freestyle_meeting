@@ -1,31 +1,11 @@
+import {
+  AssistantMessages,
+  ChatMessage,
+  ChatMessageContextType,
+  ChatMessageInput,
+} from "@/lib/types";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
-
-/** chat message provider で使う型 */
-type ChatMessage = {
-  id: string;
-  role: string;
-  content: string;
-  timestamp: string;
-  assistantId?: string;
-};
-type ChatMessageInput = {
-  role: string;
-  content: string;
-  assistantId?: string;
-};
-type ChatMessageContextType = {
-  chatMessages: ChatMessage[];
-  userMessages: ChatMessage[];
-  assistantMessages: AssistantMessages[];
-  addChatMessage: ({ content, role, assistantId }: ChatMessageInput) => void;
-};
-
-type AssistantMessages = {
-  id: string;
-  key: string;
-  content: string;
-};
 
 const ChatMessageContext = createContext<ChatMessageContextType | undefined>(
   undefined

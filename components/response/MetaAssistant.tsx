@@ -1,5 +1,16 @@
 import { useEffect } from "react";
 import { useChatMessages } from "../provider/ChatMessageProvider";
+import { ChatMessage } from "@/lib/types";
+
+async function fetchAnalize(userMessages: ChatMessage[]) {
+  const res = await fetch("/api/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userMessages }),
+  });
+  const data = await res.json();
+  return data;
+}
 
 export const MetaAssistant = () => {
   const { userMessages } = useChatMessages();
@@ -8,17 +19,7 @@ export const MetaAssistant = () => {
   useEffect(() => {
     if (userMessages.length === 0) return;
 
-    async function fetchAnalize() {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userMessages }),
-      });
-      const data = await res.json();
-      return data;
-    }
-
-    console.log(fetchAnalize());
+    console.log(fetchAnalize(userMessages));
   }, [userMessages]);
 
   return null;
