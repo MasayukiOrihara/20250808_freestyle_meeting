@@ -8,65 +8,24 @@ import {
 
 import { OpenAi4_1Mini } from "@/lib/models";
 
-// プロンプト: 英語にして節約してみる (注) もし英語で回答しだす用なら戻す
-/* 原文 `Conversation summary so far: ${summary}\n\n上記の新しいメッセージを考慮して要約を拡張してください。: ` */
-const MEMORY_UPDATE_PROMPT =
-  "Here is the conversation summary so far: {summary}\n\nBased on the new message above, expand this summary while retaining important intent, information, and conversational flow for long-term memory.";
-/* 原文 "上記の入力を過去の会話の記憶として保持できるように重要な意図や情報・流れがわかるように短く要約してください。: " */
-const MEMORY_SUMMARY_PROMPT =
-  "Summarize the input above concisely to preserve its key intent, information, and conversational flow, so it can be stored as memory for future context.";
-
 /** メッセージを挿入する処理 */
 async function insartMessages(state: typeof GraphAnnotation.State) {
   console.log("📩 insart messages");
-
-  const messages = state.messages;
-  return { messages: messages };
 }
 
 /** 要約したメッセージを追加する処理 */
 async function prepareMessages(state: typeof GraphAnnotation.State) {
   console.log("📧 prepare messages");
-
-  const summary = state.summary;
-  // 要約をシステムメッセージとして追加
-  const systemMessage = `Previous conversation summary: ${summary}`;
-  const messages = [new SystemMessage(systemMessage)];
-
-  return { messages: messages };
 }
 
 /** 会話を行うか要約するかの判断処理 */
 async function shouldContenue(state: typeof GraphAnnotation.State) {
   console.log("❓ should contenue");
-  const messages = state.messages;
-
-  if (messages.length > 6) return "summarize";
-  return "__end__";
 }
 
 /** 会話の要約処理 */
 async function summarizeConversation(state: typeof GraphAnnotation.State) {
   console.log("📃 summarize conversation");
-  const summary = state.summary;
-
-  let summaryMessage;
-
-  if (summary) {
-    summaryMessage = MEMORY_UPDATE_PROMPT.replace("{summary}", summary);
-  } else {
-    summaryMessage = MEMORY_SUMMARY_PROMPT;
-  }
-
-  // 要約処理
-  const messages = [...state.messages, new SystemMessage(summaryMessage)];
-  const response = await OpenAi4_1Mini.invoke(messages);
-
-  // 要約したメッセージ除去
-  const deleteMessages = messages
-    .slice(0, -2)
-    .map((m) => new RemoveMessage({ id: m.id! }));
-  return { summary: response.content, messages: deleteMessages };
 }
 
 // アノテーションの追加
@@ -84,7 +43,6 @@ const workflow = new StateGraph(GraphAnnotation)
 
   // エッジ追加
   .addEdge("__start__", "insart")
-  .addConditionalEdges("insart", shouldContenue)
   .addEdge("summarize", "prepare")
   .addEdge("prepare", "__end__");
 
@@ -102,13 +60,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
-    // 2行取得
-    const len = messages.length;
-    const previousMessage = messages.slice(Math.max(0, len - 2), len);
-
     // 履歴用キー
     const config = { configurable: { thread_id: "abc123" } };
-    const results = await app.invoke({ messages: previousMessage }, config);
+    const results = await app.invoke({ messages: messages }, config);
 
     // 履歴メッセージの加工
     const conversation = [];

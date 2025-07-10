@@ -32,12 +32,20 @@ export const OpenAi4oMini = new ChatOpenAI({
   tags: CONTENTS.TAGS,
 });
 
+// OPENAI(4.1-mini)
+export const OpenAi4_1Mini = new ChatOpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: CONTENTS.OPEN_AI_4_1_MINI,
+  temperature: 0.2,
+  tags: CONTENTS.TAGS,
+});
+
 // Haiku3_5
 export const Haiku3_5 = new ChatAnthropic({
   model: CONTENTS.ANTHROPIC_HAIKU_3_5,
   apiKey: process.env.ANTHROPIC_API_KEY!,
   maxTokens: 256,
-  temperature: 0.3,
+  temperature: 0.2,
   tags: CONTENTS.TAGS,
 });
 

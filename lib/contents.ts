@@ -1,6 +1,7 @@
 // モデル名
 export const OPEN_AI_4O = "gpt-4o";
 export const OPEN_AI_4O_MINI = "gpt-4o-mini";
+export const OPEN_AI_4_1_MINI = "gpt-4.1-mini";
 export const ANTHROPIC_HAIKU_3 = "claude-3-haiku-20240307";
 export const ANTHROPIC_HAIKU_3_5 = "claude-3-5-haiku-20241022";
 export const ANTHROPIC_OPUS_4 = "claude-opus-4-20250514";
@@ -18,6 +19,14 @@ export const PYTHON_PATH =
   process.cwd() + "/mcp-server/.venv/Scripts/python.exe";
 export const SEARCH_PY_PATH = process.cwd() + "/mcp-server/search.py";
 export const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server.js";
+
+// ベースURLの取得
+export const getBaseUrl = (req: Request) => {
+  const host = req.headers.get("host") ?? "";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const baseUrl = `${protocol}://${host}`;
+  return { host, protocol, baseUrl };
+};
 
 // アイコンパス
 export const CAT_ICON_PATH = "/icon/cat_comment.png";

@@ -1,45 +1,35 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { formatMessage } from "@/lib/utils";
-import {
-  MENTOR_PROMPT,
-  NATSUKASHI_PROMPT,
-  UNKNOWN_ERROR,
-} from "@/lib/contents";
-import { OpenAi4oMini, getFakeStream } from "@/lib/models";
+import { getBaseUrl, MENTOR_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
+import { OpenAi4_1Mini } from "@/lib/models";
+import { memoryApi, mentorGraphApi } from "@/lib/api";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
+    const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🔮 MENTOR API");
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const formattedPreviousMessages = messages.slice(1).map(formatMessage);
+    const memoryResponsePromise = memoryApi(baseUrl, messages);
 
     /* mentor graph API */
-    const host = req.headers.get("host") ?? "";
-    const protocol = host.includes("localhost") ? "http" : "https";
-    const baseUrl = `${protocol}://${host}`;
-    const response = await fetch(baseUrl + "/api/mentor-graph", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
-      },
-      body: JSON.stringify({ messages }),
-    });
-    const graph = await response.json();
+    const mentorGraphResponse = await mentorGraphApi(baseUrl, messages);
+    const mentorGraph = await mentorGraphResponse.json();
 
-    // 悩みがあった場合
+    // 過去履歴の同期
+    const memoryResponse = await memoryResponsePromise;
+    const memory = await memoryResponse.json();
+
+    /* AI */
     const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
-    const stream = await prompt.pipe(OpenAi4oMini).stream({
-      question_context: graph.contexts,
-      history: formattedPreviousMessages,
+    const stream = await prompt.pipe(OpenAi4_1Mini).stream({
+      question_context: mentorGraph.contexts,
+      history: memory,
       user_message: currentUserMessage,
     });
 

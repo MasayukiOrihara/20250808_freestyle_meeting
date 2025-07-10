@@ -1,15 +1,16 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { formatMessage } from "@/lib/utils";
-import { UNKNOWN_ERROR } from "@/lib/contents";
-import { OpenAi4oMini } from "@/lib/models";
+import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
+import { OpenAi4_1Mini } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
+import { memoryApi } from "@/lib/api";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
+    const { baseUrl } = getBaseUrl(req);
 
     const id = req.headers.get("id") ?? "comment";
 
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const formattedPreviousMessages = messages.slice(1).map(formatMessage);
+    const memoryResponsePromise = memoryApi(baseUrl, messages);
 
     // bot情報取得
     const bot = Object.values(assistantData).find((item) => item.id === id);
@@ -26,8 +27,13 @@ export async function POST(req: Request) {
     if (!bot?.aiMeta.prompt) throw new Error("プロンプトが設定されていません");
     const prompt = PromptTemplate.fromTemplate(bot?.aiMeta.prompt);
 
-    const stream = await prompt.pipe(OpenAi4oMini).stream({
-      history: formattedPreviousMessages,
+    // 過去履歴の同期
+    const memoryResponse = await memoryResponsePromise;
+    const memory = await memoryResponse.json();
+
+    // ストリーム
+    const stream = await prompt.pipe(OpenAi4_1Mini).stream({
+      history: memory,
       user_message: currentUserMessage,
     });
 

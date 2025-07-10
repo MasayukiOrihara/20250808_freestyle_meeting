@@ -1,8 +1,7 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { formatMessage } from "@/lib/utils";
-import { OpenAi4oMini, getTavilyInfo } from "@/lib/models";
+import { OpenAi4_1Mini } from "@/lib/models";
 import {
   buildDocumentChunks,
   checkUpdateDocuments,
@@ -15,18 +14,20 @@ import {
   FREESTYLE_COMPANY_SUMMARY,
   resolvedDirs,
 } from "./contents";
-import { FREESTYLE_PROMPT } from "@/lib/contents";
+import { FREESTYLE_PROMPT, getBaseUrl } from "@/lib/contents";
+import { memoryApi } from "@/lib/api";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
+    const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🏢 FS API");
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const formattedPreviousMessages = messages.slice(1).map(formatMessage);
+    const memoryResponsePromise = memoryApi(baseUrl, messages);
 
     /* 社内情報RAG　*/
     // コレクションのアップデートが必要か調べる
@@ -47,10 +48,14 @@ export async function POST(req: Request) {
     // RAG準備
     const company = await searchDocs(currentUserMessage, collectionName);
 
+    // 過去履歴の同期
+    const memoryResponse = await memoryResponsePromise;
+    const memory = await memoryResponse.json();
+
     /** AI */
     const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
-    const stream = await prompt.pipe(OpenAi4oMini).stream({
-      history: formattedPreviousMessages,
+    const stream = await prompt.pipe(OpenAi4_1Mini).stream({
+      history: memory,
       user_message: currentUserMessage,
       freestyle_summary: FREESTYLE_COMPANY_SUMMARY,
       info: company,

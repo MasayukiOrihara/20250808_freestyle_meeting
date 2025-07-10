@@ -1,26 +1,34 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { formatMessage } from "@/lib/utils";
-import { TEACHER_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
-import { getTavilyInfo, OpenAi4oMini } from "@/lib/models";
+import { getBaseUrl, TEACHER_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
+import { getTavilyInfo, OpenAi4_1Mini } from "@/lib/models";
+import { memoryApi } from "@/lib/api";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
+    const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🔎 TEACHER API");
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const formattedPreviousMessages = messages.slice(1).map(formatMessage);
+    const infoPromise = getTavilyInfo(currentUserMessage);
+    const memoryResponsePromise = memoryApi(baseUrl, messages);
+
+    // 過去履歴の同期
+    const memoryResponse = await memoryResponsePromise;
+    const memory = await memoryResponse.json();
+
+    const info = await infoPromise;
 
     /** AI */
     const prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
-    const info = await getTavilyInfo(currentUserMessage);
-    const stream = await prompt.pipe(OpenAi4oMini).stream({
-      history: formattedPreviousMessages,
+
+    const stream = await prompt.pipe(OpenAi4_1Mini).stream({
+      history: memory,
       user_message: currentUserMessage,
       info: info,
     });
