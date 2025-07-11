@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
-    console.log("💛 メンターチャットAPI ");
+    console.log("💛 メンターグラフAPI ");
     console.log("---");
 
     /** メッセージ */

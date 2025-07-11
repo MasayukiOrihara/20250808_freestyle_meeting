@@ -12,8 +12,12 @@ import fs from "fs/promises";
 import pdfParse from "pdf-parse";
 import _ from "lodash";
 
+const QDRANT_LOCAL_URL = "http://localhost:6333";
+
 // Qdrantクライアントと埋め込み初期化
-export const qdrantClient = new QdrantClient({ url: "http://localhost:6333" });
+export const qdrantClient = new QdrantClient({
+  url: process.env.QDRANT_URL || QDRANT_LOCAL_URL,
+});
 export const embeddings = new OpenAIEmbeddings({
   model: "text-embedding-3-small",
 });

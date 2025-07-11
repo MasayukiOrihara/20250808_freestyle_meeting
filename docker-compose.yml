@@ -7,3 +7,21 @@ services:
       - "6333:6333"
     volumes:
       - ./qdrant_data:/qdrant/storage
+    networks:
+      - vectornet
+
+  app:
+    build: .
+    container_name: nextjs-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - qdrant
+    environment:
+      QDRANT_URL: http://qdrant:6333
+    networks:
+      - vectornet
+
+networks:
+  vectornet:
+    driver: bridge

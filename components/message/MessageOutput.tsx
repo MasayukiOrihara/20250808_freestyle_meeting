@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useChatMessages } from "../provider/ChatMessageProvider";
 
 export const MessageOutput = () => {

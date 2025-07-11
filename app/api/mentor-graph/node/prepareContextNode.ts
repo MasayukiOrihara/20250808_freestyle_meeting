@@ -1,5 +1,4 @@
 import { ChecklistItem } from "../checklist";
-import { MentorStates } from "../route";
 import { LangsmithOutput } from "./preprocessAINode";
 
 // 定数
@@ -20,7 +19,7 @@ export function prepareContextNode({
   hasQuestion,
   checklist,
 }: ContextNode) {
-  let contexts: string[] = [];
+  const contexts: string[] = [];
 
   // 会話継続の意思を確認
   if (aiContexts.checkContenueTalk.includes("NO")) {

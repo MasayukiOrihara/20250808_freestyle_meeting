@@ -4,7 +4,6 @@ import { useAssistantData } from "../provider/AssistantDataProvider";
 import { AssistantResponse } from "./AssistantResponse";
 import { useChatMessages } from "../provider/ChatMessageProvider";
 import { AssistantIcon } from "./AssistantIcon";
-import { useEffect, useState } from "react";
 
 export const ResponseContainer: React.FC = () => {
   const assistantData = useAssistantData();

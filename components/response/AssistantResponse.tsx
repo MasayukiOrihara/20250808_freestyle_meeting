@@ -32,7 +32,7 @@ export const AssistantResponse = () => {
   const assistantData = useAssistantData();
 
   // AIのメッセージを取得する共通関数
-  const handleChatReady = (key: ChatKey) => {
+  function useChatReadyEffect(key: ChatKey) {
     useEffect(() => {
       if (chatMap[key].messages.length === 0) return;
 
@@ -49,7 +49,7 @@ export const AssistantResponse = () => {
         });
       }
     }, [chatMap[key].status]);
-  };
+  }
 
   // ユーザーメッセージの送信
   useEffect(() => {
@@ -68,10 +68,10 @@ export const AssistantResponse = () => {
   }, [chatMessages]);
 
   // 各APIごとの個別useEffect
-  handleChatReady("comment");
-  handleChatReady("teacher");
-  handleChatReady("freestyle");
-  handleChatReady("mentor");
+  useChatReadyEffect("comment");
+  useChatReadyEffect("teacher");
+  useChatReadyEffect("freestyle");
+  useChatReadyEffect("mentor");
 
   return null;
 };
