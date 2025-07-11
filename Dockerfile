@@ -1,5 +1,5 @@
 # ベースイメージ（Node.js公式）
-FROM node:24.4.0-bullseye
+FROM node:22-alpine3.21
 
 # 作業ディレクトリの作成
 WORKDIR /app

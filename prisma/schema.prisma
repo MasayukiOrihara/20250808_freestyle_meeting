@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model HumanProfile {
+  id                       Int      @id @default(autoincrement())
+  name                     String
+  age                      String
+  sex                      String
+  occupation               String
+  location                 String
+  interests                String[]
+  personalityTraits        String
+  motivation               String
+  communicationPreference  String
+  prohibitedExpressions    String
+  lifestyle                String
+  weeklyRoutine            String
+  hobbies                  String[]
+  dislikes                 String[]
+}

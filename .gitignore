@@ -39,6 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/pgdata/*
 
 # 社内文書
 /public/line-works
@@ -46,3 +47,4 @@ next-env.d.ts
 
 # Git
 /reflect-whiteboard.git/
+/lib/generated/prisma
