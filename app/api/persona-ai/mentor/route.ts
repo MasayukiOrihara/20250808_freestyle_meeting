@@ -7,7 +7,7 @@ import { OpenAi4_1Mini } from "@/lib/models";
 import { memoryApi, mentorGraphApi } from "@/lib/api";
 
 // 記憶のID用
-const threadId = uuidv4();
+const threadId = "mentor_" + uuidv4();
 
 export async function POST(req: Request) {
   try {
@@ -16,6 +16,8 @@ export async function POST(req: Request) {
     const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🔮 MENTOR API");
+    console.log("session: " + body.sessionId);
+    console.log("turns: " + body.count);
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;

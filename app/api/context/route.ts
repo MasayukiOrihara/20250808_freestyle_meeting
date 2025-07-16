@@ -17,6 +17,9 @@ export async function GET() {
     // 言語
     const languageRes = await fetch(local + "api/information/language");
     const languageData = await languageRes.json();
+    // 会話履歴
+    const memoryRes = await fetch(local + "api/memory");
+    const memoryData = await memoryRes.json();
 
     // とりあえず集約してみる
     const data: string[] = [];

@@ -8,7 +8,7 @@ import { assistantData } from "@/lib/assistantData";
 import { memoryApi } from "@/lib/api";
 
 // 記憶のID用
-const threadId = uuidv4();
+const threadId = "comment_" + uuidv4();
 
 /**
  * パーソナAI: コメント
@@ -22,6 +22,8 @@ export async function POST(req: Request) {
     const id = req.headers.get("id") ?? "comment";
 
     console.log(" --- \n💬 COMMENT API");
+    console.log("session: " + body.sessionId);
+    console.log("turns: " + body.count);
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;

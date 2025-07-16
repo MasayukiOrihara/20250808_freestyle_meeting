@@ -7,6 +7,7 @@ import {
 } from "@langchain/langgraph";
 
 import { OpenAi4_1Mini } from "@/lib/models";
+import { formattedMessage } from "./utils";
 
 // プロンプト: 英語にして節約してみる (注) もし英語で回答しだす用なら戻す
 /* 原文 `Conversation summary so far: ${summary}\n\n上記の新しいメッセージを考慮して要約を拡張してください。: ` */
@@ -85,6 +86,7 @@ const workflow = new StateGraph(GraphAnnotation)
 // 記憶の追加
 const memory = new MemorySaver();
 const app = workflow.compile({ checkpointer: memory });
+const cacheIdList: string[] = [];
 
 /**
  * 会話履歴要約API
@@ -104,29 +106,53 @@ export async function POST(req: Request) {
     // 履歴用キー
     const config = { configurable: { thread_id: threadId } };
     const results = await app.invoke({ messages: previousMessage }, config);
+    // 会話履歴を記録した id をため込む
+    const haveNotId = cacheIdList.every((id) => id !== threadId);
+    if (haveNotId) {
+      cacheIdList.push(threadId);
+    }
 
     // 履歴メッセージの加工
-    const conversation = [];
-    for (const message of results.messages) {
-      const content = String(message.content).replace(/\r?\n/g, "");
-
-      switch (message.getType()) {
-        case "human":
-          conversation.push(`user: ${content}`);
-          break;
-        case "ai":
-          conversation.push(`assistant: ${content}`);
-          break;
-        default:
-          conversation.push(`${content}`);
-      }
-    }
+    const conversation = formattedMessage(results.messages, threadId);
 
     console.log("💳 記憶 ---");
     console.log(conversation);
     console.log(" --- ");
 
     return new Response(JSON.stringify(conversation), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Unknown error occurred" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
+/**
+ * すべての会話履歴要約API
+ * @returns
+ */
+export async function GET() {
+  try {
+    if (cacheIdList && cacheIdList.length > 0) {
+      for (const cache of cacheIdList) {
+        const config = { configurable: { thread_id: cache } };
+        const savedState = await memory.get(config);
+
+        console.log(savedState);
+      }
+    }
+    return new Response(JSON.stringify("conversation"), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

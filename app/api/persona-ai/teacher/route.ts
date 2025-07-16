@@ -7,7 +7,7 @@ import { getTavilyInfo, OpenAi4_1Mini } from "@/lib/models";
 import { memoryApi } from "@/lib/api";
 
 // 記憶のID用
-const threadId = uuidv4();
+const threadId = "teacher_" + uuidv4();
 
 export async function POST(req: Request) {
   try {
@@ -16,6 +16,8 @@ export async function POST(req: Request) {
     const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🔎 TEACHER API");
+    console.log("session: " + body.sessionId);
+    console.log("turns: " + body.counts);
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;

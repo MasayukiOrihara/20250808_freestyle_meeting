@@ -6,12 +6,16 @@ import { useChatMessages } from "../provider/ChatMessageProvider";
 import { assistantData } from "@/lib/assistantData";
 import { useAssistantData } from "../provider/AssistantDataProvider";
 import { useAllChats } from "@/hooks/chathooks";
+import { useSendCount } from "@/hooks/useSentCount";
 
 // 変数
 const chatTargets = Object.keys(
   assistantData
 ) as (keyof typeof assistantData)[];
 type ChatKey = (typeof chatTargets)[number];
+
+// 送ったターン数
+let turns = 0;
 
 // 最後のメッセージを取り出す共通化関数
 function getLatestAssistantMessage(messages: UIMessage[]) {
@@ -30,6 +34,7 @@ export const AssistantResponse = () => {
   // プロバイダーから取得
   const { chatMessages, addChatMessage } = useChatMessages();
   const assistantData = useAssistantData();
+  const { increment } = useSendCount();
 
   // AIのメッセージを取得する共通関数
   function useChatReadyEffect(key: ChatKey) {
@@ -64,6 +69,8 @@ export const AssistantResponse = () => {
           });
         }
       });
+      // 送信回数を増やす
+      increment();
     }
   }, [chatMessages]);
 

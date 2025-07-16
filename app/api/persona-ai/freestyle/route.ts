@@ -19,7 +19,7 @@ import { FREESTYLE_PROMPT, getBaseUrl } from "@/lib/contents";
 import { memoryApi } from "@/lib/api";
 
 // 記憶のID用
-const threadId = uuidv4();
+const threadId = "freestyle_" + uuidv4();
 
 /**
  *
@@ -33,6 +33,8 @@ export async function POST(req: Request) {
     const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🏢 FS API");
+    console.log("session: " + body.sessionId);
+    console.log("turns: " + body.count);
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
