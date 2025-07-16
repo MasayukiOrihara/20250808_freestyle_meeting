@@ -95,13 +95,14 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
+    const threadId = body.threadId ?? "memory-abc123";
 
     // 2行取得
     const len = messages.length;
     const previousMessage = messages.slice(Math.max(0, len - 2), len);
 
     // 履歴用キー
-    const config = { configurable: { thread_id: "memory-abc123" } };
+    const config = { configurable: { thread_id: threadId } };
     const results = await app.invoke({ messages: previousMessage }, config);
 
     // 履歴メッセージの加工
@@ -120,6 +121,10 @@ export async function POST(req: Request) {
           conversation.push(`${content}`);
       }
     }
+
+    console.log("💳 記憶 ---");
+    console.log(conversation);
+    console.log(" --- ");
 
     return new Response(JSON.stringify(conversation), {
       status: 200,

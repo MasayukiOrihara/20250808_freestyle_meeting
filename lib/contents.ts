@@ -21,6 +21,7 @@ export const SEARCH_PY_PATH = process.cwd() + "/mcp-server/search.py";
 export const SEARCH_JS_PATH = process.cwd() + "/mcp-server/search-server.js";
 
 // ベースURLの取得
+export const local = "http://localhost:3000/"; // 開発中はめんどくさいのでとりあえず固定で
 export const getBaseUrl = (req: Request) => {
   const host = req.headers.get("host") ?? "";
   const protocol = host.includes("localhost") ? "http" : "https";

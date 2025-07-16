@@ -12,15 +12,18 @@ export const useAllChats = () => {
   return {
     // コメントAI
     comment: useChat({
-      api: "api/comment",
+      api: "api/persona-ai/comment",
       headers: { id: "comment" },
       ...commonChatOptions,
     }),
     // 先生AI
-    teacher: useChat({ api: "api/teacher", ...commonChatOptions }),
+    teacher: useChat({ api: "api/persona-ai/teacher", ...commonChatOptions }),
     // フリースタイルAI
-    freestyle: useChat({ api: "api/freestyle", ...commonChatOptions }),
+    freestyle: useChat({
+      api: "api/persona-ai/freestyle",
+      ...commonChatOptions,
+    }),
     // メンターAI
-    mentor: useChat({ api: "api/mentor", ...commonChatOptions }),
+    mentor: useChat({ api: "api/persona-ai/mentor", ...commonChatOptions }),
   };
 };

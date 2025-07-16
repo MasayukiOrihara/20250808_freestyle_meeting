@@ -1,5 +1,6 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
+import { v4 as uuidv4 } from "uuid";
 
 import { OpenAi4_1Mini } from "@/lib/models";
 import {
@@ -17,6 +18,14 @@ import {
 import { FREESTYLE_PROMPT, getBaseUrl } from "@/lib/contents";
 import { memoryApi } from "@/lib/api";
 
+// 記憶のID用
+const threadId = uuidv4();
+
+/**
+ *
+ * @param req
+ * @returns
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -27,7 +36,7 @@ export async function POST(req: Request) {
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(baseUrl, messages);
+    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId);
 
     /* 社内情報RAG　*/
     // コレクションのアップデートが必要か調べる

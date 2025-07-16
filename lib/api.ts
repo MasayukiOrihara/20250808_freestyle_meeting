@@ -1,7 +1,11 @@
 import { BaseMessage } from "@langchain/core/messages";
 
 /* 過去会話履歴API */
-export const memoryApi = async (url: string, messages: BaseMessage[]) => {
+export const memoryApi = async (
+  url: string,
+  messages: BaseMessage[],
+  threadId: string
+) => {
   const response = await fetch(url + "/api/memory", {
     method: "POST",
     credentials: "include",
@@ -9,7 +13,7 @@ export const memoryApi = async (url: string, messages: BaseMessage[]) => {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, threadId }),
   });
 
   return response;
@@ -17,7 +21,7 @@ export const memoryApi = async (url: string, messages: BaseMessage[]) => {
 
 /** メンターグラフ用API */
 export const mentorGraphApi = async (url: string, messages: BaseMessage[]) => {
-  const response = await fetch(url + "/api/mentor-graph", {
+  const response = await fetch(url + "/api/persona-ai/mentor/mentor-graph", {
     method: "POST",
     credentials: "include",
     headers: {
