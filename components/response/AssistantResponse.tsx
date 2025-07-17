@@ -28,13 +28,16 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
  * @returns
  */
 export const AssistantResponse = () => {
-  // usechat（Reactルールでトップレベルで呼び出さなきゃダメらしい）
-  const chatMap = useAllChats() as Record<ChatKey, ReturnType<typeof useChat>>;
-
   // プロバイダーから取得
   const { chatMessages, addChatMessage } = useChatMessages();
   const assistantData = useAssistantData();
-  const { increment } = useSendCount();
+  const { count, increment } = useSendCount();
+
+  // usechat（Reactルールでトップレベルで呼び出さなきゃダメらしい）
+  const chatMap = useAllChats(count) as Record<
+    ChatKey,
+    ReturnType<typeof useChat>
+  >;
 
   // AIのメッセージを取得する共通関数
   function useChatReadyEffect(key: ChatKey) {

@@ -1,13 +1,9 @@
 import { useChat } from "@ai-sdk/react";
 import { useSessionId } from "./useSessionId";
-import { useSendCount } from "./useSentCount";
 
 /** Reactのルールより静的に追加する必要あり */
-export const useAllChats = () => {
+export const useAllChats = (count: number) => {
   const sessionId = useSessionId();
-  const { count } = useSendCount();
-
-  console.log(count);
 
   // useChat共通化
   function commonChatOptions(key: string) {

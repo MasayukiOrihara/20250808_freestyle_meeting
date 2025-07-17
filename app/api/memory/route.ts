@@ -115,10 +115,6 @@ export async function POST(req: Request) {
     // 履歴メッセージの加工
     const conversation = formattedMessage(results.messages, threadId);
 
-    console.log("💳 記憶 ---");
-    console.log(conversation);
-    console.log(" --- ");
-
     return new Response(JSON.stringify(conversation), {
       status: 200,
       headers: { "Content-Type": "application/json" },

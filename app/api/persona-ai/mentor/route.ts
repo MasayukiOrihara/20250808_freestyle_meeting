@@ -1,13 +1,9 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
-import { v4 as uuidv4 } from "uuid";
 
 import { getBaseUrl, MENTOR_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
 import { OpenAi4_1Mini } from "@/lib/models";
 import { memoryApi, mentorGraphApi } from "@/lib/api";
-
-// 記憶のID用
-const threadId = "mentor_" + uuidv4();
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +14,9 @@ export async function POST(req: Request) {
     console.log(" --- \n🔮 MENTOR API");
     console.log("session: " + body.sessionId);
     console.log("turns: " + body.count);
+
+    // 記憶のID用
+    const threadId = "mentor_" + body.sessionId;
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;

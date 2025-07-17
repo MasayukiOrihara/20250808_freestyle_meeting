@@ -1,13 +1,9 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
-import { v4 as uuidv4 } from "uuid";
 
 import { getBaseUrl, TEACHER_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
 import { getTavilyInfo, OpenAi4_1Mini } from "@/lib/models";
 import { memoryApi } from "@/lib/api";
-
-// 記憶のID用
-const threadId = "teacher_" + uuidv4();
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +14,9 @@ export async function POST(req: Request) {
     console.log(" --- \n🔎 TEACHER API");
     console.log("session: " + body.sessionId);
     console.log("turns: " + body.counts);
+
+    // 記憶のID用
+    const threadId = "teacher_" + body.sessionId;
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;

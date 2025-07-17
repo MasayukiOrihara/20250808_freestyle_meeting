@@ -1,14 +1,10 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
-import { v4 as uuidv4 } from "uuid";
 
 import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
 import { OpenAi4_1Mini } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
 import { memoryApi } from "@/lib/api";
-
-// 記憶のID用
-const threadId = "comment_" + uuidv4();
 
 /**
  * パーソナAI: コメント
@@ -24,6 +20,9 @@ export async function POST(req: Request) {
     console.log(" --- \n💬 COMMENT API");
     console.log("session: " + body.sessionId);
     console.log("turns: " + body.count);
+
+    // 記憶のID用
+    const threadId = "comment_" + body.sessionId;
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
