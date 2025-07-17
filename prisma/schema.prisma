@@ -32,3 +32,25 @@ model FileHashGroup {
   key    String   @unique
   hashes String[]
 }
+
+/** 会話履歴を取り扱う */ 
+model Conversation {
+  id          String    @id @default(uuid())
+  userId      String
+  sessionId   String
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  messages    Message[]
+  metadata    Json?     // 任意の追加情報を保存可能
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  role           String      // "user" or "ai" など
+  content        String
+  createdAt      DateTime    @default(now())
+  metadata       Json?       // トークン数や感情分析などの情報
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+}

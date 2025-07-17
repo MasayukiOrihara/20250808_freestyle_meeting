@@ -60,3 +60,32 @@ export const postGlobalHashData = async (hashData: string[]) => {
     body: JSON.stringify({ hashData }),
   });
 };
+
+/** 会話履歴 prisma */
+// データの取得
+export const getConversasionSearch = async (id: string) => {
+  const response = await fetch(
+    local + `/api/prisma/conversation/search/${id}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+      },
+    }
+  );
+  return response.json();
+};
+// DBへデータの更新
+export const postConversasionGenerate = async (sessionId: string) => {
+  await fetch(local + "/api/prisma/conversasion/generate", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+    },
+    body: JSON.stringify({ sessionId }),
+  });
+};

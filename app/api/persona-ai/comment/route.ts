@@ -5,6 +5,7 @@ import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
 import { OpenAi4_1Mini } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
 import { memoryApi } from "@/lib/api";
+import { memo } from "react";
 
 /**
  * パーソナAI: コメント
@@ -38,6 +39,10 @@ export async function POST(req: Request) {
     // 過去履歴の同期
     const memoryResponse = await memoryResponsePromise;
     const memory = await memoryResponse.json();
+
+    console.log("💿 記憶 ---");
+    console.log(memory);
+    console.log(" --- ");
 
     // ストリーム
     const stream = await prompt.pipe(OpenAi4_1Mini).stream({

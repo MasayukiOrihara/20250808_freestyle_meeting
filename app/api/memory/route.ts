@@ -8,18 +8,26 @@ import {
 
 import { OpenAi4_1Mini } from "@/lib/models";
 import { formattedMessage } from "./utils";
-
-// プロンプト: 英語にして節約してみる (注) もし英語で回答しだす用なら戻す
-/* 原文 `Conversation summary so far: ${summary}\n\n上記の新しいメッセージを考慮して要約を拡張してください。: ` */
-const MEMORY_UPDATE_PROMPT =
-  "Here is the conversation summary so far: {summary}\n\nBased on the new message above, expand this summary while retaining important intent, information, and conversational flow for long-term memory.";
-/* 原文 "上記の入力を過去の会話の記憶として保持できるように重要な意図や情報・流れがわかるように短く要約してください。: " */
-const MEMORY_SUMMARY_PROMPT =
-  "Summarize the input above concisely to preserve its key intent, information, and conversational flow, so it can be stored as memory for future context.";
+import {
+  local,
+  MEMORY_SUMMARY_PROMPT,
+  MEMORY_UPDATE_PROMPT,
+} from "@/lib/contents";
+import { getConversasionSearch, postConversasionGenerate } from "@/lib/api";
 
 /** メッセージを挿入する処理 */
 async function insertMessages(state: typeof GraphAnnotation.State) {
   const messages = state.messages;
+
+  // メッセージを DB に登録する
+  const conversation = await getConversasionSearch(state.sessionId);
+  if (!conversation) {
+    // もし取得できなかった場合、新たにconversationを登録する
+    await postConversasionGenerate(state.sessionId);
+  }
+  console.log("- メッセージ -");
+  console.log(messages);
+
   return { messages: messages };
 }
 
@@ -67,6 +75,7 @@ async function summarizeConversation(state: typeof GraphAnnotation.State) {
 // アノテーションの追加
 const GraphAnnotation = Annotation.Root({
   summary: Annotation<string>(),
+  sessionId: Annotation<string>(),
   ...MessagesAnnotation.spec,
 });
 
@@ -105,7 +114,11 @@ export async function POST(req: Request) {
 
     // 履歴用キー
     const config = { configurable: { thread_id: threadId } };
-    const results = await app.invoke({ messages: previousMessage }, config);
+    const results = await app.invoke(
+      { messages: previousMessage, sessionId: threadId },
+      config
+    );
+
     // 会話履歴を記録した id をため込む
     const haveNotId = cacheIdList.every((id) => id !== threadId);
     if (haveNotId) {
