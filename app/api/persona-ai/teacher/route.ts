@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     console.log(" --- \n🔎 TEACHER API");
     console.log("session: " + body.sessionId);
-    console.log("turns: " + body.counts);
+    console.log("turns: " + body.count);
 
     // 記憶のID用
     const threadId = "teacher_" + body.sessionId;

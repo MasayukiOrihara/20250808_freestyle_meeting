@@ -7,7 +7,7 @@ import { local } from "@/lib/contents";
  */
 export async function GET() {
   try {
-    console.log("🧻 コンテキスト！");
+    console.log("🧻 コンテキスト");
     // 日にち
     const dateRes = await fetch(local + "api/information/date");
     const dateData = await dateRes.json();
@@ -18,8 +18,8 @@ export async function GET() {
     const languageRes = await fetch(local + "api/information/language");
     const languageData = await languageRes.json();
     // 会話履歴
-    const memoryRes = await fetch(local + "api/memory");
-    const memoryData = await memoryRes.json();
+    // const memoryRes = await fetch(local + "api/memory");
+    // const memoryData = await memoryRes.json();
 
     // とりあえず集約してみる
     const data: string[] = [];

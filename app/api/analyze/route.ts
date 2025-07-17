@@ -13,6 +13,7 @@ import {
   HumanProfile,
 } from "./personal";
 import { PromptTemplate } from "@langchain/core/prompts";
+import { getBaseUrl } from "@/lib/contents";
 
 // /** メッセージを挿入する処理 */
 async function insertMessages(state: typeof GraphAnnotation.State) {
@@ -29,7 +30,7 @@ async function shouldAnalyze(state: typeof GraphAnnotation.State) {
   console.log("❓ should analyze");
   const messages = state.messages;
 
-  if (messages.length > 2) return "analyzeNode";
+  if (messages.length > 3) return "analyzeNode";
   return "__end__";
 }
 
@@ -86,7 +87,8 @@ async function generateUserText(state: typeof GraphAnnotation.State) {
       .invoke({ analyze_context: analyzeContext });
   }
   console.log(context);
-  return { context: context };
+  const messages = [...state.messages, new SystemMessage(context)];
+  return { context: context, messages: messages };
 }
 
 // アノテーションの追加
@@ -122,13 +124,27 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const userMessages = body.userMessages;
+    const threadId = body.sessionId ?? "analyze-abc123";
+    const { baseUrl } = getBaseUrl(req);
 
-    console.log("📂 Analize API");
+    console.log("📂 Analize API | ID: " + threadId);
     const currentUserMessages = userMessages[userMessages.length - 1];
 
     // 履歴用キー
-    const config = { configurable: { thread_id: "analyze-abc123" } };
+    const config = { configurable: { thread_id: threadId } };
     const results = await app.invoke({ messages: currentUserMessages }, config);
+
+    // DB への追加
+    const analyzeData = results.analyze;
+    if (analyzeData) {
+      const res = await fetch(baseUrl + "/api/prisma/create-personal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analyzeData, threadId }),
+      });
+      const data = await res.json();
+      console.log(data);
+    }
 
     return new Response(JSON.stringify(results), {
       status: 200,
