@@ -1,11 +1,11 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { OpenAi4_1Mini } from "@/lib/models";
+import { OpenAi4_1Mini, qdrantClient } from "@/lib/models";
 import {
   buildDocumentChunks,
   checkUpdateDocuments,
-  qdrantClient,
+  isCollectionMissingOrEmpty,
   saveEmbeddingQdrant,
   searchDocs,
 } from "./embedding";
@@ -42,7 +42,8 @@ export async function POST(req: Request) {
     /* 社内情報RAG　*/
     // コレクションのアップデートが必要か調べる
     const needsUpdate = await checkUpdateDocuments(resolvedDirs);
-    if (needsUpdate) {
+    const isCollection = await isCollectionMissingOrEmpty(collectionName);
+    if (needsUpdate || !isCollection) {
       // コレクション削除
       await qdrantClient.deleteCollection(collectionName);
 

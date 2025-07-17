@@ -1,6 +1,4 @@
-import { QdrantClient } from "@qdrant/js-client-rest";
 import { QdrantVectorStore } from "@langchain/qdrant";
-import { OpenAIEmbeddings } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
 
@@ -11,16 +9,9 @@ import path from "path";
 import fs from "fs/promises";
 import pdfParse from "pdf-parse";
 import _ from "lodash";
-
-const QDRANT_LOCAL_URL = "http://localhost:6333";
-
-// Qdrantクライアントと埋め込み初期化
-export const qdrantClient = new QdrantClient({
-  url: process.env.QDRANT_URL || QDRANT_LOCAL_URL,
-});
-export const embeddings = new OpenAIEmbeddings({
-  model: "text-embedding-3-small",
-});
+import { embeddings, qdrantClient } from "@/lib/models";
+import { local } from "@/lib/contents";
+import { getGlobalHashData, postGlobalHashData } from "@/lib/api";
 
 // 整形
 function cleanText(text: string) {
@@ -69,24 +60,25 @@ function deepCopyString2DArray(arr: string[][]): string[][] {
 }
 
 // 順番関係なしに比較
-function isEqualIgnoreOrder(a: string[][], b: string[][]): boolean {
+function isEqualIgnoreOrder(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
 
-  for (let i = 0; i < a.length; i++) {
-    const sortedA = [...a[i]].sort();
-    const sortedB = [...b[i]].sort();
-    if (!_.isEqual(sortedA, sortedB)) return false;
-  }
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
 
-  return true;
+  return _.isEqual(sortedA, sortedB);
 }
 
 /** 更新チェック */
-let globalHashData: string[][] = [];
 export async function checkUpdateDocuments(resolvedDirs: {
   [k: string]: string;
 }) {
   const hashData: string[][] = [];
+
+  // データの取得
+  const globalHashData: string[] = await getGlobalHashData();
+
+  // ハッシュの取得
   for (const [, dirPath] of Object.entries(resolvedDirs)) {
     const files = await fs.readdir(dirPath);
 
@@ -105,9 +97,11 @@ export async function checkUpdateDocuments(resolvedDirs: {
     hashData.push(hash);
   }
   // 比較
-  const isEqual = isEqualIgnoreOrder(globalHashData, hashData);
+  const flatHashData = hashData.flat();
+  const isEqual = isEqualIgnoreOrder(globalHashData, flatHashData);
   if (!isEqual) {
-    globalHashData = deepCopyString2DArray(hashData);
+    // データ更新
+    await postGlobalHashData(flatHashData);
   }
   return !isEqual;
 }
@@ -208,8 +202,28 @@ export async function searchDocs(query: string, collectionName: string) {
     }
   );
   const results = await vectorStore.similaritySearch(query, 4);
+  const cleaned = results.map(
+    (doc, index) => `情報 ${index}: ${doc.pageContent.replace(/[\r\n]+/g, "")}`
+  );
 
   console.log("検索結果:");
-  console.log(results);
+  console.log(cleaned);
   return results;
+}
+
+/** コレクションが存在するか確認 */
+export async function isCollectionMissingOrEmpty(
+  collectionName: string
+): Promise<boolean> {
+  try {
+    await qdrantClient.getCollection(collectionName);
+  } catch (e) {
+    return false;
+  }
+
+  const scrollResult = await qdrantClient.scroll(collectionName, {
+    limit: 1,
+  });
+
+  return scrollResult.points.length === 0 ? false : true;
 }

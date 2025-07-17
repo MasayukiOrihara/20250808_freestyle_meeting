@@ -1,5 +1,5 @@
 import { ChatAnthropic } from "@langchain/anthropic";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import {
   JsonOutputParser,
   StringOutputParser,
@@ -11,6 +11,9 @@ import { PrismaClient } from "@prisma/client";
 import * as CONTENTS from "./contents";
 import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
 import { PromptTemplate } from "@langchain/core/prompts";
+import { QdrantClient } from "@qdrant/js-client-rest";
+
+const QDRANT_LOCAL_URL = "http://localhost:6333";
 
 // パサー
 export const strParser = new StringOutputParser();
@@ -23,6 +26,14 @@ export const langsmithClient = new Client({
 
 // prisma のクライアント
 export const prisma = new PrismaClient();
+
+// Qdrantクライアントと埋め込み初期化
+export const qdrantClient = new QdrantClient({
+  url: process.env.QDRANT_URL || QDRANT_LOCAL_URL,
+});
+export const embeddings = new OpenAIEmbeddings({
+  model: "text-embedding-3-small",
+});
 
 // OPENAI(4o)
 export const OpenAi4o = new ChatOpenAI({
@@ -96,7 +107,9 @@ export const getTavilyInfo = async (query: string) => {
 
   const result = await tavily.invoke(query);
   console.log("検索結果: ");
-  console.log(result);
+  console.log(
+    result.map((doc, index) => `${index} ページ目: ${doc.pageContent}`)
+  );
 
   return result;
 };

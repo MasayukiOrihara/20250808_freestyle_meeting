@@ -25,3 +25,10 @@ model HumanProfile {
   dislikes                 String[]
   sessionId                String
 }
+
+/* freestyle parsona AI で扱うベクターデータを更新するかしないかのハッシュ */
+model FileHashGroup {
+  id     Int      @id @default(autoincrement())
+  key    String   @unique
+  hashes String[]
+}

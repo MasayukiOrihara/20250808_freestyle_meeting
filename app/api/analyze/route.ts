@@ -137,13 +137,11 @@ export async function POST(req: Request) {
     // DB への追加
     const analyzeData = results.analyze;
     if (analyzeData) {
-      const res = await fetch(baseUrl + "/api/prisma/create-personal", {
+      await fetch(baseUrl + "/api/prisma/create-personal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ analyzeData, threadId }),
       });
-      const data = await res.json();
-      console.log(data);
     }
 
     return new Response(JSON.stringify(results), {

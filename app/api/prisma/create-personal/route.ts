@@ -23,8 +23,8 @@ export async function POST(req: Request) {
     console.log("💽 prisma data");
     console.log(humanProfilePrisma);
 
-    return new Response(JSON.stringify(humanProfilePrisma), {
-      status: 200,
+    return new Response(null, {
+      status: 204,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
