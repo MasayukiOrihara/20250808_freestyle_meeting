@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    console.log("💽 prisma Conversation API GET: " + id);
+    console.log("💽 prisma Conversation/search API GET: " + id);
 
     const conversation = await prisma.conversation.findFirst({
       where: { sessionId: id },
@@ -20,7 +20,7 @@ export async function GET(
       status: 200,
     });
   } catch (error) {
-    console.log("💽 prisma Conversation API GET error" + error);
+    console.log("💽 prisma Conversation/search API GET error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
     return Response.json({ error: message }, { status: 500 });

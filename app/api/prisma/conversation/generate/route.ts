@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/models";
-import { use } from "react";
 
 /** DB に 会話履歴 の保存 */
 export async function POST(req: Request) {
@@ -8,7 +7,7 @@ export async function POST(req: Request) {
     const sessionId = body.sessionId;
     const userId = "user-123"; // 現状固定
 
-    console.log("💽 prisma Conversation API POST");
+    console.log("💽 prisma Conversation/generate API POST");
 
     // DB に作成
     const generated = await prisma.conversation.create({
@@ -22,7 +21,7 @@ export async function POST(req: Request) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.log("💽 prisma Conversation API POST error" + error);
+    console.log("💽 prisma Conversation/generate API POST error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
     return Response.json({ error: message }, { status: 500 });

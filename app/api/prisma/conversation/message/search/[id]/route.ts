@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/models";
-import { NextRequest } from "next/server";
 
 /** prisma から保存してた message を sessionidを元に 2件 取り出す */
 export async function POST(
@@ -26,7 +25,7 @@ export async function POST(
       .reverse()
       .map((msg) => `${msg.role}: ${msg.content}`);
 
-    return new Response(JSON.stringify(messages ?? null), {
+    return new Response(JSON.stringify(null), {
       status: 200,
     });
   } catch (error) {

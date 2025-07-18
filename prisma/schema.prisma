@@ -41,6 +41,7 @@ model Conversation {
   startedAt   DateTime  @default(now())
   endedAt     DateTime?
   messages    Message[]
+  summary     String?
   metadata    Json?     // 任意の追加情報を保存可能
 }
 

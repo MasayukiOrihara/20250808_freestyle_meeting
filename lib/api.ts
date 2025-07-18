@@ -106,6 +106,21 @@ export const postConversasionMessages = async (
     body: JSON.stringify({ conversationId, role, content }),
   });
 };
+// DBへデータの更新
+export const postConversasionSaveSummary = async (
+  id: string,
+  summary: string
+) => {
+  await fetch(local + `/api/prisma/conversation/save/summary/${id}`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+    },
+    body: JSON.stringify({ summary }),
+  });
+};
 
 /** messages prisma */
 // データの取得

@@ -21,6 +21,7 @@ import {
   getMessagSearch,
   postConversasionGenerate,
   postConversasionMessages,
+  postConversasionSaveSummary,
 } from "@/lib/api";
 import { formatContent, formatConversation } from "./utils";
 
@@ -101,6 +102,10 @@ async function prepareMessages(state: typeof GraphAnnotation.State) {
   // フォーマット
   const { roles, contents } = formatContent(messages, state.sessionId);
   const conversation: string[] = formatConversation(roles, contents);
+
+  // DBに追加
+  const id = await getConversasionSearch(state.sessionId);
+  await postConversasionSaveSummary(id, conversation.join(""));
 
   console.log("🐶: " + state.formatted);
   return { formatted: [...conversation] };
