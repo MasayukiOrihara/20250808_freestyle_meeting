@@ -3,10 +3,7 @@ import { prisma } from "@/lib/models";
 /** DB に 会話履歴 の保存 */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const conversationId = "";
-    const role = "";
-    const content = "";
+    const { conversationId, role, content } = await req.json();
 
     console.log("💽 prisma Conversation API POST");
 
@@ -17,6 +14,14 @@ export async function POST(req: Request) {
         role,
         content,
         // metadata, 追加未定
+      },
+    });
+
+    // 最終日付の更新
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: {
+        endedAt: new Date(Date.now()),
       },
     });
 

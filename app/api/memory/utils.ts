@@ -1,21 +1,35 @@
 import { BaseMessage } from "@langchain/core/messages";
 
-export const formattedMessage = (messages: BaseMessage[], threadId: string) => {
-  const conversation = [];
+/** messages を見やすい形式に変換する関数 */
+export const formatContent = (messages: BaseMessage[], threadId: string) => {
+  const roles = [];
+  const contents = [];
   for (const message of messages) {
     const content = String(message.content).replace(/\r?\n/g, "");
     const key = threadId.split("_")[0];
 
     switch (message.getType()) {
       case "human":
-        conversation.push(`user: ${content}`);
+        roles.push("user");
+        contents.push(content);
         break;
       case "ai":
-        conversation.push(`assistant(${key}): ${content}`);
+        roles.push(`assistant(${key})`);
+        contents.push(content);
         break;
       default:
-        conversation.push(`${content}`);
+        roles.push(`system`);
+        contents.push(content);
     }
+  }
+  return { roles, contents };
+};
+
+export const formatConversation = (roles: string[], contents: string[]) => {
+  const conversation = [];
+  const length = Math.min(roles.length, contents.length);
+  for (let i = 0; i < length; i++) {
+    conversation.push(`${roles[i]}: ${contents[i]}`);
   }
   return conversation;
 };

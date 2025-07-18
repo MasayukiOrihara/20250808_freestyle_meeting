@@ -1,4 +1,8 @@
-import { RemoveMessage, SystemMessage } from "@langchain/core/messages";
+import {
+  BaseMessage,
+  RemoveMessage,
+  SystemMessage,
+} from "@langchain/core/messages";
 import {
   Annotation,
   MemorySaver,
@@ -7,45 +11,107 @@ import {
 } from "@langchain/langgraph";
 
 import { OpenAi4_1Mini } from "@/lib/models";
-import { formattedMessage } from "./utils";
 import {
   local,
   MEMORY_SUMMARY_PROMPT,
   MEMORY_UPDATE_PROMPT,
 } from "@/lib/contents";
-import { getConversasionSearch, postConversasionGenerate } from "@/lib/api";
+import {
+  getConversasionSearch,
+  getMessagSearch,
+  postConversasionGenerate,
+  postConversasionMessages,
+} from "@/lib/api";
+import { formatContent, formatConversation } from "./utils";
 
-/** メッセージを挿入する処理 */
-async function insertMessages(state: typeof GraphAnnotation.State) {
+// 定数
+const SUMMARY_MAX_COUNT = 8;
+
+/** メッセージを取得する処理 */
+async function insartMessage(state: typeof GraphAnnotation.State) {
+  const formatted: string[] = [];
   const messages = state.messages;
 
-  // メッセージを DB に登録する
-  const conversation = await getConversasionSearch(state.sessionId);
-  if (!conversation) {
-    // もし取得できなかった場合、新たにconversationを登録する
-    await postConversasionGenerate(state.sessionId);
-  }
-  console.log("- メッセージ -");
+  console.log("===insartMessage===");
   console.log(messages);
+  console.log("======");
 
-  return { messages: messages };
+  // conversation テーブルを参照
+  let conversationId: string = await getConversasionSearch(state.sessionId);
+  if (!conversationId) {
+    // もし取得できなかった場合、新たにconversationを作成する
+    conversationId = await postConversasionGenerate(state.sessionId);
+    return { formatted: formatted };
+  }
+
+  // DB からメッセージをx件取得する
+  const latestTwoMessage: string = await getMessagSearch(conversationId, 3);
+  console.log("🐶 latestTwoMessage: ");
+  console.log(latestTwoMessage);
+  return { formatted: [...formatted, ...latestTwoMessage] };
+}
+
+/** メッセージを DB に登録する処理 */
+async function storeMessage(state: typeof GraphAnnotation.State) {
+  const messages = state.messages;
+  const formatted: string[] = state.formatted;
+  console.log("===storeMessage===");
+  console.log(messages);
+  console.log("======");
+
+  // conversation テーブルを参照
+  let conversationId: string = await getConversasionSearch(state.sessionId);
+  if (!conversationId) {
+    // もし取得できなかった場合、新たにconversationを作成する
+    conversationId = await postConversasionGenerate(state.sessionId);
+  }
+
+  // messages テーブルに保存
+  const { roles, contents } = formatContent(messages, state.sessionId);
+  const length = Math.min(roles.length, contents.length);
+  for (let i = 0; i < length; i++) {
+    await postConversasionMessages(conversationId, roles[i], contents[i]);
+  }
+
+  // 加工後のメッセージを追加する
+  const formattedMessages: string[] = formatConversation(roles, contents);
+
+  console.log("======");
+  console.log(formattedMessages);
+  console.log("======");
+
+  console.log("🐶: ");
+  console.log(formatted);
+  // 使った messages は初期化
+  const deleteMessages = messages.map((m) => new RemoveMessage({ id: m.id! }));
+  return {
+    messages: deleteMessages,
+    formatted: [...formatted, ...formattedMessages],
+  };
 }
 
 /** 要約したメッセージを追加する処理 */
 async function prepareMessages(state: typeof GraphAnnotation.State) {
   const summary = state.summary;
+
   // 要約をシステムメッセージとして追加
   const systemMessage = `Previous conversation summary: ${summary}`;
   const messages = [new SystemMessage(systemMessage)];
 
-  return { messages: messages };
+  // フォーマット
+  const { roles, contents } = formatContent(messages, state.sessionId);
+  const conversation: string[] = formatConversation(roles, contents);
+
+  console.log("🐶: " + state.formatted);
+  return { formatted: [...conversation] };
 }
 
 /** 会話を行うか要約するかの判断処理 */
 async function shouldContenue(state: typeof GraphAnnotation.State) {
-  const messages = state.messages;
+  const formatted = state.formatted;
 
-  if (messages.length > 6) return "summarize";
+  console.log("🐶: " + formatted);
+  if (formatted.length > SUMMARY_MAX_COUNT) return "summarize";
   return "__end__";
 }
 
@@ -54,7 +120,6 @@ async function summarizeConversation(state: typeof GraphAnnotation.State) {
   const summary = state.summary;
 
   let summaryMessage;
-
   if (summary) {
     summaryMessage = MEMORY_UPDATE_PROMPT.replace("{summary}", summary);
   } else {
@@ -62,33 +127,37 @@ async function summarizeConversation(state: typeof GraphAnnotation.State) {
   }
 
   // 要約処理
-  const messages = [...state.messages, new SystemMessage(summaryMessage)];
-  const response = await OpenAi4_1Mini.invoke(messages);
+  const messages = [new SystemMessage(summaryMessage)];
+  const { roles, contents } = formatContent(messages, state.sessionId);
+  const conversation: string[] = formatConversation(roles, contents);
 
-  // 要約したメッセージ除去
-  const deleteMessages = messages
-    .slice(0, -2)
-    .map((m) => new RemoveMessage({ id: m.id! }));
-  return { summary: response.content, messages: deleteMessages };
+  const formatted = [...state.formatted, ...conversation];
+  const response = await OpenAi4_1Mini.invoke(formatted);
+
+  return { summary: response.content };
 }
 
 // アノテーションの追加
 const GraphAnnotation = Annotation.Root({
+  formatted: Annotation<string[]>(),
   summary: Annotation<string>(),
   sessionId: Annotation<string>(),
+
   ...MessagesAnnotation.spec,
 });
 
 // グラフ
 const workflow = new StateGraph(GraphAnnotation)
   // ノード追加
-  .addNode("insert", insertMessages)
+  .addNode("insart", insartMessage)
+  .addNode("save", storeMessage)
   .addNode("prepare", prepareMessages)
   .addNode("summarize", summarizeConversation)
 
   // エッジ追加
-  .addEdge("__start__", "insert")
-  .addConditionalEdges("insert", shouldContenue)
+  .addEdge("__start__", "insart")
+  .addEdge("insart", "save")
+  .addConditionalEdges("save", shouldContenue)
   .addEdge("summarize", "prepare")
   .addEdge("prepare", "__end__");
 
@@ -110,7 +179,10 @@ export async function POST(req: Request) {
 
     // 2行取得
     const len = messages.length;
-    const previousMessage = messages.slice(Math.max(0, len - 2), len);
+    const previousMessage: BaseMessage[] = messages.slice(
+      Math.max(0, len - 2),
+      len
+    );
 
     // 履歴用キー
     const config = { configurable: { thread_id: threadId } };
@@ -125,10 +197,9 @@ export async function POST(req: Request) {
       cacheIdList.push(threadId);
     }
 
-    // 履歴メッセージの加工
-    const conversation = formattedMessage(results.messages, threadId);
+    console.log(results.formatted);
 
-    return new Response(JSON.stringify(conversation), {
+    return new Response(JSON.stringify(results.formatted), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

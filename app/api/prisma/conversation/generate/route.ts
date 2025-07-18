@@ -11,12 +11,14 @@ export async function POST(req: Request) {
     console.log("💽 prisma Conversation API POST");
 
     // DB に作成
-    await prisma.conversation.create({
+    const generated = await prisma.conversation.create({
       data: { userId: userId, sessionId: sessionId },
     });
+    console.log(generated);
 
-    return new Response(null, {
-      status: 204,
+    // conversationIdを返す
+    return new Response(JSON.stringify(generated?.id ?? null), {
+      status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {

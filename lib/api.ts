@@ -79,7 +79,7 @@ export const getConversasionSearch = async (id: string) => {
 };
 // DBへデータの更新
 export const postConversasionGenerate = async (sessionId: string) => {
-  await fetch(local + "/api/prisma/conversasion/generate", {
+  const response = await fetch(local + "/api/prisma/conversation/generate", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -88,4 +88,39 @@ export const postConversasionGenerate = async (sessionId: string) => {
     },
     body: JSON.stringify({ sessionId }),
   });
+  return response.json();
+};
+// DBへデータの更新
+export const postConversasionMessages = async (
+  conversationId: string,
+  role: string,
+  content: string
+) => {
+  await fetch(local + "/api/prisma/conversation/message", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+    },
+    body: JSON.stringify({ conversationId, role, content }),
+  });
+};
+
+/** messages prisma */
+// データの取得
+export const getMessagSearch = async (id: string, take: number) => {
+  const response = await fetch(
+    local + `/api/prisma/conversation/message/search/${id}`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+      },
+      body: JSON.stringify({ take }),
+    }
+  );
+  return response.json();
 };

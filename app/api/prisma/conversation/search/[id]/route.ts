@@ -16,7 +16,9 @@ export async function GET(
       select: { id: true },
     });
 
-    return new Response(JSON.stringify(conversation), { status: 200 });
+    return new Response(JSON.stringify(conversation?.id ?? null), {
+      status: 200,
+    });
   } catch (error) {
     console.log("💽 prisma Conversation API GET error" + error);
     const message =
