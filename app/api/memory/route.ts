@@ -39,7 +39,6 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
     count
   );
 
-  console.log("🐶 conversationId" + conversation);
   let conversationId;
   if (conversation) {
     conversationId = conversation.id;
