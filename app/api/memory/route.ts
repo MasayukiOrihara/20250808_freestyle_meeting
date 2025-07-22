@@ -17,59 +17,87 @@ import {
   MEMORY_UPDATE_PROMPT,
 } from "@/lib/contents";
 import {
-  getConversasionSearch,
-  getConversasionSearchSummary,
-  getMessagSearch,
   postConversasionGenerate,
-  postConversasionMessages,
-  postConversasionSaveSummary,
+  postConversasionSave,
+  postConversasionSearch,
 } from "@/lib/api";
 import { formatContent, formatConversation } from "./utils";
+import { ConversationMemory, MessageMemory } from "@/lib/types";
 
 // 定数
 const SUMMARY_MAX_COUNT = 6;
 
-/** メッセージを取得する処理 */
-async function insartMessage(state: typeof GraphAnnotation.State) {
+/** メッセージをDBから取得する処理 */
+async function loadConversation(state: typeof GraphAnnotation.State) {
   const formatted: string[] = [];
   let summary = state.summary;
+  const count = state.turn % SUMMARY_MAX_COUNT;
 
-  // conversation テーブルを参照
-  let conversationId: string = await getConversasionSearch(state.sessionId);
-  if (!conversationId) {
+  // conversation データ取得
+  const conversation: ConversationMemory = await postConversasionSearch(
+    state.sessionId,
+    count
+  );
+
+  console.log("🐶 conversationId" + conversation);
+  let conversationId;
+  if (conversation) {
+    conversationId = conversation.id;
+  } else {
     // もし取得できなかった場合、新たにconversationを作成する
     conversationId = await postConversasionGenerate(state.sessionId);
-    return { formatted: formatted };
-  }
-  // DB に会話要約の確認
-  if (!summary) {
-    const savedSummary = await getConversasionSearchSummary(conversationId);
-    if (savedSummary) summary = savedSummary;
-    console.log("取得した要約: " + savedSummary);
+    return { formatted: formatted, conversationId: conversationId };
   }
 
-  // DB からメッセージをx件取得する
-  const count = state.turn % SUMMARY_MAX_COUNT;
-  const latestMessage: string = await getMessagSearch(conversationId, count);
+  // 会話要約の確認
+  if (!summary) {
+    const savedSummary = conversation.summary;
+    if (savedSummary && savedSummary != "") summary = savedSummary;
+  }
+
+  // メッセージをx件取得する
+  const latestMessages = conversation.messages
+    .reverse()
+    .map((msg) => `${msg.role}: ${msg.content}`);
 
   return {
-    formatted: [...formatted, ...latestMessage],
+    formatted: [...formatted, ...latestMessages],
     summary: summary,
     conversationId: conversationId,
   };
 }
 
+/** 会話を行うか要約するかの判断処理 */
+async function shouldContenue(state: typeof GraphAnnotation.State) {
+  const should = (state.turn + 1) % SUMMARY_MAX_COUNT === 0;
+  if (should) return "summarize";
+  return "store";
+}
+
 /** メッセージを DB に登録する処理 */
-async function storeMessage(state: typeof GraphAnnotation.State) {
+async function storeConversation(state: typeof GraphAnnotation.State) {
   const messages = state.messages;
   const formatted: string[] = state.formatted;
 
   // messages テーブルに保存
   const { roles, contents } = formatContent(messages, state.sessionId);
   const length = Math.min(roles.length, contents.length);
+
+  // メッセージの作成
+  const arrMessage = [];
+  let message: MessageMemory;
   for (let i = 0; i < length; i++) {
-    await postConversasionMessages(state.conversationId, roles[i], contents[i]);
+    message = { role: roles[i], content: contents[i] };
+    arrMessage.push(message);
   }
+  // Conversation の作成
+  const conversation: ConversationMemory = {
+    id: state.conversationId,
+    summary: state.summary,
+    messages: arrMessage,
+  };
+
+  await postConversasionSave(conversation);
 
   // 加工後のメッセージを追加する
   const formattedMessages: string[] = formatConversation(roles, contents);
@@ -80,13 +108,6 @@ async function storeMessage(state: typeof GraphAnnotation.State) {
     messages: deleteMessages,
     formatted: [...formatted, ...formattedMessages],
   };
-}
-
-/** 会話を行うか要約するかの判断処理 */
-async function shouldContenue(state: typeof GraphAnnotation.State) {
-  const should = (state.turn + 1) % SUMMARY_MAX_COUNT === 0;
-  if (should) return "summarize";
-  return "marge";
 }
 
 /** 会話の要約生成 */
@@ -107,9 +128,7 @@ async function summarizeConversation(state: typeof GraphAnnotation.State) {
   const conversation: string[] = formatConversation(roles, contents);
 
   const formatted = [...state.formatted, ...conversation];
-  console.log("🐶 ai に何の文章ツッコむか確認" + formatted);
   const response = await OpenAi4_1Mini.invoke(formatted);
-  console.log("🐶 要約確認" + response.content);
 
   return { summary: response.content };
 }
@@ -124,11 +143,9 @@ async function prepareSummary(state: typeof GraphAnnotation.State) {
 
   // フォーマット
   const { roles, contents } = formatContent(messages, state.sessionId);
-  const conversation: string[] = formatConversation(roles, contents);
+  const conversation = formatConversation(roles, contents);
 
-  // DBに追加
-  const id = await getConversasionSearch(state.sessionId);
-  await postConversasionSaveSummary(id, conversation.join(""));
+  return { summary: conversation.join("") };
 }
 
 /** 要約文と会話文の合成 */
@@ -142,9 +159,6 @@ async function margeSummaryAndFormatted(state: typeof GraphAnnotation.State) {
   } else {
     conversation = [...formatted];
   }
-
-  console.log("要約" + summary);
-  console.log("最終出力: " + conversation);
 
   return { formatted: conversation };
 }
@@ -163,18 +177,18 @@ const GraphAnnotation = Annotation.Root({
 // グラフ
 const workflow = new StateGraph(GraphAnnotation)
   // ノード追加
-  .addNode("insart", insartMessage)
-  .addNode("save", storeMessage)
+  .addNode("load", loadConversation)
+  .addNode("store", storeConversation)
   .addNode("prepare", prepareSummary)
   .addNode("summarize", summarizeConversation)
   .addNode("marge", margeSummaryAndFormatted)
 
   // エッジ追加
-  .addEdge("__start__", "insart")
-  .addEdge("insart", "save")
-  .addConditionalEdges("save", shouldContenue)
+  .addEdge("__start__", "load")
+  .addConditionalEdges("load", shouldContenue)
   .addEdge("summarize", "prepare")
-  .addEdge("prepare", "marge")
+  .addEdge("prepare", "store")
+  .addEdge("store", "marge")
   .addEdge("marge", "__end__");
 
 // 記憶の追加
@@ -208,48 +222,7 @@ export async function POST(req: Request) {
       config
     );
 
-    // 会話履歴を記録した id をため込む
-    const haveNotId = cacheIdList.every((id) => id !== threadId);
-    if (haveNotId) {
-      cacheIdList.push(threadId);
-    }
-
-    console.log(results.formatted);
-
     return new Response(JSON.stringify(results.formatted), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ error: "Unknown error occurred" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-}
-
-/**
- * すべての会話履歴要約API
- * @returns
- */
-export async function GET() {
-  try {
-    if (cacheIdList && cacheIdList.length > 0) {
-      for (const cache of cacheIdList) {
-        const config = { configurable: { thread_id: cache } };
-        const savedState = await memory.get(config);
-
-        console.log(savedState);
-      }
-    }
-    return new Response(JSON.stringify("conversation"), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

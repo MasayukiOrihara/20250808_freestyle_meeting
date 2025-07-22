@@ -1,5 +1,6 @@
 import { BaseMessage } from "@langchain/core/messages";
 import { local } from "./contents";
+import { ConversationMemory } from "@/lib/types";
 
 /* 過去会話履歴API */
 export const memoryApi = async (
@@ -63,17 +64,18 @@ export const postGlobalHashData = async (hashData: string[]) => {
 };
 
 /** 会話履歴 prisma */
-// データの取得
-export const getConversasionSearch = async (id: string) => {
+// データの取得(id, 要約, メッセージ)
+export const postConversasionSearch = async (id: string, take: number) => {
   const response = await fetch(
     local + `/api/prisma/conversation/search/${id}`,
     {
-      method: "GET",
+      method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
       },
+      body: JSON.stringify({ take }),
     }
   );
   return response.json();
@@ -92,66 +94,16 @@ export const postConversasionGenerate = async (sessionId: string) => {
   return response.json();
 };
 // DBへデータの更新
-export const postConversasionMessages = async (
-  conversationId: string,
-  role: string,
-  content: string
+export const postConversasionSave = async (
+  conversation: ConversationMemory
 ) => {
-  await fetch(local + "/api/prisma/conversation/message", {
+  await fetch(local + `/api/prisma/conversation/save/${conversation.id}`, {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
     },
-    body: JSON.stringify({ conversationId, role, content }),
+    body: JSON.stringify({ conversation }),
   });
-};
-// DBへ要約データの更新
-export const postConversasionSaveSummary = async (
-  id: string,
-  summary: string
-) => {
-  await fetch(local + `/api/prisma/conversation/save/summary/${id}`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
-    },
-    body: JSON.stringify({ summary }),
-  });
-};
-// 要約データの取得
-export const getConversasionSearchSummary = async (id: string) => {
-  const response = await fetch(
-    local + `/api/prisma/conversation/search/summary/${id}`,
-    {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
-      },
-    }
-  );
-  return response.json();
-};
-
-/** messages prisma */
-// データの取得
-export const getMessagSearch = async (id: string, take: number) => {
-  const response = await fetch(
-    local + `/api/prisma/conversation/message/search/${id}`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
-      },
-      body: JSON.stringify({ take }),
-    }
-  );
-  return response.json();
 };

@@ -1,20 +1,38 @@
 import { prisma } from "@/lib/models";
 import { NextRequest } from "next/server";
 
-/** prisma から保存してた 会話履歴 を sessionidを元に取り出す */
-export async function GET(
-  req: NextRequest,
+/**
+ * prisma から保存してた id と 会話履歴要約 を sessionidを元に取り出す
+ * messages も x件 取り出す
+ * @param req
+ * @param param1
+ * @returns
+ */
+export async function POST(
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const { take } = await req.json();
 
     const conversation = await prisma.conversation.findFirst({
       where: { sessionId: id },
-      select: { id: true },
+      select: {
+        id: true, // conversation id (session Id はほぼ一意なので使わない可能性あり)
+        summary: true, // 会話履歴要約
+        messages: {
+          orderBy: { createdAt: "desc" }, // 並び順
+          select: {
+            role: true,
+            content: true,
+          },
+          take: take,
+        },
+      },
     });
 
-    return new Response(JSON.stringify(conversation?.id ?? null), {
+    return new Response(JSON.stringify(conversation ?? null), {
       status: 200,
     });
   } catch (error) {

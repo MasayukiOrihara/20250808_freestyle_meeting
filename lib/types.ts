@@ -49,3 +49,14 @@ export type AssistantMessages = {
   key: string;
   content: string;
 };
+
+// memory で prisma とのやり取りで使う型
+export type MessageMemory = {
+  role: string;
+  content: string;
+};
+export type ConversationMemory = {
+  id: string;
+  summary?: string | null;
+  messages: MessageMemory[];
+};
