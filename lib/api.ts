@@ -107,7 +107,7 @@ export const postConversasionMessages = async (
     body: JSON.stringify({ conversationId, role, content }),
   });
 };
-// DBへデータの更新
+// DBへ要約データの更新
 export const postConversasionSaveSummary = async (
   id: string,
   summary: string
@@ -121,6 +121,21 @@ export const postConversasionSaveSummary = async (
     },
     body: JSON.stringify({ summary }),
   });
+};
+// 要約データの取得
+export const getConversasionSearchSummary = async (id: string) => {
+  const response = await fetch(
+    local + `/api/prisma/conversation/search/summary/${id}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+      },
+    }
+  );
+  return response.json();
 };
 
 /** messages prisma */

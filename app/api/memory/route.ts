@@ -18,6 +18,7 @@ import {
 } from "@/lib/contents";
 import {
   getConversasionSearch,
+  getConversasionSearchSummary,
   getMessagSearch,
   postConversasionGenerate,
   postConversasionMessages,
@@ -26,11 +27,12 @@ import {
 import { formatContent, formatConversation } from "./utils";
 
 // 定数
-const SUMMARY_MAX_COUNT = 8;
+const SUMMARY_MAX_COUNT = 6;
 
 /** メッセージを取得する処理 */
 async function insartMessage(state: typeof GraphAnnotation.State) {
   const formatted: string[] = [];
+  let summary = state.summary;
 
   // conversation テーブルを参照
   let conversationId: string = await getConversasionSearch(state.sessionId);
@@ -39,6 +41,12 @@ async function insartMessage(state: typeof GraphAnnotation.State) {
     conversationId = await postConversasionGenerate(state.sessionId);
     return { formatted: formatted };
   }
+  // DB に会話要約の確認
+  if (!summary) {
+    const savedSummary = await getConversasionSearchSummary(conversationId);
+    if (savedSummary) summary = savedSummary;
+    console.log("取得した要約: " + savedSummary);
+  }
 
   // DB からメッセージをx件取得する
   const count = state.turn % SUMMARY_MAX_COUNT;
@@ -46,6 +54,7 @@ async function insartMessage(state: typeof GraphAnnotation.State) {
 
   return {
     formatted: [...formatted, ...latestMessage],
+    summary: summary,
     conversationId: conversationId,
   };
 }
@@ -75,18 +84,16 @@ async function storeMessage(state: typeof GraphAnnotation.State) {
 
 /** 会話を行うか要約するかの判断処理 */
 async function shouldContenue(state: typeof GraphAnnotation.State) {
-  const formatted = state.formatted;
-
-  console.log("🐶: " + formatted);
-  const should = state.turn % SUMMARY_MAX_COUNT === 0;
+  const should = (state.turn + 1) % SUMMARY_MAX_COUNT === 0;
   if (should) return "summarize";
-  return "__end__";
+  return "marge";
 }
 
-/** 会話の要約処理 */
+/** 会話の要約生成 */
 async function summarizeConversation(state: typeof GraphAnnotation.State) {
-  const summary = state.summary;
+  let summary = state.summary;
 
+  // プロンプトの作成
   let summaryMessage;
   if (summary) {
     summaryMessage = MEMORY_UPDATE_PROMPT.replace("{summary}", summary);
@@ -100,13 +107,15 @@ async function summarizeConversation(state: typeof GraphAnnotation.State) {
   const conversation: string[] = formatConversation(roles, contents);
 
   const formatted = [...state.formatted, ...conversation];
+  console.log("🐶 ai に何の文章ツッコむか確認" + formatted);
   const response = await OpenAi4_1Mini.invoke(formatted);
+  console.log("🐶 要約確認" + response.content);
 
   return { summary: response.content };
 }
 
 /** 要約したメッセージを追加する処理 */
-async function prepareMessages(state: typeof GraphAnnotation.State) {
+async function prepareSummary(state: typeof GraphAnnotation.State) {
   const summary = state.summary;
 
   // 要約をシステムメッセージとして追加
@@ -120,9 +129,24 @@ async function prepareMessages(state: typeof GraphAnnotation.State) {
   // DBに追加
   const id = await getConversasionSearch(state.sessionId);
   await postConversasionSaveSummary(id, conversation.join(""));
+}
 
-  console.log("🐶: " + state.formatted);
-  return { formatted: [...conversation] };
+/** 要約文と会話文の合成 */
+async function margeSummaryAndFormatted(state: typeof GraphAnnotation.State) {
+  const summary = state.summary;
+  const formatted = state.formatted;
+
+  let conversation;
+  if (summary) {
+    conversation = [summary, ...formatted];
+  } else {
+    conversation = [...formatted];
+  }
+
+  console.log("要約" + summary);
+  console.log("最終出力: " + conversation);
+
+  return { formatted: conversation };
 }
 
 // アノテーションの追加
@@ -141,15 +165,17 @@ const workflow = new StateGraph(GraphAnnotation)
   // ノード追加
   .addNode("insart", insartMessage)
   .addNode("save", storeMessage)
-  .addNode("prepare", prepareMessages)
+  .addNode("prepare", prepareSummary)
   .addNode("summarize", summarizeConversation)
+  .addNode("marge", margeSummaryAndFormatted)
 
   // エッジ追加
   .addEdge("__start__", "insart")
   .addEdge("insart", "save")
   .addConditionalEdges("save", shouldContenue)
   .addEdge("summarize", "prepare")
-  .addEdge("prepare", "__end__");
+  .addEdge("prepare", "marge")
+  .addEdge("marge", "__end__");
 
 // 記憶の追加
 const memory = new MemorySaver();

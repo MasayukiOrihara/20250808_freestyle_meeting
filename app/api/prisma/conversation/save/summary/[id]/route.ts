@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/models";
-import { use } from "react";
 
 /** DB に 会話履歴の要約 を保存 */
 export async function POST(
