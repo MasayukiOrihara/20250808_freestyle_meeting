@@ -5,8 +5,6 @@ export async function POST(req: Request) {
   try {
     const { conversationId, role, content } = await req.json();
 
-    console.log("💽 prisma Conversation API POST");
-
     // DB に保存
     await prisma.message.create({
       data: {

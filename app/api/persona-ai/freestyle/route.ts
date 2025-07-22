@@ -18,7 +18,7 @@ import { FREESTYLE_PROMPT, getBaseUrl } from "@/lib/contents";
 import { memoryApi } from "@/lib/api";
 
 /**
- *
+ * 社内文書検索API
  * @param req
  * @returns
  */
@@ -34,10 +34,11 @@ export async function POST(req: Request) {
 
     // 記憶のID用
     const threadId = "freestyle_" + body.sessionId;
+    const turn = body.count;
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId);
+    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     /* 社内情報RAG　*/
     // コレクションのアップデートが必要か調べる

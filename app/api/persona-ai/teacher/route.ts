@@ -22,11 +22,12 @@ export async function POST(req: Request) {
 
     // 記憶のID用
     const threadId = "teacher_" + body.sessionId;
+    const turn = body.count;
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
     const infoPromise = getTavilyInfo(currentUserMessage);
-    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId);
+    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     // 過去履歴の同期
     const memoryResponse = await memoryResponsePromise;

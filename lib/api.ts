@@ -5,7 +5,8 @@ import { local } from "./contents";
 export const memoryApi = async (
   url: string,
   messages: BaseMessage[],
-  threadId: string
+  threadId: string,
+  turn: number
 ) => {
   const response = await fetch(url + "/api/memory", {
     method: "POST",
@@ -14,7 +15,7 @@ export const memoryApi = async (
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
     },
-    body: JSON.stringify({ messages, threadId }),
+    body: JSON.stringify({ messages, threadId, turn }),
   });
 
   return response;

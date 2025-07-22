@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/models";
 
-/** prisma から保存してた message を sessionidを元に 2件 取り出す */
+/** prisma から保存してた message を sessionidを元に x件 取り出す */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -8,8 +8,6 @@ export async function POST(
   try {
     const { id } = await params;
     const { take } = await req.json();
-
-    console.log("💽 prisma Message API GET: " + id);
 
     const latestMessage = await prisma.message.findMany({
       where: {
@@ -25,7 +23,7 @@ export async function POST(
       .reverse()
       .map((msg) => `${msg.role}: ${msg.content}`);
 
-    return new Response(JSON.stringify(null), {
+    return new Response(JSON.stringify(messages), {
       status: 200,
     });
   } catch (error) {

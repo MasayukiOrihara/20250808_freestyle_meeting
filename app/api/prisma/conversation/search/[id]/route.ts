@@ -9,8 +9,6 @@ export async function GET(
   try {
     const { id } = await params;
 
-    console.log("💽 prisma Conversation/search API GET: " + id);
-
     const conversation = await prisma.conversation.findFirst({
       where: { sessionId: id },
       select: { id: true },

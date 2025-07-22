@@ -24,10 +24,11 @@ export async function POST(req: Request) {
 
     // 記憶のID用
     const threadId = "comment_" + body.sessionId;
+    const turn = body.count;
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId);
+    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     // bot情報取得
     const bot = Object.values(assistantData).find((item) => item.id === id);

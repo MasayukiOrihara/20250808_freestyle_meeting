@@ -17,10 +17,11 @@ export async function POST(req: Request) {
 
     // 記憶のID用
     const threadId = "mentor_" + body.sessionId;
+    const turn = body.count;
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId);
+    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     /* mentor graph API */
     const mentorGraphResponse = await mentorGraphApi(baseUrl, messages);
