@@ -1,7 +1,12 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { getBaseUrl, TEACHER_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
+import {
+  getBaseUrl,
+  TEACHER_PROMPT,
+  TEACHER_PROMPT_NO_INFO,
+  UNKNOWN_ERROR,
+} from "@/lib/contents";
 import { getTavilyInfo, OpenAi4_1Mini } from "@/lib/models";
 import { memoryApi } from "@/lib/api";
 
@@ -29,9 +34,15 @@ export async function POST(req: Request) {
 
     const info = await infoPromise;
 
-    /** AI */
-    const prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
+    // プロンプト取得
+    let prompt;
+    if (info && info.length > 0) {
+      prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
+    } else {
+      prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT_NO_INFO);
+    }
 
+    /** AI */
     const stream = await prompt.pipe(OpenAi4_1Mini).stream({
       history: memory,
       user_message: currentUserMessage,
