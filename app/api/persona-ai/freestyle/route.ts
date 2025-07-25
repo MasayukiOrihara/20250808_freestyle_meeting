@@ -2,13 +2,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import { OpenAi4_1Mini, qdrantClient } from "@/lib/models";
-import {
-  buildDocumentChunks,
-  checkUpdateDocuments,
-  isCollectionMissingOrEmpty,
-  saveEmbeddingQdrant,
-  searchDocs,
-} from "./embedding";
+import { buildDocumentChunks, checkUpdateDocuments } from "./embedding";
 import {
   collectionName,
   FREESTYLE_COMPANY_SUMMARY,
@@ -16,6 +10,8 @@ import {
 } from "./contents";
 import { FREESTYLE_PROMPT, getBaseUrl } from "@/lib/contents";
 import { memoryApi } from "@/lib/api";
+import * as QD from "./qdrant";
+import { saveEmbeddingSupabase } from "./supabase";
 
 /**
  * 社内文書検索API
@@ -41,16 +37,25 @@ export async function POST(req: Request) {
     const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     /* 社内情報RAG　*/
+    // すべてを登録
+    try {
+      for (const [, dirPath] of Object.entries(resolvedDirs)) {
+        await saveEmbeddingSupabase(await buildDocumentChunks(dirPath));
+      }
+    } catch (e) {
+      console.log("🐶" + e);
+    }
+
     // コレクションのアップデートが必要か調べる
     const needsUpdate = await checkUpdateDocuments(resolvedDirs);
-    const isCollection = await isCollectionMissingOrEmpty(collectionName);
+    const isCollection = await QD.isCollectionMissingOrEmpty(collectionName);
     if (needsUpdate || !isCollection) {
       // コレクション削除
       await qdrantClient.deleteCollection(collectionName);
 
       // すべてを登録
       for (const [, dirPath] of Object.entries(resolvedDirs)) {
-        await saveEmbeddingQdrant(
+        await QD.saveEmbeddingQdrant(
           await buildDocumentChunks(dirPath),
           collectionName
         );
@@ -58,7 +63,7 @@ export async function POST(req: Request) {
     }
 
     // RAG準備
-    const company = await searchDocs(currentUserMessage, collectionName);
+    const company = await QD.searchDocs(currentUserMessage, collectionName);
 
     // 過去履歴の同期
     const memoryResponse = await memoryResponsePromise;

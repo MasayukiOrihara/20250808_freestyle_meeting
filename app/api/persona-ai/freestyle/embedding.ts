@@ -1,6 +1,7 @@
-import { QdrantVectorStore } from "@langchain/qdrant";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
+import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -10,7 +11,6 @@ import fs from "fs/promises";
 import pdfParse from "pdf-parse";
 import _ from "lodash";
 import { embeddings, qdrantClient } from "@/lib/models";
-import { local } from "@/lib/contents";
 import { getGlobalHashData, postGlobalHashData } from "@/lib/api";
 
 // 整形
@@ -177,53 +177,3 @@ export const buildDocumentChunks = async (dir: string) => {
   console.log("ドキュメント完了");
   return documents;
 };
-
-/** ドキュメントを埋め込む */
-export async function saveEmbeddingQdrant(
-  documets: Document[],
-  collectionName: string
-) {
-  // ベクトルストアにアップサート
-  await QdrantVectorStore.fromDocuments(documets, embeddings, {
-    client: qdrantClient,
-    collectionName: collectionName,
-  });
-
-  console.log("Qdrantへの登録完了");
-}
-
-/* すでにあるストアへ検索 */
-export async function searchDocs(query: string, collectionName: string) {
-  const vectorStore = await QdrantVectorStore.fromExistingCollection(
-    embeddings,
-    {
-      client: qdrantClient,
-      collectionName: collectionName,
-    }
-  );
-  const results = await vectorStore.similaritySearch(query, 4);
-  const cleaned = results.map(
-    (doc, index) => `情報 ${index}: ${doc.pageContent.replace(/[\r\n]+/g, "")}`
-  );
-
-  console.log("検索結果:");
-  console.log(cleaned);
-  return results;
-}
-
-/** コレクションが存在するか確認 */
-export async function isCollectionMissingOrEmpty(
-  collectionName: string
-): Promise<boolean> {
-  try {
-    await qdrantClient.getCollection(collectionName);
-  } catch (e) {
-    return false;
-  }
-
-  const scrollResult = await qdrantClient.scroll(collectionName, {
-    limit: 1,
-  });
-
-  return scrollResult.points.length === 0 ? false : true;
-}
