@@ -3,6 +3,10 @@ import path from "path";
 /** ベクターストアのコレクションネーム */
 export const collectionName = "md_docs";
 
+/** supabase用のテーブル・クエリ */
+export const tableName = "documents";
+export const queryName = "match_documents";
+
 /* ディレクトリパス */
 const lineWorksDirs = {
   board: "board",

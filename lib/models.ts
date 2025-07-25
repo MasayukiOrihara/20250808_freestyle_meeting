@@ -12,6 +12,7 @@ import * as CONTENTS from "./contents";
 import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { QdrantClient } from "@qdrant/js-client-rest";
+import { createClient } from "@supabase/supabase-js";
 
 const QDRANT_LOCAL_URL = "http://localhost:6333";
 
@@ -27,10 +28,23 @@ export const langsmithClient = new Client({
 // prisma のクライアント
 export const prisma = new PrismaClient();
 
-// Qdrantクライアントと埋め込み初期化
+// Qdrantクライアント
 export const qdrantClient = new QdrantClient({
   url: process.env.QDRANT_URL || QDRANT_LOCAL_URL,
 });
+
+// supabase のクライアント
+export const supabaseClient = () => {
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseKey) throw new Error(`Expected SUPABASE_SERVICE_ROLE_KEY`);
+  const url = process.env.SUPABASE_URL;
+  if (!url) throw new Error(`Expected env var SUPABASE_URL`);
+
+  const supabaseClient = createClient(url, supabaseKey);
+  return supabaseClient;
+};
+
+// 埋め込み初期化
 export const embeddings = new OpenAIEmbeddings({
   model: "text-embedding-3-small",
 });

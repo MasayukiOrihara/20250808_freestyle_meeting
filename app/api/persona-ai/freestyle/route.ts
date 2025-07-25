@@ -1,17 +1,23 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { OpenAi4_1Mini, qdrantClient } from "@/lib/models";
+import { OpenAi4_1Mini, qdrantClient, supabaseClient } from "@/lib/models";
 import { buildDocumentChunks, checkUpdateDocuments } from "./embedding";
 import {
   collectionName,
   FREESTYLE_COMPANY_SUMMARY,
+  queryName,
   resolvedDirs,
+  tableName,
 } from "./contents";
 import { FREESTYLE_PROMPT, getBaseUrl } from "@/lib/contents";
 import { memoryApi } from "@/lib/api";
 import * as QD from "./qdrant";
-import { saveEmbeddingSupabase } from "./supabase";
+import {
+  isTableMissingOrEmpty,
+  saveEmbeddingSupabase,
+  searchDocuments,
+} from "./supabase";
 
 /**
  * 社内文書検索API
@@ -37,33 +43,63 @@ export async function POST(req: Request) {
     const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     /* 社内情報RAG　*/
-    // すべてを登録
-    try {
-      for (const [, dirPath] of Object.entries(resolvedDirs)) {
-        await saveEmbeddingSupabase(await buildDocumentChunks(dirPath));
-      }
-    } catch (e) {
-      console.log("🐶" + e);
-    }
-
     // コレクションのアップデートが必要か調べる
+    // ※※ 全消去→再挿入にしているので、差分更新に変えたい
+    let company;
+    const vectorDb = process.env.VECTOR_DB;
     const needsUpdate = await checkUpdateDocuments(resolvedDirs);
-    const isCollection = await QD.isCollectionMissingOrEmpty(collectionName);
-    if (needsUpdate || !isCollection) {
-      // コレクション削除
-      await qdrantClient.deleteCollection(collectionName);
-
-      // すべてを登録
-      for (const [, dirPath] of Object.entries(resolvedDirs)) {
-        await QD.saveEmbeddingQdrant(
-          await buildDocumentChunks(dirPath),
+    switch (vectorDb) {
+      case "qdrant":
+        const isCollection = await QD.isCollectionMissingOrEmpty(
           collectionName
         );
-      }
+        if (needsUpdate || !isCollection) {
+          // コレクション削除
+          await qdrantClient.deleteCollection(collectionName);
+
+          // すべてを登録
+          for (const [, dirPath] of Object.entries(resolvedDirs)) {
+            await QD.saveEmbeddingQdrant(
+              await buildDocumentChunks(dirPath),
+              collectionName
+            );
+          }
+        }
+        // RAG準備
+        company = await QD.searchDocs(currentUserMessage, collectionName);
+        break;
+      case "supabase":
+        const isSupabaseTable = await isTableMissingOrEmpty(tableName);
+        if (needsUpdate || !isSupabaseTable) {
+          // すべて削除
+          const { error } = await supabaseClient()
+            .from(tableName)
+            .delete()
+            .not("id", "is", null);
+          if (error) console.error("supabase table 削除エラー", error);
+
+          // すべてを登録
+          for (const [, dirPath] of Object.entries(resolvedDirs)) {
+            await saveEmbeddingSupabase(
+              await buildDocumentChunks(dirPath),
+              tableName,
+              queryName
+            );
+          }
+        }
+
+        company = await searchDocuments(
+          currentUserMessage,
+          4,
+          tableName,
+          queryName
+        );
+        break;
+      default:
+        console.error("Unsupported VECTOR_DB type" + vectorDb);
     }
 
-    // RAG準備
-    const company = await QD.searchDocs(currentUserMessage, collectionName);
+    console.log(company);
 
     // 過去履歴の同期
     const memoryResponse = await memoryResponsePromise;
