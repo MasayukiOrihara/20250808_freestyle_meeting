@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     const vectorDb = process.env.VECTOR_DB;
     const needsUpdate = await checkUpdateDocuments(resolvedDirs);
     switch (vectorDb) {
-      case "qdrant":
+      case "docker":
         const isCollection = await QD.isCollectionMissingOrEmpty(
           collectionName
         );
