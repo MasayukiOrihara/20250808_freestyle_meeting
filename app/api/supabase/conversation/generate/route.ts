@@ -7,8 +7,6 @@ export async function POST(req: Request) {
     const sessionId = body.sessionId;
     const userId = "user-123"; // 現状固定
 
-    console.log("🔥 Supabase Conversation/generate API POST");
-
     // DB に作成
     const { data, error } = await supabaseClient()
       .from("conversation")
@@ -17,20 +15,19 @@ export async function POST(req: Request) {
       .single(); // 1件返してほしい場合
 
     if (error) {
-      console.error("❌ insert error:", error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-      });
+      console.error("❌ conversation insert error:", error.message);
+      return Response.json({ error: error.message }, { status: 500 });
     }
 
-    console.log("✅ inserted:", data);
-    return new Response(JSON.stringify(data.id ?? null), {
+    console.log("🔥 conversation inserted");
+    return Response.json(data.id ?? null, {
       status: 200,
     });
   } catch (error) {
-    console.log("🔥 Supabase Conversation/generate API POST error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
+
+    console.error("🔥 Supabase Conversation/generate API POST error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }

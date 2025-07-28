@@ -1,4 +1,4 @@
-import { prisma, supabaseClient } from "@/lib/models";
+import { supabaseClient } from "@/lib/models";
 
 /** DB に hash の保存 */
 export async function POST(req: Request) {
@@ -19,20 +19,22 @@ export async function POST(req: Request) {
         }
       );
 
+    // 保存エラー
     if (error) {
       console.error("🔥 supabase Upsert failed:", error);
-    } else {
-      console.log("🔥 supabase Upsert succeeded!");
+      return Response.json({ error: error.message }, { status: 500 });
     }
 
-    return new Response(null, {
+    console.log("🔥 supabase Upsert succeeded!");
+
+    return Response.json(null, {
       status: 204,
-      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.log("🔥 supabase Hash API POST error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
+
+    console.error("🔥 supabase Hash API POST error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }
@@ -45,23 +47,24 @@ export async function GET() {
       .from("file_hash_groups")
       .select("hashes")
       .eq("key", "globalHash")
-      .single(); // ← 1件だけ取得する場合は `.single()` を使う
+      .single(); // 1件だけ取得する
 
+    // 読み込みエラー: PGRST116 = no rows found
     if (error && error.code !== "PGRST116") {
-      // PGRST116 = no rows found
       console.error("Supabase query error:", error);
+      return Response.json({ error: error.message }, { status: 500 });
     }
 
     const hash: string[] = data?.hashes ?? [];
 
-    return new Response(JSON.stringify(hash), {
+    return Response.json(hash, {
       status: 200,
-      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.log("🔥 supabase Hash API GET error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
+
+    console.error("🔥 supabase Hash API GET error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }

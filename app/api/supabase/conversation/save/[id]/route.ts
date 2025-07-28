@@ -1,4 +1,4 @@
-import { prisma, supabaseClient } from "@/lib/models";
+import { supabaseClient } from "@/lib/models";
 import { MessageMemory } from "@/lib/types";
 
 /** DB に 会話履歴 の保存 */
@@ -12,7 +12,7 @@ export async function POST(
 
     const messages: MessageMemory[] = conversation.messages;
 
-    // conversation の更新
+    // 1. conversation の更新
     const { error: updateError } = await supabaseClient()
       .from("conversation")
       .update({
@@ -21,11 +21,13 @@ export async function POST(
       })
       .eq("id", id);
 
+    // 更新エラー
     if (updateError) {
-      throw new Error(`conversation update failed: ${updateError.message}`);
+      console.error("❌ conversation update error:", updateError.message);
+      return Response.json({ error: updateError.message }, { status: 500 });
     }
 
-    // messages の一括挿入
+    // 2. messages の一括挿入
     if (messages.length > 0) {
       const insertData = messages.map((msg) => ({
         conversation_id: id,
@@ -39,19 +41,19 @@ export async function POST(
         .from("message")
         .insert(insertData);
 
+      // 挿入エラー
       if (insertError) {
-        throw new Error(`message insert failed: ${insertError.message}`);
+        console.error("❌ messages insart error:", insertError.message);
+        return Response.json({ error: insertError.message }, { status: 500 });
       }
     }
 
-    return new Response(null, {
-      status: 204,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(null, { status: 204 });
   } catch (error) {
-    console.log("🔥 supabase Conversation/save API POST error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
+
+    console.error("🔥 supabase Conversation/save API POST error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }

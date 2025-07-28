@@ -1,6 +1,5 @@
-import { prisma, supabaseClient } from "@/lib/models";
+import { supabaseClient } from "@/lib/models";
 import { ConversationMemory } from "@/lib/types";
-import { NextRequest } from "next/server";
 
 /**
  * supabase から保存してた id と 会話履歴要約 を sessionidを元に取り出す
@@ -25,8 +24,10 @@ export async function POST(
       .limit(1)
       .single(); // 1件だけ想定されるなら便利
 
+    // 取得できなかったらエラー
     if (convError || !conversation) {
-      return new Response(JSON.stringify(null), { status: 200 });
+      console.error("❌ conversation select error:", convError.message);
+      return Response.json({ error: convError.message }, { status: 500 });
     }
 
     // 2. message テーブルから関連メッセージを取得
@@ -37,24 +38,26 @@ export async function POST(
       .order("created_at", { ascending: false })
       .limit(take);
 
+    // 取得できなかったらエラー
     if (msgError) {
-      return new Response(JSON.stringify({ error: msgError.message }), {
-        status: 500,
-      });
+      console.error("❌ messages select error:", msgError.message);
+      return Response.json({ error: msgError.message }, { status: 500 });
     }
 
+    // 3. 形式を整えて返す
     const conversations: ConversationMemory = {
       id: conversation.id,
       summary: conversation.summary,
       messages,
     };
-    return new Response(JSON.stringify(conversations ?? null), {
+    return Response.json(conversations ?? null, {
       status: 200,
     });
   } catch (error) {
-    console.log("🔥 supabase Conversation/search API GET error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
+
+    console.error("🔥 supabase Conversation/search API GET error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }
