@@ -62,13 +62,16 @@ function isEqualIgnoreOrder(a: string[], b: string[]): boolean {
 }
 
 /** 更新チェック */
-export async function checkUpdateDocuments(resolvedDirs: {
-  [k: string]: string;
-}) {
+export async function checkUpdateDocuments(
+  url: string,
+  resolvedDirs: {
+    [k: string]: string;
+  }
+) {
   const hashData: string[][] = [];
 
   // データの取得
-  const globalHashData: string[] = await getSupabaseHashData();
+  const globalHashData: string[] = await getSupabaseHashData(url);
 
   // ハッシュの取得
   for (const [, dirPath] of Object.entries(resolvedDirs)) {
@@ -93,7 +96,7 @@ export async function checkUpdateDocuments(resolvedDirs: {
   const isEqual = isEqualIgnoreOrder(globalHashData, flatHashData);
   if (!isEqual) {
     // データ更新
-    await postSupabaseHashData(flatHashData);
+    await postSupabaseHashData(url, flatHashData);
   }
   return !isEqual;
 }

@@ -2,6 +2,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import {
+  getBaseUrl,
   TEACHER_PROMPT,
   TEACHER_PROMPT_NO_INFO,
   UNKNOWN_ERROR,
@@ -13,6 +14,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
+    const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🔎 TEACHER API");
     console.log("session: " + body.sessionId);
@@ -25,7 +27,7 @@ export async function POST(req: Request) {
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
     const infoPromise = getTavilyInfo(currentUserMessage);
-    const memoryResponsePromise = memoryApi(messages, threadId, turn);
+    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     // 過去履歴の同期
     const memoryResponse = await memoryResponsePromise;

@@ -15,10 +15,6 @@ export const TAGS = ["reflect_whiteboard"];
 export const TAVILY_CLIENT = "tavily-client";
 
 // ベースURLの取得
-export const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
-
 export const getBaseUrl = (req: Request) => {
   const host = req.headers.get("host") ?? "";
   const protocol = host.includes("localhost") ? "http" : "https";

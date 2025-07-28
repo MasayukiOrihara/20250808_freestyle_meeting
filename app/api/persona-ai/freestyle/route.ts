@@ -27,6 +27,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
+    const { baseUrl } = getBaseUrl(req);
+
     console.log(" --- \n🏢 FS API");
     console.log("session: " + body.sessionId);
     console.log("turns: " + body.count);
@@ -37,7 +39,7 @@ export async function POST(req: Request) {
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(messages, threadId, turn);
+    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     /* 社内情報RAG　*/
     // コレクションのアップデートが必要か調べる
@@ -45,7 +47,7 @@ export async function POST(req: Request) {
     // vercelに上げる場合差分チェックを行いません（ファイルはローカルにしかないので）
     const isLocal = getBaseUrl(req).host.includes("localhost");
     if (isLocal) {
-      const needsUpdate = await checkUpdateDocuments(resolvedDirs);
+      const needsUpdate = await checkUpdateDocuments(baseUrl, resolvedDirs);
       const isSupabaseTable = await isTableMissingOrEmpty(tableName);
       if (needsUpdate || !isSupabaseTable) {
         // すべて削除

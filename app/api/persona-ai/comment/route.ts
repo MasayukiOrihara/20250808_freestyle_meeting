@@ -1,7 +1,7 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { UNKNOWN_ERROR } from "@/lib/contents";
+import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
 import { OpenAi4_1Mini } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
 import { memoryApi } from "@/lib/api";
@@ -13,6 +13,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
+    const { baseUrl } = getBaseUrl(req);
 
     const id = req.headers.get("id") ?? "comment";
 
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(messages, threadId, turn);
+    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     // bot情報取得
     const bot = Object.values(assistantData).find((item) => item.id === id);
