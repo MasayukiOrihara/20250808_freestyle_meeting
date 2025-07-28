@@ -1,9 +1,7 @@
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
-
 import { Document } from "langchain/document";
 
 import { embeddings, supabaseClient } from "@/lib/models";
-import { queryName } from "./contents";
 
 /** supabase にドキュメントを埋め込む */
 export async function saveEmbeddingSupabase(

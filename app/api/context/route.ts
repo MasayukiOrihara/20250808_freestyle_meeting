@@ -1,7 +1,4 @@
-import { local } from "@/lib/contents";
-
-/**
- * コンテキストを作成し取得する
+/* * コンテキストを作成し取得する
  * @param req
  * @returns
  */

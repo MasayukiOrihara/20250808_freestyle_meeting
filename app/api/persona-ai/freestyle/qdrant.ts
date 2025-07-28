@@ -41,7 +41,8 @@ export async function isCollectionMissingOrEmpty(
 ): Promise<boolean> {
   try {
     await qdrantClient.getCollection(collectionName);
-  } catch (e) {
+  } catch (error) {
+    console.warn("コレクションが存在しません: " + error);
     return false;
   }
 

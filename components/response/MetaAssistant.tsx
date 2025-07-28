@@ -16,15 +16,6 @@ async function fetchAnalize(
   return data;
 }
 
-async function fetchContext() {
-  const res = await fetch("/api/context", {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-  const data = await res.json();
-  return data;
-}
-
 export const MetaAssistant = () => {
   const { userMessages } = useChatMessages();
   const sessionId = useSessionId();
@@ -38,7 +29,7 @@ export const MetaAssistant = () => {
     // console.log(fetchContext());
 
     console.log(fetchAnalize(userMessages, sessionId));
-  }, [userMessages]);
+  }, [userMessages, sessionId]);
 
   return null;
 };

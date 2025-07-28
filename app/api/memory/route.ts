@@ -162,7 +162,7 @@ async function storeConversation(state: typeof GraphAnnotation.State) {
 
 /** 会話の要約生成 */
 async function summarizeConversation(state: typeof GraphAnnotation.State) {
-  let summary = state.summary;
+  const summary = state.summary;
 
   // プロンプトの作成
   let summaryMessage;

@@ -7,17 +7,15 @@ export async function POST(req: Request) {
     const hashData = body.hashData;
 
     // DB に保存
-    const { data, error } = await supabaseClient()
-      .from("file_hash_groups")
-      .upsert(
-        {
-          key: "globalHash",
-          hashes: hashData, // hashData は string[] 型
-        },
-        {
-          onConflict: "key", // key列の一意性制約を指定
-        }
-      );
+    const { error } = await supabaseClient().from("file_hash_groups").upsert(
+      {
+        key: "globalHash",
+        hashes: hashData, // hashData は string[] 型
+      },
+      {
+        onConflict: "key", // key列の一意性制約を指定
+      }
+    );
 
     // 保存エラー
     if (error) {

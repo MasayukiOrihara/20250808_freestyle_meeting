@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useSendCount() {
   const countRef = useRef(0);
@@ -10,11 +10,13 @@ export function useSendCount() {
     countRef.current = saved;
   }, []);
 
-  const increment = () => {
-    countRef.current += 1;
-    setCount(countRef.current);
-    sessionStorage.setItem("sendCount", countRef.current.toString());
-  };
+  const increment = useCallback(() => {
+    if (typeof window !== "undefined") {
+      countRef.current += 1;
+      setCount(countRef.current);
+      sessionStorage.setItem("sendCount", countRef.current.toString());
+    }
+  }, []);
 
   return { count, increment };
 }

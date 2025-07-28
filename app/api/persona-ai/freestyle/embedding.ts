@@ -56,11 +56,6 @@ function hashDocContent(buffer: Buffer<ArrayBufferLike>) {
   return crypto.createHash("sha256").update(buffer).digest("hex");
 }
 
-// でーぷコピー
-function deepCopyString2DArray(arr: string[][]): string[][] {
-  return arr.map((inner) => [...inner]);
-}
-
 // 順番関係なしに比較
 function isEqualIgnoreOrder(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
