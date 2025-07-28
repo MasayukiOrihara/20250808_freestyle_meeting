@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     }
 
     console.log("🔥 conversation inserted");
-    return Response.json(data.id ?? null, {
+    return Response.json(data?.id ?? null, {
       status: 200,
     });
   } catch (error) {

@@ -28,12 +28,12 @@ export async function POST(
 
     return new Response(null, {
       status: 204,
-      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.log("💽 prisma Conversation API POST error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
+
+    console.error("💽 prisma Conversation/save API POST error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }

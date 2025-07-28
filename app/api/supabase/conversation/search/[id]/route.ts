@@ -22,12 +22,18 @@ export async function POST(
       .select("id, summary")
       .eq("session_id", id)
       .limit(1)
-      .single(); // 1件だけ想定されるなら便利
+      .maybeSingle();
 
     // 取得できなかったらエラー
-    if (convError || !conversation) {
+    if (convError) {
       console.error("❌ conversation select error:", convError.message);
       return Response.json({ error: convError.message }, { status: 500 });
+    }
+
+    // 0件なら null を返す
+    if (conversation === null) {
+      console.error("△ conversation is null");
+      return Response.json(null, { status: 200 });
     }
 
     // 2. message テーブルから関連メッセージを取得

@@ -8,12 +8,16 @@ import {
 
 import { jsonParser, OpenAi4_1Mini, strParser } from "@/lib/models";
 import {
-  humanProfileDescriptions,
   validateProfile,
   HumanProfile,
+  humanProfileDescriptions,
 } from "./personal";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getBaseUrl } from "@/lib/contents";
+import {
+  postPrismaPersonalCreate,
+  postSupabasePersonalCreate,
+} from "@/lib/api";
 
 // /** メッセージを挿入する処理 */
 async function insertMessages(state: typeof GraphAnnotation.State) {
@@ -136,30 +140,28 @@ export async function POST(req: Request) {
 
     // DB への追加
     const analyzeData = results.analyze;
+    const vectorDb = process.env.VECTOR_DB;
     if (analyzeData) {
-      await fetch(baseUrl + "/api/prisma/create-personal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analyzeData, threadId }),
-      });
+      switch (vectorDb) {
+        case "docker":
+          await postPrismaPersonalCreate(analyzeData, threadId);
+          break;
+        case "supabase":
+          await postSupabasePersonalCreate(analyzeData, threadId);
+          break;
+        default:
+          console.error("Unsupported VECTOR_DB type" + vectorDb);
+      }
     }
 
-    return new Response(JSON.stringify(results), {
+    return Response.json(results, {
       status: 200,
-      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    if (error instanceof Error) {
-      console.log("📂 Analize API error" + error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const message =
+      error instanceof Error ? error.message : "Unknown error occurred";
 
-    return new Response(JSON.stringify({ error: "Unknown error occurred" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("📂 Analize API error" + message);
+    return Response.json({ error: message }, { status: 500 });
   }
 }

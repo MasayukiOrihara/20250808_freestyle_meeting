@@ -1,6 +1,7 @@
 import { BaseMessage } from "@langchain/core/messages";
 import { local } from "./contents";
 import { ConversationMemory } from "@/lib/types";
+import { HumanProfile } from "@/app/api/analyze/personal";
 
 /* 過去会話履歴API */
 export const memoryApi = async (
@@ -37,10 +38,11 @@ export const mentorGraphApi = async (url: string, messages: BaseMessage[]) => {
   return response;
 };
 
-/** 💽 hash data prisma */
-// データの取得
+/** === === 💽 prisma === === */
+/* Hash Data */
+// 社内文書更新比較用のハッシュデータの取得
 export const getGlobalHashData = async () => {
-  const response = await fetch(local + "/api/prisma/document-hash-data", {
+  const response = await fetch(local + "/api/prisma/hash", {
     method: "GET",
     credentials: "include",
     headers: {
@@ -50,9 +52,9 @@ export const getGlobalHashData = async () => {
   });
   return response.json();
 };
-// DBへデータの更新
+// 社内文書更新比較用ハッシュデータの更新
 export const postGlobalHashData = async (hashData: string[]) => {
-  await fetch(local + "/api/prisma/document-hash-data", {
+  await fetch(local + "/api/prisma/hash", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -63,35 +65,7 @@ export const postGlobalHashData = async (hashData: string[]) => {
   });
 };
 
-/** 🔥 hash data supabase */
-// データの取得
-export const getSupabaseHashData = async () => {
-  const response = await fetch(local + "/api/supabase/document-hash-data", {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
-    },
-  });
-  return response.json();
-};
-// DBへデータの更新
-export const postSupabaseHashData = async (hashData: string[]) => {
-  await fetch(local + "/api/supabase/document-hash-data", {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
-    },
-    body: JSON.stringify({ hashData }),
-  });
-};
-
-/**
- * 会話履歴 prisma
- */
+/* 会話履歴 */
 // データの取得(id, 要約, メッセージ)
 export const postPrismaConversasionSearch = async (
   id: string,
@@ -111,9 +85,9 @@ export const postPrismaConversasionSearch = async (
   );
   return response.json();
 };
-// DBへデータの更新
-export const postPrismaConversasionGenerate = async (sessionId: string) => {
-  const response = await fetch(local + "/api/prisma/conversation/generate", {
+// conversationデータの作成
+export const postPrismaConversasionCreate = async (sessionId: string) => {
+  const response = await fetch(local + "/api/prisma/conversation/create", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -124,24 +98,64 @@ export const postPrismaConversasionGenerate = async (sessionId: string) => {
   });
   return response.json();
 };
-// DBへデータの更新
-export const postPrismaConversasionSave = async (
+// messageデータの作成
+export const postPrismaConversasionMessageCreate = async (
   conversation: ConversationMemory
 ) => {
-  await fetch(local + `/api/prisma/conversation/save/${conversation.id}`, {
+  await fetch(
+    local + `/api/prisma/conversation/message/create/${conversation.id}`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+      },
+      body: JSON.stringify({ conversation }),
+    }
+  );
+};
+
+/* パーソナライズ分析 */
+export const postPrismaPersonalCreate = async (
+  data: HumanProfile,
+  threadId: string
+) => {
+  await fetch(local + "/api/prisma/personal/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data, threadId }),
+  });
+};
+
+/** === === 🔥 supabase === === */
+/* Hash Data */
+// 社内文書更新比較用のハッシュデータの取得
+export const getSupabaseHashData = async () => {
+  const response = await fetch(local + "/api/supabase/hash", {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+    },
+  });
+  return response.json();
+};
+// 社内文書更新比較用ハッシュデータの更新
+export const postSupabaseHashData = async (hashData: string[]) => {
+  await fetch(local + "/api/supabase/hash", {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
     },
-    body: JSON.stringify({ conversation }),
+    body: JSON.stringify({ hashData }),
   });
 };
 
-/**
- * 会話履歴 supabase
- */
+/* 会話履歴 */
 // データの取得(id, 要約, メッセージ)
 export const postSupabaseConversasionSearch = async (
   id: string,
@@ -161,9 +175,9 @@ export const postSupabaseConversasionSearch = async (
   );
   return response.json();
 };
-// DBへデータの更新
-export const postSupabaseConversasionGenerate = async (sessionId: string) => {
-  const response = await fetch(local + "/api/supabase/conversation/generate", {
+// conversationデータの作成
+export const postSupabaseConversasionCreate = async (sessionId: string) => {
+  const response = await fetch(local + "/api/supabase/conversation/create", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -174,17 +188,32 @@ export const postSupabaseConversasionGenerate = async (sessionId: string) => {
   });
   return response.json();
 };
-// DBへデータの更新
-export const postSupabaseConversasionSave = async (
+// messageデータの作成
+export const postSupabaseConversasionMessageCreate = async (
   conversation: ConversationMemory
 ) => {
-  await fetch(local + `/api/supabase/conversation/save/${conversation.id}`, {
+  await fetch(
+    local + `/api/supabase/conversation/message/create/${conversation.id}`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
+      },
+      body: JSON.stringify({ conversation }),
+    }
+  );
+};
+
+/* パーソナライズ分析 */
+export const postSupabasePersonalCreate = async (
+  data: HumanProfile,
+  threadId: string
+) => {
+  await fetch(local + "/api/supabase/personal/create", {
     method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`, // vercel用
-    },
-    body: JSON.stringify({ conversation }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data, threadId }),
   });
 };

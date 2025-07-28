@@ -3,14 +3,22 @@ import { supabaseClient } from "@/lib/models";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const humanProfile = body.analyzeData;
+    const humanProfile = body.data;
     const sessionId = body.threadId ?? "";
 
     // 1. Supabaseのテーブルに合う形式で整形
     const data = {
       ...humanProfile,
-      session_id: sessionId, // Prisma の sessionId → Supabase の session_id に変換
+      personality_traits: humanProfile.personalityTraits,
+      communication_preference: humanProfile.communicationPreference,
+      prohibited_expressions: humanProfile.prohibitedExpressions,
+      weekly_routine: humanProfile.weeklyRoutine,
+      session_id: sessionId,
     };
+    delete data.personalityTraits;
+    delete data.communicationPreference;
+    delete data.prohibitedExpressions;
+    delete data.weeklyRoutine;
 
     // 2. データを Supabase に挿入
     const { error } = await supabaseClient()
@@ -30,7 +38,7 @@ export async function POST(req: Request) {
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
 
-    console.error("🔥 supabase Hash API GET error" + message);
+    console.error("🔥 supabase personal API GET error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }

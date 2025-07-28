@@ -55,6 +55,7 @@ export const HumanProfileSchema = z.object({
   dislikes: z.array(z.string()),
 });
 
+// 型チェック
 export function validateProfile(data: unknown): HumanProfile | null {
   const result = HumanProfileSchema.safeParse(data);
   if (!result.success) {
@@ -63,3 +64,5 @@ export function validateProfile(data: unknown): HumanProfile | null {
   }
   return result.data; // ✅ 型保証された HumanProfile
 }
+
+// supabase に送るように変換

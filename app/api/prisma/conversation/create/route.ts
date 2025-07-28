@@ -7,23 +7,21 @@ export async function POST(req: Request) {
     const sessionId = body.sessionId;
     const userId = "user-123"; // 現状固定
 
-    console.log("💽 prisma Conversation/generate API POST");
-
     // DB に作成
     const generated = await prisma.conversation.create({
       data: { userId: userId, sessionId: sessionId },
     });
-    console.log(generated);
 
     // conversationIdを返す
-    return new Response(JSON.stringify(generated?.id ?? null), {
+    console.log("💽 Conversation generate success!: " + generated?.id);
+    return Response.json(generated?.id ?? null, {
       status: 200,
-      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.log("💽 prisma Conversation/generate API POST error" + error);
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
+
+    console.error("💽 prisma Conversation/generate API POST error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }

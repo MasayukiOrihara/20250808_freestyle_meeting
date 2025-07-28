@@ -11,17 +11,13 @@ import {
 } from "@langchain/langgraph";
 
 import { OpenAi4_1Mini } from "@/lib/models";
+import { MEMORY_SUMMARY_PROMPT, MEMORY_UPDATE_PROMPT } from "@/lib/contents";
 import {
-  local,
-  MEMORY_SUMMARY_PROMPT,
-  MEMORY_UPDATE_PROMPT,
-} from "@/lib/contents";
-import {
-  postPrismaConversasionGenerate,
-  postPrismaConversasionSave,
+  postPrismaConversasionCreate,
+  postPrismaConversasionMessageCreate,
   postPrismaConversasionSearch,
-  postSupabaseConversasionGenerate,
-  postSupabaseConversasionSave,
+  postSupabaseConversasionCreate,
+  postSupabaseConversasionMessageCreate,
   postSupabaseConversasionSearch,
 } from "@/lib/api";
 import { formatContent, formatConversation } from "./utils";
@@ -60,12 +56,10 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
     // もし取得できなかった場合、新たにconversationを作成する
     switch (vectorDb) {
       case "docker":
-        conversationId = await postPrismaConversasionGenerate(state.sessionId);
+        conversationId = await postPrismaConversasionCreate(state.sessionId);
         break;
       case "supabase":
-        conversationId = await postSupabaseConversasionGenerate(
-          state.sessionId
-        );
+        conversationId = await postSupabaseConversasionCreate(state.sessionId);
         break;
       default:
         console.error("Unsupported VECTOR_DB type" + vectorDb);
@@ -126,10 +120,10 @@ async function storeConversation(state: typeof GraphAnnotation.State) {
 
     switch (vectorDb) {
       case "docker":
-        await postPrismaConversasionSave(conversation);
+        await postPrismaConversasionMessageCreate(conversation);
         break;
       case "supabase":
-        await postSupabaseConversasionSave(conversation);
+        await postSupabaseConversasionMessageCreate(conversation);
         break;
       default:
         console.error("Unsupported VECTOR_DB type" + vectorDb);
