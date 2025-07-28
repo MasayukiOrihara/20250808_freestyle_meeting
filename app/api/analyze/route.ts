@@ -14,10 +14,7 @@ import {
 } from "./personal";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getBaseUrl } from "@/lib/contents";
-import {
-  postPrismaPersonalCreate,
-  postSupabasePersonalCreate,
-} from "@/lib/api";
+import { postSupabasePersonalCreate } from "@/lib/api";
 
 // /** メッセージを挿入する処理 */
 async function insertMessages(state: typeof GraphAnnotation.State) {
@@ -140,18 +137,8 @@ export async function POST(req: Request) {
 
     // DB への追加
     const analyzeData = results.analyze;
-    const vectorDb = process.env.VECTOR_DB;
     if (analyzeData) {
-      switch (vectorDb) {
-        case "docker":
-          await postPrismaPersonalCreate(baseUrl, analyzeData, threadId);
-          break;
-        case "supabase":
-          await postSupabasePersonalCreate(baseUrl, analyzeData, threadId);
-          break;
-        default:
-          console.error("Unsupported VECTOR_DB type" + vectorDb);
-      }
+      await postSupabasePersonalCreate(baseUrl, analyzeData, threadId);
     }
 
     return Response.json(results, {

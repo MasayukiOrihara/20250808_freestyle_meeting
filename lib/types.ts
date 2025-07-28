@@ -50,7 +50,7 @@ export type AssistantMessages = {
   content: string;
 };
 
-// memory で prisma とのやり取りで使う型
+// memory で やり取りで使う型
 export type MessageMemory = {
   role: string;
   content: string;

@@ -17,9 +17,6 @@ import {
   MEMORY_UPDATE_PROMPT,
 } from "@/lib/contents";
 import {
-  postPrismaConversasionCreate,
-  postPrismaConversasionMessageCreate,
-  postPrismaConversasionSearch,
   postSupabaseConversasionCreate,
   postSupabaseConversasionMessageCreate,
   postSupabaseConversasionSearch,
@@ -39,47 +36,18 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
   const count = state.turn % SUMMARY_MAX_COUNT;
 
   // conversation データ取得
-  let conversation: ConversationMemory | null = null;
-  switch (vectorDb) {
-    case "docker":
-      conversation = await postPrismaConversasionSearch(
-        globalCaseUrl,
-        state.sessionId,
-        count
-      );
-      break;
-    case "supabase":
-      conversation = await postSupabaseConversasionSearch(
-        globalCaseUrl,
-        state.sessionId,
-        count
-      );
-      break;
-    default:
-      console.error("Unsupported VECTOR_DB type" + vectorDb);
-  }
+  let conversation: ConversationMemory | null =
+    await postSupabaseConversasionSearch(globalCaseUrl, state.sessionId, count);
 
   let conversationId: string | null = null;
   if (conversation != null) {
     conversationId = conversation.id;
   } else {
     // もし取得できなかった場合、新たにconversationを作成する
-    switch (vectorDb) {
-      case "docker":
-        conversationId = await postPrismaConversasionCreate(
-          globalCaseUrl,
-          state.sessionId
-        );
-        break;
-      case "supabase":
-        conversationId = await postSupabaseConversasionCreate(
-          globalCaseUrl,
-          state.sessionId
-        );
-        break;
-      default:
-        console.error("Unsupported VECTOR_DB type" + vectorDb);
-    }
+    conversationId = await postSupabaseConversasionCreate(
+      globalCaseUrl,
+      state.sessionId
+    );
 
     return { formatted: formatted, conversationId: conversationId };
   }
@@ -134,19 +102,7 @@ async function storeConversation(state: typeof GraphAnnotation.State) {
       messages: arrMessage,
     };
 
-    switch (vectorDb) {
-      case "docker":
-        await postPrismaConversasionMessageCreate(globalCaseUrl, conversation);
-        break;
-      case "supabase":
-        await postSupabaseConversasionMessageCreate(
-          globalCaseUrl,
-          conversation
-        );
-        break;
-      default:
-        console.error("Unsupported VECTOR_DB type" + vectorDb);
-    }
+    await postSupabaseConversasionMessageCreate(globalCaseUrl, conversation);
   }
 
   // 加工後のメッセージを追加する

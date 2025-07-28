@@ -17,7 +17,6 @@
     "@langchain/openai": "^0.5.11",
     "@langchain/qdrant": "^0.1.2",
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "@prisma/client": "^6.12.0",
     "@qdrant/js-client-rest": "^1.14.1",
     "@radix-ui/react-slot": "^1.2.3",
     "@supabase/supabase-js": "^2.52.1",
@@ -57,7 +56,6 @@
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
-    "prisma": "^6.11.1",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.2",
     "typescript": "^5"

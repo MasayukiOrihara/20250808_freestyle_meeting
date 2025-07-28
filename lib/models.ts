@@ -6,7 +6,6 @@ import {
 } from "@langchain/core/output_parsers";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { Client } from "langsmith";
-import { PrismaClient } from "@prisma/client";
 
 import * as CONTENTS from "./contents";
 import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
@@ -24,9 +23,6 @@ export const jsonParser = new JsonOutputParser();
 export const langsmithClient = new Client({
   apiKey: process.env.LANGSMITH_API_KEY,
 });
-
-// prisma のクライアント
-export const prisma = new PrismaClient();
 
 // Qdrantクライアント
 export const qdrantClient = new QdrantClient({

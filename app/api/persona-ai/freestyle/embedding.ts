@@ -8,12 +8,7 @@ import path from "path";
 import fs from "fs/promises";
 import pdfParse from "pdf-parse";
 import _ from "lodash";
-import {
-  getGlobalHashData,
-  getSupabaseHashData,
-  postGlobalHashData,
-  postSupabaseHashData,
-} from "@/lib/api";
+import { getSupabaseHashData, postSupabaseHashData } from "@/lib/api";
 
 // 整形
 function cleanText(text: string) {
@@ -76,18 +71,7 @@ export async function checkUpdateDocuments(
   const hashData: string[][] = [];
 
   // データの取得
-  const vectorDb = process.env.VECTOR_DB;
-  let globalHashData: string[] = [];
-  switch (vectorDb) {
-    case "docker":
-      globalHashData = await getGlobalHashData(url);
-      break;
-    case "supabase":
-      globalHashData = await getSupabaseHashData(url);
-      break;
-    default:
-      console.error("Unsupported VECTOR_DB type" + vectorDb);
-  }
+  let globalHashData: string[] = await getSupabaseHashData(url);
 
   // ハッシュの取得
   for (const [, dirPath] of Object.entries(resolvedDirs)) {
@@ -112,16 +96,7 @@ export async function checkUpdateDocuments(
   const isEqual = isEqualIgnoreOrder(globalHashData, flatHashData);
   if (!isEqual) {
     // データ更新
-    switch (vectorDb) {
-      case "docker":
-        await postGlobalHashData(url, flatHashData);
-        break;
-      case "supabase":
-        await postSupabaseHashData(url, flatHashData);
-        break;
-      default:
-        console.error("Unsupported VECTOR_DB type" + vectorDb);
-    }
+    await postSupabaseHashData(url, flatHashData);
   }
   return !isEqual;
 }

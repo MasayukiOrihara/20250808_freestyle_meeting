@@ -64,5 +64,3 @@ export function validateProfile(data: unknown): HumanProfile | null {
   }
   return result.data; // ✅ 型保証された HumanProfile
 }
-
-// supabase に送るように変換
