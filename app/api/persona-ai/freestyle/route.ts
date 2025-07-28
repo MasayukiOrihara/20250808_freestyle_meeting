@@ -2,12 +2,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import { OpenAi4_1Mini } from "@/lib/models";
-import {
-  FREESTYLE_COMPANY_SUMMARY,
-  queryName,
-  resolvedDirs,
-  tableName,
-} from "./contents";
+import { FREESTYLE_COMPANY_SUMMARY, queryName, tableName } from "./contents";
 import { FREESTYLE_PROMPT, getBaseUrl } from "@/lib/contents";
 import { memoryApi } from "@/lib/api";
 import { searchDocuments } from "./supabase";

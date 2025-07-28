@@ -26,7 +26,6 @@ import { ConversationMemory, MessageMemory } from "@/lib/types";
 
 // 定数
 const SUMMARY_MAX_COUNT = 6;
-const vectorDb = process.env.VECTOR_DB;
 let globalCaseUrl: string = "";
 
 /** メッセージをDBから取得する処理 */
@@ -36,7 +35,7 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
   const count = state.turn % SUMMARY_MAX_COUNT;
 
   // conversation データ取得
-  let conversation: ConversationMemory | null =
+  const conversation: ConversationMemory | null =
     await postSupabaseConversasionSearch(globalCaseUrl, state.sessionId, count);
 
   let conversationId: string | null = null;

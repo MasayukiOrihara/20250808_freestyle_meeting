@@ -71,7 +71,7 @@ export async function checkUpdateDocuments(
   const hashData: string[][] = [];
 
   // データの取得
-  let globalHashData: string[] = await getSupabaseHashData(url);
+  const globalHashData: string[] = await getSupabaseHashData(url);
 
   // ハッシュの取得
   for (const [, dirPath] of Object.entries(resolvedDirs)) {
