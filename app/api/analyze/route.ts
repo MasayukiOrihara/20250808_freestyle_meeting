@@ -13,7 +13,6 @@ import {
   humanProfileDescriptions,
 } from "./personal";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getBaseUrl } from "@/lib/contents";
 import { postSupabasePersonalCreate } from "@/lib/api";
 
 // /** メッセージを挿入する処理 */
@@ -126,7 +125,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const userMessages = body.userMessages;
     const threadId = body.sessionId ?? "analyze-abc123";
-    const { baseUrl } = getBaseUrl(req);
 
     console.log("📂 Analize API | ID: " + threadId);
     const currentUserMessages = userMessages[userMessages.length - 1];
@@ -138,7 +136,7 @@ export async function POST(req: Request) {
     // DB への追加
     const analyzeData = results.analyze;
     if (analyzeData) {
-      await postSupabasePersonalCreate(baseUrl, analyzeData, threadId);
+      await postSupabasePersonalCreate(analyzeData, threadId);
     }
 
     return Response.json(results, {

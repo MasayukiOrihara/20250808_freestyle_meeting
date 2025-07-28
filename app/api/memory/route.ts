@@ -11,11 +11,7 @@ import {
 } from "@langchain/langgraph";
 
 import { OpenAi4_1Mini } from "@/lib/models";
-import {
-  getBaseUrl,
-  MEMORY_SUMMARY_PROMPT,
-  MEMORY_UPDATE_PROMPT,
-} from "@/lib/contents";
+import { MEMORY_SUMMARY_PROMPT, MEMORY_UPDATE_PROMPT } from "@/lib/contents";
 import {
   postSupabaseConversasionCreate,
   postSupabaseConversasionMessageCreate,
@@ -26,7 +22,6 @@ import { ConversationMemory, MessageMemory } from "@/lib/types";
 
 // 定数
 const SUMMARY_MAX_COUNT = 6;
-let globalCaseUrl: string = "";
 
 /** メッセージをDBから取得する処理 */
 async function loadConversation(state: typeof GraphAnnotation.State) {
@@ -36,17 +31,14 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
 
   // conversation データ取得
   const conversation: ConversationMemory | null =
-    await postSupabaseConversasionSearch(globalCaseUrl, state.sessionId, count);
+    await postSupabaseConversasionSearch(state.sessionId, count);
 
   let conversationId: string | null = null;
   if (conversation != null) {
     conversationId = conversation.id;
   } else {
     // もし取得できなかった場合、新たにconversationを作成する
-    conversationId = await postSupabaseConversasionCreate(
-      globalCaseUrl,
-      state.sessionId
-    );
+    conversationId = await postSupabaseConversasionCreate(state.sessionId);
 
     return { formatted: formatted, conversationId: conversationId };
   }
@@ -101,7 +93,7 @@ async function storeConversation(state: typeof GraphAnnotation.State) {
       messages: arrMessage,
     };
 
-    await postSupabaseConversasionMessageCreate(globalCaseUrl, conversation);
+    await postSupabaseConversasionMessageCreate(conversation);
   }
 
   // 加工後のメッセージを追加する
@@ -211,9 +203,6 @@ export async function POST(req: Request) {
     const messages = body.messages ?? [];
     const threadId = body.threadId ?? "memory-abc123";
     const turn = body.turn ?? 0;
-
-    const { baseUrl } = getBaseUrl(req);
-    globalCaseUrl = baseUrl;
 
     // 2行取得
     const len = messages.length;

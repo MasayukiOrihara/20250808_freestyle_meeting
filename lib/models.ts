@@ -10,10 +10,7 @@ import { Client } from "langsmith";
 import * as CONTENTS from "./contents";
 import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { QdrantClient } from "@qdrant/js-client-rest";
 import { createClient } from "@supabase/supabase-js";
-
-const QDRANT_LOCAL_URL = "http://localhost:6333";
 
 // パサー
 export const strParser = new StringOutputParser();
@@ -22,11 +19,6 @@ export const jsonParser = new JsonOutputParser();
 // langsmithからプロンプトの取得
 export const langsmithClient = new Client({
   apiKey: process.env.LANGSMITH_API_KEY,
-});
-
-// Qdrantクライアント
-export const qdrantClient = new QdrantClient({
-  url: process.env.QDRANT_URL || QDRANT_LOCAL_URL,
 });
 
 // supabase のクライアント
