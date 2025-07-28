@@ -17,15 +17,19 @@ import {
   MEMORY_UPDATE_PROMPT,
 } from "@/lib/contents";
 import {
-  postConversasionGenerate,
-  postConversasionSave,
-  postConversasionSearch,
+  postPrismaConversasionGenerate,
+  postPrismaConversasionSave,
+  postPrismaConversasionSearch,
+  postSupabaseConversasionGenerate,
+  postSupabaseConversasionSave,
+  postSupabaseConversasionSearch,
 } from "@/lib/api";
 import { formatContent, formatConversation } from "./utils";
 import { ConversationMemory, MessageMemory } from "@/lib/types";
 
 // 定数
 const SUMMARY_MAX_COUNT = 6;
+const vectorDb = process.env.VECTOR_DB;
 
 /** メッセージをDBから取得する処理 */
 async function loadConversation(state: typeof GraphAnnotation.State) {
@@ -34,17 +38,39 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
   const count = state.turn % SUMMARY_MAX_COUNT;
 
   // conversation データ取得
-  const conversation: ConversationMemory = await postConversasionSearch(
-    state.sessionId,
-    count
-  );
+  let conversation: ConversationMemory | null = null;
+  switch (vectorDb) {
+    case "docker":
+      conversation = await postPrismaConversasionSearch(state.sessionId, count);
+      break;
+    case "supabase":
+      conversation = await postSupabaseConversasionSearch(
+        state.sessionId,
+        count
+      );
+      break;
+    default:
+      console.error("Unsupported VECTOR_DB type" + vectorDb);
+  }
 
-  let conversationId;
-  if (conversation) {
+  let conversationId: string | null = null;
+  if (conversation != null) {
     conversationId = conversation.id;
   } else {
     // もし取得できなかった場合、新たにconversationを作成する
-    conversationId = await postConversasionGenerate(state.sessionId);
+    switch (vectorDb) {
+      case "docker":
+        conversationId = await postPrismaConversasionGenerate(state.sessionId);
+        break;
+      case "supabase":
+        conversationId = await postSupabaseConversasionGenerate(
+          state.sessionId
+        );
+        break;
+      default:
+        console.error("Unsupported VECTOR_DB type" + vectorDb);
+    }
+
     return { formatted: formatted, conversationId: conversationId };
   }
 
@@ -77,6 +103,7 @@ async function shouldContenue(state: typeof GraphAnnotation.State) {
 async function storeConversation(state: typeof GraphAnnotation.State) {
   const messages = state.messages;
   const formatted: string[] = state.formatted;
+  const conversationId = state.conversationId;
 
   // messages テーブルに保存
   const { roles, contents } = formatContent(messages, state.sessionId);
@@ -89,14 +116,25 @@ async function storeConversation(state: typeof GraphAnnotation.State) {
     message = { role: roles[i], content: contents[i] };
     arrMessage.push(message);
   }
-  // Conversation の作成
-  const conversation: ConversationMemory = {
-    id: state.conversationId,
-    summary: state.summary,
-    messages: arrMessage,
-  };
+  if (conversationId && conversationId != "") {
+    // Conversation の作成
+    const conversation: ConversationMemory = {
+      id: state.conversationId,
+      summary: state.summary,
+      messages: arrMessage,
+    };
 
-  await postConversasionSave(conversation);
+    switch (vectorDb) {
+      case "docker":
+        await postPrismaConversasionSave(conversation);
+        break;
+      case "supabase":
+        await postSupabaseConversasionSave(conversation);
+        break;
+      default:
+        console.error("Unsupported VECTOR_DB type" + vectorDb);
+    }
+  }
 
   // 加工後のメッセージを追加する
   const formattedMessages: string[] = formatConversation(roles, contents);
