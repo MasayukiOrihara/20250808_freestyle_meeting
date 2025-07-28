@@ -6,7 +6,6 @@ import strip from "strip-markdown";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
-import pdfParse from "pdf-parse";
 import _ from "lodash";
 import { getSupabaseHashData, postSupabaseHashData } from "@/lib/api";
 
@@ -126,6 +125,7 @@ export const buildDocumentChunks = async (dir: string) => {
             text = String(plainText);
             break;
           case ".pdf":
+            const { default: pdfParse } = await import("pdf-parse");
             const pdfData = await pdfParse(content);
             text = pdfData.text;
             break;
