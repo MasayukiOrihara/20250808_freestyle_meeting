@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     // ※※ 全消去→再挿入にしているので、差分更新に変えたい
     // vercelに上げる場合差分チェックを行いません（ファイルはローカルにしかないので）
     const isLocal = getBaseUrl(req).host.includes("localhost");
-    if (isLocal) {
+    if (isLocal || !(process.env.VERCEL === "1")) {
       const needsUpdate = await checkUpdateDocuments(baseUrl, resolvedDirs);
       const isSupabaseTable = await isTableMissingOrEmpty(tableName);
       if (needsUpdate || !isSupabaseTable) {
