@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     // ※※ 全消去→再挿入にしているので、差分更新に変えたい
     let company;
     const vectorDb = process.env.VECTOR_DB;
-    const needsUpdate = await checkUpdateDocuments(resolvedDirs);
+    const needsUpdate = await checkUpdateDocuments(baseUrl, resolvedDirs);
     switch (vectorDb) {
       case "docker":
         const isCollection = await QD.isCollectionMissingOrEmpty(

@@ -1,7 +1,5 @@
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
-import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
-import { createClient } from "@supabase/supabase-js";
 
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -10,7 +8,6 @@ import path from "path";
 import fs from "fs/promises";
 import pdfParse from "pdf-parse";
 import _ from "lodash";
-import { embeddings, qdrantClient } from "@/lib/models";
 import {
   getGlobalHashData,
   getSupabaseHashData,
@@ -75,9 +72,12 @@ function isEqualIgnoreOrder(a: string[], b: string[]): boolean {
 }
 
 /** 更新チェック */
-export async function checkUpdateDocuments(resolvedDirs: {
-  [k: string]: string;
-}) {
+export async function checkUpdateDocuments(
+  url: string,
+  resolvedDirs: {
+    [k: string]: string;
+  }
+) {
   const hashData: string[][] = [];
 
   // データの取得
@@ -85,10 +85,10 @@ export async function checkUpdateDocuments(resolvedDirs: {
   let globalHashData: string[] = [];
   switch (vectorDb) {
     case "docker":
-      globalHashData = await getGlobalHashData();
+      globalHashData = await getGlobalHashData(url);
       break;
     case "supabase":
-      globalHashData = await getSupabaseHashData();
+      globalHashData = await getSupabaseHashData(url);
       break;
     default:
       console.error("Unsupported VECTOR_DB type" + vectorDb);
@@ -119,10 +119,10 @@ export async function checkUpdateDocuments(resolvedDirs: {
     // データ更新
     switch (vectorDb) {
       case "docker":
-        await postGlobalHashData(flatHashData);
+        await postGlobalHashData(url, flatHashData);
         break;
       case "supabase":
-        await postSupabaseHashData(flatHashData);
+        await postSupabaseHashData(url, flatHashData);
         break;
       default:
         console.error("Unsupported VECTOR_DB type" + vectorDb);

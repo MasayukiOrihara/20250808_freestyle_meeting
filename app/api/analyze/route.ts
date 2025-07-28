@@ -144,10 +144,10 @@ export async function POST(req: Request) {
     if (analyzeData) {
       switch (vectorDb) {
         case "docker":
-          await postPrismaPersonalCreate(analyzeData, threadId);
+          await postPrismaPersonalCreate(baseUrl, analyzeData, threadId);
           break;
         case "supabase":
-          await postSupabasePersonalCreate(analyzeData, threadId);
+          await postSupabasePersonalCreate(baseUrl, analyzeData, threadId);
           break;
         default:
           console.error("Unsupported VECTOR_DB type" + vectorDb);

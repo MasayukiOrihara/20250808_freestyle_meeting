@@ -11,7 +11,11 @@ import {
 } from "@langchain/langgraph";
 
 import { OpenAi4_1Mini } from "@/lib/models";
-import { MEMORY_SUMMARY_PROMPT, MEMORY_UPDATE_PROMPT } from "@/lib/contents";
+import {
+  getBaseUrl,
+  MEMORY_SUMMARY_PROMPT,
+  MEMORY_UPDATE_PROMPT,
+} from "@/lib/contents";
 import {
   postPrismaConversasionCreate,
   postPrismaConversasionMessageCreate,
@@ -26,6 +30,7 @@ import { ConversationMemory, MessageMemory } from "@/lib/types";
 // 定数
 const SUMMARY_MAX_COUNT = 6;
 const vectorDb = process.env.VECTOR_DB;
+let globalCaseUrl: string = "";
 
 /** メッセージをDBから取得する処理 */
 async function loadConversation(state: typeof GraphAnnotation.State) {
@@ -37,10 +42,15 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
   let conversation: ConversationMemory | null = null;
   switch (vectorDb) {
     case "docker":
-      conversation = await postPrismaConversasionSearch(state.sessionId, count);
+      conversation = await postPrismaConversasionSearch(
+        globalCaseUrl,
+        state.sessionId,
+        count
+      );
       break;
     case "supabase":
       conversation = await postSupabaseConversasionSearch(
+        globalCaseUrl,
         state.sessionId,
         count
       );
@@ -56,10 +66,16 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
     // もし取得できなかった場合、新たにconversationを作成する
     switch (vectorDb) {
       case "docker":
-        conversationId = await postPrismaConversasionCreate(state.sessionId);
+        conversationId = await postPrismaConversasionCreate(
+          globalCaseUrl,
+          state.sessionId
+        );
         break;
       case "supabase":
-        conversationId = await postSupabaseConversasionCreate(state.sessionId);
+        conversationId = await postSupabaseConversasionCreate(
+          globalCaseUrl,
+          state.sessionId
+        );
         break;
       default:
         console.error("Unsupported VECTOR_DB type" + vectorDb);
@@ -120,10 +136,13 @@ async function storeConversation(state: typeof GraphAnnotation.State) {
 
     switch (vectorDb) {
       case "docker":
-        await postPrismaConversasionMessageCreate(conversation);
+        await postPrismaConversasionMessageCreate(globalCaseUrl, conversation);
         break;
       case "supabase":
-        await postSupabaseConversasionMessageCreate(conversation);
+        await postSupabaseConversasionMessageCreate(
+          globalCaseUrl,
+          conversation
+        );
         break;
       default:
         console.error("Unsupported VECTOR_DB type" + vectorDb);
@@ -225,7 +244,6 @@ const workflow = new StateGraph(GraphAnnotation)
 // 記憶の追加
 const memory = new MemorySaver();
 const app = workflow.compile({ checkpointer: memory });
-const cacheIdList: string[] = [];
 
 /**
  * 会話履歴要約API
@@ -238,6 +256,9 @@ export async function POST(req: Request) {
     const messages = body.messages ?? [];
     const threadId = body.threadId ?? "memory-abc123";
     const turn = body.turn ?? 0;
+
+    const { baseUrl } = getBaseUrl(req);
+    globalCaseUrl = baseUrl;
 
     // 2行取得
     const len = messages.length;
