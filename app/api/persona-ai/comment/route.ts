@@ -4,7 +4,7 @@ import { LangChainAdapter } from "ai";
 import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
 import { runWithFallback } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
-import { memoryApi } from "@/lib/api";
+import { postApi } from "@/lib/utils";
 
 /**
  * パーソナAI: コメント
@@ -27,7 +27,11 @@ export async function POST(req: Request) {
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
+    const memoryResPromise = postApi(baseUrl, "/api/memory", {
+      messages,
+      threadId,
+      turn,
+    });
 
     // bot情報取得
     const bot = Object.values(assistantData).find((item) => item.id === id);
@@ -37,8 +41,7 @@ export async function POST(req: Request) {
     const prompt = PromptTemplate.fromTemplate(bot?.aiMeta.prompt);
 
     // 過去履歴の同期
-    const memoryResponse = await memoryResponsePromise;
-    const memory = await memoryResponse.json();
+    const memory = await memoryResPromise;
 
     console.log("💿 記憶 ---");
     console.log(memory);

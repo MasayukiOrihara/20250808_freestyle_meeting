@@ -5,26 +5,24 @@
 export async function GET() {
   try {
     console.log("🧻 コンテキスト");
-    // 日にち
-    // const dateRes = await fetch(local + "api/information/date");
-    // const dateData = await dateRes.json();
-    // 場所
-    // const locationRes = await fetch(local + "api/information/location");
-    // const locationData = await locationRes.json();
-    // 言語
-    // const languageRes = await fetch(local + "api/information/language");
-    /// const languageData = await languageRes.json();
-    // 会話履歴
-    // const memoryRes = await fetch(local + "api/memory");
-    // const memoryData = await memoryRes.json();
 
-    // とりあえず集約してみる
+    // 情報収集
+    const now = new Date();
+    const japanTimeString = now.toLocaleString("ja-JP", {
+      timeZone: "Asia/Tokyo",
+    });
+    const location = "日本-愛知県-名古屋市";
+    const language = "日本語";
+
+    // コンテキスト作成
     const data: string[] = [];
-    // data.push(dateData);
-    // data.push(locationData);
-    // data.push(languageData);
+    data.push("以下はあなたの設定です。");
+    data.push(`今の日時は ${japanTimeString} です。`);
+    data.push(`あなたの現在地は ${location} です。`);
+    data.push(`あなたは ${language} を話します。`);
+    const context: string = data.join("\n");
 
-    return Response.json(data, {
+    return Response.json(context, {
       status: 200,
     });
   } catch (error) {

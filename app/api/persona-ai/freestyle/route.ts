@@ -9,13 +9,13 @@ import {
   tableName,
 } from "./contents";
 import { FREESTYLE_PROMPT, getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
-import { memoryApi } from "@/lib/api";
 import {
   isTableMissingOrEmpty,
   saveEmbeddingSupabase,
   searchDocuments,
 } from "./supabase";
 import { buildDocumentChunks, checkUpdateDocuments } from "./embedding";
+import { postApi } from "@/lib/utils";
 
 /**
  * 社内文書検索API
@@ -39,7 +39,11 @@ export async function POST(req: Request) {
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
+    const memoryResPromise = postApi(baseUrl, "/api/memory", {
+      messages,
+      threadId,
+      turn,
+    });
 
     /* 社内情報RAG　*/
     // コレクションのアップデートが必要か調べる
@@ -75,8 +79,7 @@ export async function POST(req: Request) {
     );
 
     // 過去履歴の同期
-    const memoryResponse = await memoryResponsePromise;
-    const memory = await memoryResponse.json();
+    const memory = await memoryResPromise;
 
     /** AI */
     const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);

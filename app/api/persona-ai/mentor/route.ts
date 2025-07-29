@@ -9,7 +9,7 @@ import {
   UNKNOWN_ERROR,
 } from "@/lib/contents";
 import { OpenAi4_1Nano, runWithFallback, strParser } from "@/lib/models";
-import { memoryApi, mentorGraphApi } from "@/lib/api";
+import { postApi } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
@@ -27,7 +27,11 @@ export async function POST(req: Request) {
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
+    const memoryResPromise = postApi(baseUrl, "/api/memory", {
+      messages,
+      threadId,
+      turn,
+    });
 
     /* mentor graph API */
     const checkPrompt = PromptTemplate.fromTemplate(CHECK_CONTENUE_PROMPT_EN);
@@ -39,14 +43,16 @@ export async function POST(req: Request) {
     console.log("🔮 悩みの判断: " + checkContenue);
     let contexts = CONSULTING_FINISH_MESSAGE;
     if (checkContenue.includes("YES")) {
-      const mentorGraphResponse = await mentorGraphApi(baseUrl, messages);
-      const mentorGraph = await mentorGraphResponse.json();
+      const mentorGraph = await postApi(
+        baseUrl,
+        "/api/persona-ai/mentor/mentor-graph",
+        { messages }
+      );
       contexts = mentorGraph.contexts;
     }
 
     // 過去履歴の同期
-    const memoryResponse = await memoryResponsePromise;
-    const memory = await memoryResponse.json();
+    const memory = await memoryResPromise;
 
     /* AI */
     const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
