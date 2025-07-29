@@ -74,8 +74,6 @@ export async function POST(req: Request) {
       queryName
     );
 
-    console.log(company);
-
     // 過去履歴の同期
     const memoryResponse = await memoryResponsePromise;
     const memory = await memoryResponse.json();

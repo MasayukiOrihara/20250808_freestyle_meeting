@@ -6,7 +6,7 @@ import {
   StateGraph,
 } from "@langchain/langgraph";
 
-import { jsonParser, OpenAi4_1Mini, strParser } from "@/lib/models";
+import { jsonParser, runWithFallback, strParser } from "@/lib/models";
 import {
   validateProfile,
   HumanProfile,
@@ -23,7 +23,7 @@ async function insertMessages(state: typeof GraphAnnotation.State) {
   console.log(state.messages);
   const messages = state.messages;
 
-  return { messages: messages };
+  return { messages };
 }
 
 /** 分析を行うかの判断処理 */
@@ -31,7 +31,7 @@ async function shouldAnalyze(state: typeof GraphAnnotation.State) {
   console.log("❓ should analyze");
   const messages = state.messages;
 
-  if (messages.length > 3) return "analyzeNode";
+  if (messages.length > 1) return "analyzeNode";
   return "__end__";
 }
 
@@ -42,32 +42,46 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
 
   let analyzeMessage;
   if (analyzeContext) {
-    analyzeMessage = `これまでのユーザー分析: ${analyzeContext}
+    analyzeMessage = `これまでのユーザー分析: {analyzeContext}
     
     上記の新しいメッセージを考慮してユーザー分析を拡張してください。
     以下のフォーマットに従って、これまでのユーザー分析に追記、もしくは発展する形で更新して、出力をJSON形式で生成してください。
     
     出力形式：
-      ${humanProfileDescriptions} `;
+      {humanProfileDescriptions} `;
   } else {
     analyzeMessage = `上記の入力からユーザーの情報や趣味趣向や特徴などを分析し、パーソナル情報として記録してください。 
   以下のフォーマットに従って、出力をJSON形式で生成してください。
   情報が読み取れなかった場合は空欄で出力してください。
 
   出力形式：
-    ${humanProfileDescriptions}`;
+    {humanProfileDescriptions}`;
   }
 
-  // 要約処理
-  const messages = [...state.messages, new SystemMessage(analyzeMessage)];
-  const response = await OpenAi4_1Mini.pipe(jsonParser).invoke(messages);
+  // 要約処理（出力形式の関係上 OpenAi4_1Mini固定）
+  const messages =
+    state.messages.map((msg) => msg.content).join("\n") + "\n" + analyzeMessage;
+  console.log(messages);
+  const prompt = PromptTemplate.fromTemplate(messages);
+  const response = await runWithFallback(
+    prompt,
+    {
+      analyzeContext: analyzeContext,
+      humanProfileDescriptions: humanProfileDescriptions,
+    },
+    "invoke",
+    jsonParser
+  );
+  // const json = JSON.parse(response.content);
+  const parsed = await jsonParser.parse(response.content);
+  //const response = await OpenAi4_1Mini.pipe(jsonParser).invoke(messages);
 
-  console.log(response);
-  const validProfile = validateProfile(response);
+  console.log(parsed);
+  const validProfile = validateProfile(parsed);
   if (validProfile) analyzeContext = validProfile;
 
   // 要約したメッセージ除去
-  const deleteMessages = messages
+  const deleteMessages = state.messages
     .slice(0, -1)
     .map((m) => new RemoveMessage({ id: m.id! }));
 
@@ -82,10 +96,12 @@ async function generateUserText(state: typeof GraphAnnotation.State) {
     const template = `以下のユーザー分析をほかの LLM が情報を扱いやすいように具体的な文章として要約してください。\n\n{analyze_context}`;
 
     const prompt = PromptTemplate.fromTemplate(template);
-    context = await prompt
-      .pipe(OpenAi4_1Mini)
-      .pipe(strParser)
-      .invoke({ analyze_context: analyzeContext });
+    context = await runWithFallback(
+      prompt,
+      { analyze_context: analyzeContext },
+      "invoke",
+      strParser
+    );
   }
   console.log(context);
   const messages = [...state.messages, new SystemMessage(context)];
@@ -130,7 +146,6 @@ export async function POST(req: Request) {
 
     console.log("📂 Analize API | ID: " + threadId);
     const currentUserMessages = userMessages[userMessages.length - 1];
-
     // 履歴用キー
     const config = { configurable: { thread_id: threadId } };
     const results = await app.invoke({ messages: currentUserMessages }, config);

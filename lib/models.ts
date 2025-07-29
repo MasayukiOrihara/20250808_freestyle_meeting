@@ -70,7 +70,7 @@ export async function runWithFallback(
       const result =
         mode === "stream"
           ? await pipeline.stream(input)
-          : await pipeline.stream(input);
+          : await pipeline.invoke(input);
 
       // ✅ 成功モデルのログ
       console.log(`[LLM] Using model: ${model.lc_kwargs.model}`);
@@ -105,8 +105,8 @@ export const OpenAi4_1Nano = new ChatOpenAI({
   tags: CONTENTS.TAGS,
 });
 
-/** フェイク用のモデルを使用して、そのまま応答を送信 */
-export const getFakeStream = async () => {
+export /** フェイク用のモデルを使用して、そのまま応答を送信 */
+const getFakeStream = async () => {
   const fakeModel = new FakeListChatModel({
     responses: ["関連性なし"],
   });
