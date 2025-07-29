@@ -1,7 +1,7 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { OpenAi4_1Mini, supabaseClient } from "@/lib/models";
+import { runWithFallback, supabaseClient } from "@/lib/models";
 import {
   FREESTYLE_COMPANY_SUMMARY,
   queryName,
@@ -82,12 +82,16 @@ export async function POST(req: Request) {
 
     /** AI */
     const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
-    const stream = await prompt.pipe(OpenAi4_1Mini).stream({
-      history: memory,
-      user_message: currentUserMessage,
-      freestyle_summary: FREESTYLE_COMPANY_SUMMARY,
-      info: company,
-    });
+    const stream = await runWithFallback(
+      prompt,
+      {
+        history: memory,
+        user_message: currentUserMessage,
+        freestyle_summary: FREESTYLE_COMPANY_SUMMARY,
+        info: company,
+      },
+      "stream"
+    );
 
     console.log("🏢 COMPLITE \n --- ");
     return LangChainAdapter.toDataStreamResponse(stream);

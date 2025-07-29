@@ -11,6 +11,7 @@ import * as CONTENTS from "./contents";
 import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { createClient } from "@supabase/supabase-js";
+import { Runnable } from "@langchain/core/runnables";
 
 // パサー
 export const strParser = new StringOutputParser();
@@ -45,6 +46,51 @@ export const OpenAi4_1Mini = new ChatOpenAI({
   temperature: 0.6,
   tags: CONTENTS.TAGS,
 });
+// OPENAI(4o-mini)
+export const OpenAi4oMini = new ChatOpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: CONTENTS.OPEN_AI_4O_MINI,
+  temperature: 0.6,
+  tags: CONTENTS.TAGS,
+});
+
+// フォールバック可能なLLM一覧
+const fallbackLLMs: Runnable[] = [OpenAi4_1Mini, OpenAi4oMini];
+// レート制限に達したときに別のモデルに切り替える対策
+export async function runWithFallback(
+  runnable: Runnable,
+  input: Record<string, any>,
+  mode: "invoke" | "stream" = "invoke"
+) {
+  for (const model of fallbackLLMs) {
+    try {
+      const pipeline = runnable.pipe(model);
+      const result =
+        mode === "stream"
+          ? await pipeline.stream(input)
+          : await pipeline.stream(input);
+
+      // ✅ 成功モデルのログ
+      console.log(`[LLM] Using model: ${model.lc_kwargs.model}`);
+      return result;
+    } catch (err: any) {
+      const message = err?.message ?? "";
+      const isRateLimited =
+        message.includes("429") ||
+        message.includes("rate limit") ||
+        message.includes("overloaded") ||
+        err.type === "rate_limit_exceeded";
+
+      if (!isRateLimited) {
+        throw err;
+      }
+      console.warn(`Model failed with rate limit: ${message}`);
+      // 次のモデルにフォールバック（次のループへ）
+    }
+  }
+  // どのモデルでも成功しなかった場合
+  throw new Error("All fallback models failed.");
+}
 
 /**
  * OPENAI(4.1-nano)

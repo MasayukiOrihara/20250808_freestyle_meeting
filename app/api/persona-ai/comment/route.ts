@@ -2,7 +2,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
-import { OpenAi4_1Mini } from "@/lib/models";
+import { OpenAi4_1Mini, runWithFallback } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
 import { memoryApi } from "@/lib/api";
 
@@ -45,13 +45,16 @@ export async function POST(req: Request) {
     console.log(" --- ");
 
     // ストリーム
-    const stream = await prompt.pipe(OpenAi4_1Mini).stream({
-      history: memory,
-      user_message: currentUserMessage,
-    });
+    const stream = await runWithFallback(
+      prompt,
+      {
+        history: memory,
+        user_message: currentUserMessage,
+      },
+      "stream"
+    );
 
     console.log("💬 COMPLITE \n --- ");
-
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
     console.log("💬 COMMENT API error :\n" + error);

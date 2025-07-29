@@ -36,6 +36,7 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
 
   const [checkUserMessage, selectNextQuestion] = await Promise.all([
     /* 2. チェックリストの質問との一致項目を特定 */
+
     PromptTemplate.fromTemplate(CHECK_USER_MESSAGE_PROMPT_EN)
       .pipe(OpenAi4_1Mini)
       .pipe(strParser)

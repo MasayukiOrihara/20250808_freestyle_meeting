@@ -8,7 +8,7 @@ import {
   MENTOR_PROMPT,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
-import { OpenAi4_1Mini, OpenAi4_1Nano, strParser } from "@/lib/models";
+import { OpenAi4_1Nano, runWithFallback, strParser } from "@/lib/models";
 import { memoryApi, mentorGraphApi } from "@/lib/api";
 
 export async function POST(req: Request) {
@@ -50,11 +50,15 @@ export async function POST(req: Request) {
 
     /* AI */
     const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
-    const stream = await prompt.pipe(OpenAi4_1Mini).stream({
-      question_context: contexts,
-      history: memory,
-      user_message: currentUserMessage,
-    });
+    const stream = await runWithFallback(
+      prompt,
+      {
+        question_context: contexts,
+        history: memory,
+        user_message: currentUserMessage,
+      },
+      "stream"
+    );
 
     console.log("🔮 COMPLITE \n --- ");
     return LangChainAdapter.toDataStreamResponse(stream);

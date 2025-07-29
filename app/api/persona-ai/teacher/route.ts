@@ -7,7 +7,7 @@ import {
   TEACHER_PROMPT_NO_INFO,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
-import { getTavilyInfo, OpenAi4_1Mini } from "@/lib/models";
+import { getTavilyInfo, runWithFallback } from "@/lib/models";
 import { memoryApi } from "@/lib/api";
 
 export async function POST(req: Request) {
@@ -44,11 +44,15 @@ export async function POST(req: Request) {
     }
 
     /** AI */
-    const stream = await prompt.pipe(OpenAi4_1Mini).stream({
-      history: memory,
-      user_message: currentUserMessage,
-      info: info,
-    });
+    const stream = await runWithFallback(
+      prompt,
+      {
+        history: memory,
+        user_message: currentUserMessage,
+        info: info,
+      },
+      "stream"
+    );
 
     console.log("🔎 COMPLITE \n --- ");
     return LangChainAdapter.toDataStreamResponse(stream);
