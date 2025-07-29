@@ -1,4 +1,4 @@
-import { OpenAi4_1Mini, strParser } from "@/lib/models";
+import { runWithFallback, strParser } from "@/lib/models";
 import { BaseMessage } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { ChecklistItem } from "../checklist";
@@ -30,7 +30,9 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
 
   // プロンプトとチェインの用意
   const checkPrompt = PromptTemplate.fromTemplate(CHECK_USER_MESSAGE_PROMPT_EN);
-  const checkChain = checkPrompt.pipe(OpenAi4_1Mini).pipe(strParser);
+  const selectPrompt = PromptTemplate.fromTemplate(
+    SELECT_NEXT_QUESTION_PROMPT_EN
+  );
 
   // AIに次の質問を渡す用として整形
   let checklistQuestion = "";
@@ -38,26 +40,32 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
     checklistQuestion += "・" + item.question + "\n";
   }
 
-  const [checkUserMessage, selectNextQuestion] = await Promise.all([
+  const [checkUserMessageLlm, selectNextQuestionLlm] = await Promise.all([
     /* 2. チェックリストの質問との一致項目を特定 */
-
-    PromptTemplate.fromTemplate(CHECK_USER_MESSAGE_PROMPT_EN)
-      .pipe(OpenAi4_1Mini)
-      .pipe(strParser)
-      .invoke({
+    runWithFallback(
+      checkPrompt,
+      {
         checklist_text: formattedChecklistToText(checklist),
         user_message: userMessage,
-      }),
+      },
+      "invoke",
+      strParser
+    ),
 
     /* 3. どれを質問するかを決めさせる */
-    PromptTemplate.fromTemplate(SELECT_NEXT_QUESTION_PROMPT_EN)
-      .pipe(OpenAi4_1Mini)
-      .pipe(strParser)
-      .invoke({
+    runWithFallback(
+      selectPrompt,
+      {
         checklist_question: checklistQuestion,
         user_message: userMessage,
-      }),
+      },
+      "invoke",
+      strParser
+    ),
   ]);
+
+  const checkUserMessage: string = checkUserMessageLlm.content;
+  const selectNextQuestion: string = selectNextQuestionLlm.content;
   const aiContexts: LangsmithOutput = {
     checkUserMessage,
     selectNextQuestion,

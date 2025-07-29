@@ -31,7 +31,7 @@ async function shouldAnalyze(state: typeof GraphAnnotation.State) {
   console.log("❓ should analyze");
   const messages = state.messages;
 
-  if (messages.length > 1) return "analyzeNode";
+  if (messages.length > 3) return "analyzeNode";
   return "__end__";
 }
 
@@ -58,10 +58,9 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
     {humanProfileDescriptions}`;
   }
 
-  // 要約処理（出力形式の関係上 OpenAi4_1Mini固定）
+  // 要約処理
   const messages =
     state.messages.map((msg) => msg.content).join("\n") + "\n" + analyzeMessage;
-  console.log(messages);
   const prompt = PromptTemplate.fromTemplate(messages);
   const response = await runWithFallback(
     prompt,
@@ -74,9 +73,7 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
   );
   // const json = JSON.parse(response.content);
   const parsed = await jsonParser.parse(response.content);
-  //const response = await OpenAi4_1Mini.pipe(jsonParser).invoke(messages);
 
-  console.log(parsed);
   const validProfile = validateProfile(parsed);
   if (validProfile) analyzeContext = validProfile;
 
@@ -103,7 +100,6 @@ async function generateUserText(state: typeof GraphAnnotation.State) {
       strParser
     );
   }
-  console.log(context);
   const messages = [...state.messages, new SystemMessage(context)];
   return { context: context, messages: messages };
 }

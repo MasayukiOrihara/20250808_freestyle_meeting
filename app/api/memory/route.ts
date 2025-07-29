@@ -10,7 +10,7 @@ import {
   StateGraph,
 } from "@langchain/langgraph";
 
-import { OpenAi4_1Mini } from "@/lib/models";
+import { runWithFallback } from "@/lib/models";
 import {
   getBaseUrl,
   MEMORY_SUMMARY_PROMPT_EN,
@@ -24,6 +24,7 @@ import {
 } from "@/lib/api";
 import { formatContent, formatConversation } from "./utils";
 import { ConversationMemory, MessageMemory } from "@/lib/types";
+import { PromptTemplate } from "@langchain/core/prompts";
 
 // 定数
 const SUMMARY_MAX_COUNT = 6;
@@ -134,7 +135,10 @@ async function summarizeConversation(state: typeof GraphAnnotation.State) {
   const conversation: string[] = formatConversation(roles, contents);
 
   const formatted = [...state.formatted, ...conversation];
-  const response = await OpenAi4_1Mini.invoke(formatted);
+  const prompt = PromptTemplate.fromTemplate(
+    formatted.map((msg) => msg).join("\n")
+  );
+  const response = await runWithFallback(prompt, {}, "invoke");
 
   return { summary: response.content };
 }
