@@ -28,6 +28,10 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
   // ユーザーの発言を取得
   const userMessage = messages[messages.length - 1].content;
 
+  // プロンプトとチェインの用意
+  const checkPrompt = PromptTemplate.fromTemplate(CHECK_USER_MESSAGE_PROMPT_EN);
+  const checkChain = checkPrompt.pipe(OpenAi4_1Mini).pipe(strParser);
+
   // AIに次の質問を渡す用として整形
   let checklistQuestion = "";
   for (const item of checklist[step]) {

@@ -60,11 +60,13 @@ const fallbackLLMs: Runnable[] = [OpenAi4_1Mini, OpenAi4oMini];
 export async function runWithFallback(
   runnable: Runnable,
   input: Record<string, any>,
-  mode: "invoke" | "stream" = "invoke"
+  mode: "invoke" | "stream" = "invoke",
+  parser?: Runnable
 ) {
   for (const model of fallbackLLMs) {
     try {
       const pipeline = runnable.pipe(model);
+      if (parser) pipeline.pipe(parser);
       const result =
         mode === "stream"
           ? await pipeline.stream(input)

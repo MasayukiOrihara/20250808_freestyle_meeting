@@ -2,7 +2,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
-import { OpenAi4_1Mini, runWithFallback } from "@/lib/models";
+import { runWithFallback } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
 import { memoryApi } from "@/lib/api";
 
@@ -57,17 +57,9 @@ export async function POST(req: Request) {
     console.log("💬 COMPLITE \n --- ");
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
-    console.log("💬 COMMENT API error :\n" + error);
-    if (error instanceof Error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
-    return new Response(JSON.stringify({ error: UNKNOWN_ERROR }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("💬 COMMENT API error :" + message);
+    return Response.json({ error: message }, { status: 500 });
   }
 }

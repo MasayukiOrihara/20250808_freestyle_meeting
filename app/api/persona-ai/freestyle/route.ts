@@ -8,7 +8,7 @@ import {
   resolvedDirs,
   tableName,
 } from "./contents";
-import { FREESTYLE_PROMPT, getBaseUrl } from "@/lib/contents";
+import { FREESTYLE_PROMPT, getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
 import { memoryApi } from "@/lib/api";
 import {
   isTableMissingOrEmpty,
@@ -96,17 +96,9 @@ export async function POST(req: Request) {
     console.log("🏢 COMPLITE \n --- ");
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
-    console.log("🏢 Freestyle API error :\n" + error);
-    if (error instanceof Error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
-    return new Response(JSON.stringify({ error: "Unknown error occurred" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("🏢 Freestyle API error :" + message);
+    return Response.json({ error: message }, { status: 500 });
   }
 }

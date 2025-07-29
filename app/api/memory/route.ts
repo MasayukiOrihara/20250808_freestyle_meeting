@@ -15,6 +15,7 @@ import {
   getBaseUrl,
   MEMORY_SUMMARY_PROMPT_EN,
   MEMORY_UPDATE_PROMPT_EN,
+  UNKNOWN_ERROR,
 } from "@/lib/contents";
 import {
   postSupabaseConversasionCreate,
@@ -229,21 +230,13 @@ export async function POST(req: Request) {
       config
     );
 
-    return new Response(JSON.stringify(results.formatted), {
+    return Response.json(results.formatted, {
       status: 200,
-      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    if (error instanceof Error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
-    return new Response(JSON.stringify({ error: "Unknown error occurred" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("💿 MEMORY API error :" + message);
+    return Response.json({ error: message }, { status: 500 });
   }
 }
