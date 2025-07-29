@@ -13,8 +13,8 @@ import {
 import { OpenAi4_1Mini } from "@/lib/models";
 import {
   getBaseUrl,
-  MEMORY_SUMMARY_PROMPT,
-  MEMORY_UPDATE_PROMPT,
+  MEMORY_SUMMARY_PROMPT_EN,
+  MEMORY_UPDATE_PROMPT_EN,
 } from "@/lib/contents";
 import {
   postSupabaseConversasionCreate,
@@ -122,9 +122,9 @@ async function summarizeConversation(state: typeof GraphAnnotation.State) {
   // プロンプトの作成
   let summaryMessage;
   if (summary) {
-    summaryMessage = MEMORY_UPDATE_PROMPT.replace("{summary}", summary);
+    summaryMessage = MEMORY_UPDATE_PROMPT_EN.replace("{summary}", summary);
   } else {
-    summaryMessage = MEMORY_SUMMARY_PROMPT;
+    summaryMessage = MEMORY_SUMMARY_PROMPT_EN;
   }
 
   // 要約処理

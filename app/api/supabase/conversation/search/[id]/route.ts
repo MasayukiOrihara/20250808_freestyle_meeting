@@ -32,7 +32,7 @@ export async function POST(
 
     // 0件なら null を返す
     if (conversation === null) {
-      console.error("△ conversation is null");
+      console.warn("△ conversation is null");
       return Response.json(null, { status: 200 });
     }
 

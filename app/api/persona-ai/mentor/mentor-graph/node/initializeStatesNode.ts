@@ -13,7 +13,6 @@ type StatesNode = {
  */
 export async function initializeStatesNode({ count, checklist }: StatesNode) {
   //　前回の状態を確認
-  console.log("チェックリスト: ", checklist);
   let hasQuestion = true;
 
   // 初めの初期化
@@ -21,8 +20,7 @@ export async function initializeStatesNode({ count, checklist }: StatesNode) {
 
   // 相談ターン数
   const step = Math.floor(count / 2);
-  console.log(`相談を始めて ${count} ターン目`);
-  console.log(`現在 STEP ${step}`);
+  console.log(`💛 相談を始めて ${count} ターン目 | 現在 STEP ${step}`);
   if (step === 3) {
     hasQuestion = false;
   }

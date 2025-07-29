@@ -1,8 +1,14 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { getBaseUrl, MENTOR_PROMPT, UNKNOWN_ERROR } from "@/lib/contents";
-import { OpenAi4_1Mini } from "@/lib/models";
+import {
+  CHECK_CONTENUE_PROMPT_EN,
+  CONSULTING_FINISH_MESSAGE,
+  getBaseUrl,
+  MENTOR_PROMPT,
+  UNKNOWN_ERROR,
+} from "@/lib/contents";
+import { OpenAi4_1Mini, OpenAi4_1Nano, strParser } from "@/lib/models";
 import { memoryApi, mentorGraphApi } from "@/lib/api";
 
 export async function POST(req: Request) {
@@ -24,8 +30,19 @@ export async function POST(req: Request) {
     const memoryResponsePromise = memoryApi(baseUrl, messages, threadId, turn);
 
     /* mentor graph API */
-    const mentorGraphResponse = await mentorGraphApi(baseUrl, messages);
-    const mentorGraph = await mentorGraphResponse.json();
+    const checkPrompt = PromptTemplate.fromTemplate(CHECK_CONTENUE_PROMPT_EN);
+    const checkContenue = await checkPrompt
+      .pipe(OpenAi4_1Nano)
+      .pipe(strParser)
+      .invoke({ user_message: currentUserMessage });
+
+    console.log("🔮 悩みの判断: " + checkContenue);
+    let contexts = CONSULTING_FINISH_MESSAGE;
+    if (checkContenue.includes("YES")) {
+      const mentorGraphResponse = await mentorGraphApi(baseUrl, messages);
+      const mentorGraph = await mentorGraphResponse.json();
+      contexts = mentorGraph.contexts;
+    }
 
     // 過去履歴の同期
     const memoryResponse = await memoryResponsePromise;
@@ -34,7 +51,7 @@ export async function POST(req: Request) {
     /* AI */
     const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);
     const stream = await prompt.pipe(OpenAi4_1Mini).stream({
-      question_context: mentorGraph.contexts,
+      question_context: contexts,
       history: memory,
       user_message: currentUserMessage,
     });
@@ -42,17 +59,9 @@ export async function POST(req: Request) {
     console.log("🔮 COMPLITE \n --- ");
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
-    console.log("🔮 MENTOR API error :\n" + error);
-    if (error instanceof Error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
-    return new Response(JSON.stringify({ error: UNKNOWN_ERROR }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("🔮 MENTOR API error :" + message);
+    return Response.json({ error: message }, { status: 500 });
   }
 }

@@ -35,46 +35,24 @@ export const supabaseClient = () => {
 // 埋め込み初期化
 export const embeddings = new OpenAIEmbeddings({
   model: "text-embedding-3-small",
-});
-
-// OPENAI(4o)
-export const OpenAi4o = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: CONTENTS.OPEN_AI_4O,
-  temperature: 0.8,
-  tags: CONTENTS.TAGS,
-});
-
-// OPENAI(4o-mini)
-export const OpenAi4oMini = new ChatOpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-  model: CONTENTS.OPEN_AI_4O_MINI,
-  temperature: 0.6,
-  tags: CONTENTS.TAGS,
 });
 
 // OPENAI(4.1-mini)
 export const OpenAi4_1Mini = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
   model: CONTENTS.OPEN_AI_4_1_MINI,
-  temperature: 0.2,
+  temperature: 0.6,
   tags: CONTENTS.TAGS,
 });
 
-// Haiku3_5
-export const Haiku3_5 = new ChatAnthropic({
-  model: CONTENTS.ANTHROPIC_HAIKU_3_5,
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-  maxTokens: 256,
-  temperature: 0.2,
-  tags: CONTENTS.TAGS,
-});
-
-// sonnet（判断用）
-export const Sonnet4YN = new ChatAnthropic({
-  model: CONTENTS.ANTHROPIC_SONNET_4,
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-  maxTokens: 5,
+/**
+ * OPENAI(4.1-nano)
+ * メンターグラフを使用するかの判断
+ */
+export const OpenAi4_1Nano = new ChatOpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: CONTENTS.OPEN_AI_4_1_NANO,
   temperature: 0.2,
   tags: CONTENTS.TAGS,
 });

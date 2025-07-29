@@ -1,13 +1,6 @@
 import { ChecklistItem } from "../checklist";
 import { LangsmithOutput } from "./preprocessAINode";
 
-// 定数
-const CONSULTING_FINISH_MESSAGE = `AI指示:
-過去の体験を思い出すような語り口で、やんわりと気づきを与えてください。
-
-その語りは、直接的なアドバイスではなく、
-「昔こんなことがあってね……」と架空の思い出を語るようなものにしてください。`;
-
 type ContextNode = {
   aiContexts: LangsmithOutput;
   hasQuestion: boolean;
@@ -20,14 +13,6 @@ export function prepareContextNode({
   checklist,
 }: ContextNode) {
   const contexts: string[] = [];
-
-  // 会話継続の意思を確認
-  if (aiContexts.checkContenueTalk.includes("NO")) {
-    // 会話の終了処理
-    hasQuestion = false;
-    contexts.push(CONSULTING_FINISH_MESSAGE);
-    return { hasQuestion, checklist, contexts };
-  }
 
   // チェックリストの質問との一致項目を特定
   // ※※ anthropicくんの機嫌で崩れたフォーマット送ってくる可能性もあるからフォーマットチェックはした方がいい

@@ -1,7 +1,11 @@
-import { Haiku3_5, langsmithClient, Sonnet4YN, strParser } from "@/lib/models";
+import { OpenAi4_1Mini, strParser } from "@/lib/models";
 import { BaseMessage } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { ChecklistItem } from "../checklist";
+import {
+  CHECK_USER_MESSAGE_PROMPT_EN,
+  SELECT_NEXT_QUESTION_PROMPT_EN,
+} from "@/lib/contents";
 
 type AiNode = {
   messages: BaseMessage[];
@@ -11,7 +15,6 @@ type AiNode = {
 
 // 出力するオブジェクトの型
 export type LangsmithOutput = {
-  checkContenueTalk: string;
   checkUserMessage: string;
   selectNextQuestion: string;
 };
@@ -22,12 +25,6 @@ export type LangsmithOutput = {
  */
 export async function preprocessAINode({ messages, checklist, step }: AiNode) {
   /* 1. 必要情報の準備 */
-  // すべてのプロンプトを用意
-  const langsmithPrompts = await loadLangsmithPrompts();
-  const contenueTemplate = langsmithPrompts[0].manifest.kwargs.template;
-  const userTemplate = langsmithPrompts[1].manifest.kwargs.template;
-  const selectTemplate = langsmithPrompts[2].manifest.kwargs.template;
-
   // ユーザーの発言を取得
   const userMessage = messages[messages.length - 1].content;
 
@@ -37,68 +34,30 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
     checklistQuestion += "・" + item.question + "\n";
   }
 
-  const [
-    checkContenueTalk,
-    checkUserMessage,
-    selectNextQuestion,
-    /*summarizeMessage,*/
-  ] = await Promise.all([
-    /* 2. 会話の意思を確認 */
-    PromptTemplate.fromTemplate(contenueTemplate)
-      .pipe(Sonnet4YN)
-      .pipe(strParser)
-      .invoke({ user_message: userMessage }),
-
-    /* 3. チェックリストの質問との一致項目を特定 */
-    PromptTemplate.fromTemplate(userTemplate)
-      .pipe(Haiku3_5)
+  const [checkUserMessage, selectNextQuestion] = await Promise.all([
+    /* 2. チェックリストの質問との一致項目を特定 */
+    PromptTemplate.fromTemplate(CHECK_USER_MESSAGE_PROMPT_EN)
+      .pipe(OpenAi4_1Mini)
       .pipe(strParser)
       .invoke({
         checklist_text: formattedChecklistToText(checklist),
         user_message: userMessage,
       }),
 
-    /* 4. どれを質問するかを決めさせる */
-    PromptTemplate.fromTemplate(selectTemplate)
-      .pipe(Haiku3_5)
+    /* 3. どれを質問するかを決めさせる */
+    PromptTemplate.fromTemplate(SELECT_NEXT_QUESTION_PROMPT_EN)
+      .pipe(OpenAi4_1Mini)
       .pipe(strParser)
       .invoke({
         checklist_question: checklistQuestion,
         user_message: userMessage,
       }),
   ]);
-
-  console.log("会話継続の意思: " + checkContenueTalk);
-  console.log("一致項目の回答結果:\n" + selectNextQuestion);
-
   const aiContexts: LangsmithOutput = {
-    checkContenueTalk,
     checkUserMessage,
     selectNextQuestion,
   };
   return { aiContexts };
-}
-
-/** langsmith から使用するプロンプトを読み込み */
-async function loadLangsmithPrompts() {
-  // langsmith側のプロンプトの名前
-  const promptnames = [
-    "mentor_check-contenue-talk",
-    "mentor_check-user-message",
-    "mentor_select-next-question",
-    "mentor_summarize-message",
-  ];
-  // 読み込み開始
-  const promises = promptnames.map((name) =>
-    langsmithClient.pullPromptCommit(name)
-  );
-  // 処理待ち
-  const results = await Promise.all(promises);
-  const prompts = results.filter(
-    (prompt): prompt is NonNullable<typeof prompt> => prompt !== null
-  );
-
-  return prompts;
 }
 
 /* チェックリストを LLM 用に整形 */

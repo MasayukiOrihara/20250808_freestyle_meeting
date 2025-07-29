@@ -8,6 +8,7 @@ import { checklist, ChecklistItem } from "./checklist";
 import { initializeStatesNode } from "./node/initializeStatesNode";
 import { LangsmithOutput, preprocessAINode } from "./node/preprocessAINode";
 import { prepareContextNode } from "./node/prepareContextNode";
+import { UNKNOWN_ERROR } from "@/lib/contents";
 
 /** mentorAPIでの状態定義 */
 export type MentorStates = {
@@ -24,8 +25,6 @@ let checklistUse: ChecklistItem[][] = checklist.map((group) =>
  * ノード定義
  */
 async function initializeStates(state: typeof MentorAnnotation.State) {
-  console.log("🔧 初期設定ノード");
-
   const { count, step, hasQuestion } = await initializeStatesNode({
     count: state.count,
     checklist: checklistUse,
@@ -39,8 +38,6 @@ async function initializeStates(state: typeof MentorAnnotation.State) {
 }
 
 async function preprocessAI(state: typeof MentorAnnotation.State) {
-  console.log("🧠 AI準備ノード");
-
   const { aiContexts } = await preprocessAINode({
     messages: state.messages,
     checklist: checklistUse,
@@ -50,8 +47,6 @@ async function preprocessAI(state: typeof MentorAnnotation.State) {
 }
 
 async function prepareContext(state: typeof MentorAnnotation.State) {
-  console.log("📝 コンテキスト準備ノード");
-
   const { hasQuestion, checklist, contexts } = prepareContextNode({
     aiContexts: state.aiContexts,
     hasQuestion: state.hasQuestion,
@@ -64,8 +59,6 @@ async function prepareContext(state: typeof MentorAnnotation.State) {
 
 /** データを保存するノード */
 async function saveData(state: typeof MentorAnnotation.State) {
-  console.log("💾 データ保存ノード");
-
   if (state.hasQuestion) {
     state.count++;
   } else {
@@ -117,7 +110,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
-    console.log("💛 メンターグラフAPI ");
+    console.log("💛 MENTOR GRAPH API ");
     console.log("---");
 
     /** メッセージ */
@@ -131,20 +124,13 @@ export async function POST(req: Request) {
     );
 
     const text = results.contexts.join("\n");
-    console.log("📈 LangGraph: \n" + text);
+    console.log("💛 Mentor Graph: \n" + text);
 
-    return new Response(JSON.stringify(results));
+    return Response.json(results, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("API 500 error: " + error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    return new Response(JSON.stringify({ error: "Unknown error occurred" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
+
+    console.error("💛 MENTOR GRAPH API error :" + message);
+    return Response.json({ error: message }, { status: 500 });
   }
 }

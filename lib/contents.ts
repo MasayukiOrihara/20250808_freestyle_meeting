@@ -2,6 +2,7 @@
 export const OPEN_AI_4O = "gpt-4o";
 export const OPEN_AI_4O_MINI = "gpt-4o-mini";
 export const OPEN_AI_4_1_MINI = "gpt-4.1-mini";
+export const OPEN_AI_4_1_NANO = "gpt-4.1-nano";
 export const ANTHROPIC_HAIKU_3 = "claude-3-haiku-20240307";
 export const ANTHROPIC_HAIKU_3_5 = "claude-3-5-haiku-20241022";
 export const ANTHROPIC_OPUS_4 = "claude-opus-4-20250514";
@@ -137,34 +138,109 @@ export const MENTOR_PROMPT = `あなたはメンターAIです。
   user: {user_message}
   assistant: `;
 
-export const NATSUKASHI_PROMPT = `あなたは「ナツカシ」という名前の語り部AIです。
+// 定数
+export const CONSULTING_FINISH_MESSAGE = `過去の体験を思い出すような語り口で、やんわりと気づきを与えてください。
 
-あなたの役割は、ユーザーからの相談や悩みに対して、直接アドバイスや意見を言うのではなく、**「昔こんなことがあってね……」と架空の思い出を語ることで、さりげなくヒントや気づきを与えること**です。
+その語りは、直接的なアドバイスではなく、
+「昔こんなことがあってね……」と架空の思い出を語るようなものにしてください。`;
 
-以下のルールに従って回答してください：
+// メンターAI で悩みかどうかを判定するプロンプト
+export const CHECK_CONTENUE_PROMPT = `次のユーザーの発言について、以下の2点を同時に判定してください：
+    
+1. 発言は「悩みや不安からきている相談」であるか？
+2. その相談はまだ継続中で、ユーザーは問題解決や会話の終了を望んでいないか？
 
-1. 回答は、**あなたの過去の体験談（架空）として語ってください**。
-2. 体験談は**断片的・詩的・比喩的**で構いません。曖昧さや余白がある方が良いです。
-3. **「○○するといいよ」などのアドバイスは禁止**です。代わりに「昔、こんな人がいてね……」という語り口にしてください。
-4. 体験の中で登場する「誰か」は、現実には存在しない登場人物で構いません。
-5. 返答の終わりは、**ユーザーの解釈に委ねるように曖昧な結びにしてください**。
+もし **悩み相談であり、かつ、ユーザーが相談を継続したがっている**場合は「YES」とだけ出力してください。
+    
+それ以外（悩み相談でない、または会話を終えたがっている、または問題が解決した）場合は「NO」とだけ出力してください。
+    
+他の言葉は一切述べないでください。
+    
+---
+ユーザーの発言：
+{user_message}`;
+export const CHECK_CONTENUE_PROMPT_EN = `For the user's message below, evaluate the following two points simultaneously:
 
-一人称は「私」。語り口は**柔らかく穏やかで、少し詩的**です。
+1. Is the message a consultation stemming from worry or anxiety?
+2. Is the consultation still ongoing, with the user not yet seeking resolution or an end to the conversation?
 
-Current conversation: ---
-  {history}
-  ---
+If the message **is a worry- or anxiety-based consultation AND the user appears to want to continue the conversation**, respond only with "YES".
 
-以下はユーザーの発言です。それに応じた「思い出語り」を、140文字程度で出力してください。
+In all other cases (e.g., not a consultation, the user wants to end the conversation, or the issue appears resolved), respond only with "NO".
 
+Do not include any other words.
+
+---
+User message:
 {user_message}
 `;
 
-/* 原文 `Conversation summary so far: ${summary}\n\n上記の新しいメッセージを考慮して要約を拡張してください。: ` */
-export const MEMORY_UPDATE_PROMPT =
+// ユーザーの発言がチェックリストに関連しているかを調べるプロンプト
+export const CHECK_USER_MESSAGE_PROMPT = `次のチェックリスト項目に対して、ユーザーの発言が「question: 」の答えになっているかどうかを判断してください。
+
+{checklist_text}
+
+ユーザーの発言: {user_message}
+
+関連している場合は「comment: 」に質問の答えとなる該当部分のみ抜き出して記述してください。
+また「comment: 」の変更をした場合は「checked: 」をtrueにしてください。
+出力はチェックリストのフォーマット通りとします。理由などの記述はいりません。`;
+export const CHECK_USER_MESSAGE_PROMPT_EN = `Please determine whether the user's message answers the "question:" in the following checklist item.
+
+{checklist_text}
+
+User message: {user_message}
+
+If the message is relevant, extract only the portion that directly answers the question and write it under "comment:".
+If you update the "comment:", also set "checked:" to true.
+Follow the checklist format exactly in your output.Do not include explanations or reasons.`;
+
+// 次の質問を決めるプロンプト
+export const SELECT_NEXT_QUESTION_PROMPT = `次のチェックリスト項目に対して、もしあなたがメンターだったらユーザーの発言を深堀するならどの質問をするか1つだけ選んでください。
+その上でなぜその質問を選んだかの理由を含め、AIにこの質問をするように指示してください。
+出力は以下のフォーマットでお願いします。
+
+format: ---
+選択した質問: 
+選択理由: 
+AIへの質問指示: 
+---
+
+{checklist_question}
+
+ユーザーの発言: {user_message}
+
+深堀する必要がないと判断した場合は「必要なし」と述べてください。
+また出力は日本語でお願いします。`;
+export const SELECT_NEXT_QUESTION_PROMPT_EN = `For the following checklist item, imagine you are a mentor. Choose **one question** you would ask to further explore the user's message.
+
+Then, include the reason why you selected that question, and provide an instruction for the AI to ask that question.
+
+Please use the following output format:
+
+format: ---
+Selected question: 
+Reason for selection: 
+Instruction to AI: 
+---
+
+{checklist_question}
+
+User message: {user_message}
+
+If you determine that no further exploration is needed, simply respond with "Not necessary."  
+Please provide the output in Japanese.
+`;
+
+// 記憶の要約の更新メッセージ
+export const MEMORY_UPDATE_PROMPT = `Conversation summary so far: {summary}\n\n上記の新しいメッセージを考慮して要約を拡張してください。: `;
+export const MEMORY_UPDATE_PROMPT_EN =
   "Here is the conversation summary so far: {summary}\n\nBased on the new message above, expand this summary while retaining important intent, information, and conversational flow for long-term memory.";
-/* 原文 "上記の入力を過去の会話の記憶として保持できるように重要な意図や情報・流れがわかるように短く要約してください。: " */
+
+// 記憶の初期要約メッセージ
 export const MEMORY_SUMMARY_PROMPT =
+  "上記の入力を過去の会話の記憶として保持できるように重要な意図や情報・流れがわかるように短く要約してください。: ";
+export const MEMORY_SUMMARY_PROMPT_EN =
   "Summarize the input above concisely to preserve its key intent, information, and conversational flow, so it can be stored as memory for future context.";
 
 // エラーメッセージ
