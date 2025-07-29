@@ -60,3 +60,9 @@ export type ConversationMemory = {
   summary?: string | null;
   messages: MessageMemory[];
 };
+
+// mentor graph で出力するオブジェクトの型
+export type MentorAiContext = {
+  checkUserMessage: string;
+  selectNextQuestion: string;
+};

@@ -1,8 +1,8 @@
+import { MentorAiContext } from "@/lib/types";
 import { ChecklistItem } from "../checklist";
-import { LangsmithOutput } from "./preprocessAINode";
 
 type ContextNode = {
-  aiContexts: LangsmithOutput;
+  aiContexts: MentorAiContext;
   hasQuestion: boolean;
   checklist: ChecklistItem[][];
 };

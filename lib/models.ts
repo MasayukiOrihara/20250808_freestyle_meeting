@@ -5,7 +5,6 @@ import {
   StringOutputParser,
 } from "@langchain/core/output_parsers";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
-import { Client } from "langsmith";
 
 import * as CONTENTS from "./contents";
 import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
@@ -16,11 +15,6 @@ import { Runnable } from "@langchain/core/runnables";
 // パサー
 export const strParser = new StringOutputParser();
 export const jsonParser = new JsonOutputParser();
-
-// langsmithからプロンプトの取得
-export const langsmithClient = new Client({
-  apiKey: process.env.LANGSMITH_API_KEY,
-});
 
 // supabase のクライアント
 export const supabaseClient = () => {
@@ -54,8 +48,19 @@ export const OpenAi4oMini = new ChatOpenAI({
   tags: CONTENTS.TAGS,
 });
 
+/**
+ * OPENAI(4.1-nano)
+ * メンターグラフを使用するかの判断
+ */
+export const OpenAi4_1Nano = new ChatOpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: CONTENTS.OPEN_AI_4_1_NANO,
+  temperature: 0.2,
+  tags: CONTENTS.TAGS,
+});
+
 // フォールバック可能なLLM一覧
-const fallbackLLMs: Runnable[] = [OpenAi4_1Mini, OpenAi4oMini];
+const fallbackLLMs: Runnable[] = [OpenAi4_1Mini, OpenAi4oMini, OpenAi4_1Nano];
 // レート制限に達したときに別のモデルに切り替える対策
 export async function runWithFallback(
   runnable: Runnable,
@@ -93,17 +98,6 @@ export async function runWithFallback(
   // どのモデルでも成功しなかった場合
   throw new Error("All fallback models failed.");
 }
-
-/**
- * OPENAI(4.1-nano)
- * メンターグラフを使用するかの判断
- */
-export const OpenAi4_1Nano = new ChatOpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-  model: CONTENTS.OPEN_AI_4_1_NANO,
-  temperature: 0.2,
-  tags: CONTENTS.TAGS,
-});
 
 export /** フェイク用のモデルを使用して、そのまま応答を送信 */
 const getFakeStream = async () => {

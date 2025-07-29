@@ -11,7 +11,7 @@ type StatesNode = {
  * @param checklist
  * @returns
  */
-export async function initializeStatesNode({ count, checklist }: StatesNode) {
+export async function initializeStatesNode({ count }: StatesNode) {
   //　前回の状態を確認
   let hasQuestion = true;
 

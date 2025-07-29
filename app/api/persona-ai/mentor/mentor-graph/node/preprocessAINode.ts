@@ -6,17 +6,12 @@ import {
   CHECK_USER_MESSAGE_PROMPT_EN,
   SELECT_NEXT_QUESTION_PROMPT_EN,
 } from "@/lib/contents";
+import { MentorAiContext } from "@/lib/types";
 
 type AiNode = {
   messages: BaseMessage[];
   checklist: ChecklistItem[][];
   step: number;
-};
-
-// 出力するオブジェクトの型
-export type LangsmithOutput = {
-  checkUserMessage: string;
-  selectNextQuestion: string;
 };
 
 /**
@@ -66,7 +61,7 @@ export async function preprocessAINode({ messages, checklist, step }: AiNode) {
 
   const checkUserMessage: string = checkUserMessageLlm.content;
   const selectNextQuestion: string = selectNextQuestionLlm.content;
-  const aiContexts: LangsmithOutput = {
+  const aiContexts: MentorAiContext = {
     checkUserMessage,
     selectNextQuestion,
   };

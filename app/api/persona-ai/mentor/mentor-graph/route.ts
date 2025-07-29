@@ -6,9 +6,10 @@ import {
 } from "@langchain/langgraph";
 import { checklist, ChecklistItem } from "./checklist";
 import { initializeStatesNode } from "./node/initializeStatesNode";
-import { LangsmithOutput, preprocessAINode } from "./node/preprocessAINode";
+import { preprocessAINode } from "./node/preprocessAINode";
 import { prepareContextNode } from "./node/prepareContextNode";
 import { UNKNOWN_ERROR } from "@/lib/contents";
+import { MentorAiContext } from "@/lib/types";
 
 /** mentorAPIでの状態定義 */
 export type MentorStates = {
@@ -75,7 +76,7 @@ async function saveData(state: typeof MentorAnnotation.State) {
  */
 const MentorAnnotation = Annotation.Root({
   contexts: Annotation<string[]>(),
-  aiContexts: Annotation<LangsmithOutput>(),
+  aiContexts: Annotation<MentorAiContext>(),
   hasQuestion: Annotation<boolean>(),
   step: Annotation<number>(),
   count: Annotation<number>(),
