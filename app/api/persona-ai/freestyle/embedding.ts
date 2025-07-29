@@ -1,8 +1,6 @@
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
 
-import { remark } from "remark";
-import strip from "strip-markdown";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
@@ -119,6 +117,8 @@ export const buildDocumentChunks = async (dir: string) => {
         switch (ext) {
           case ".md":
             // マークダウン形式を除去
+            const { remark } = await import("remark");
+            const strip = (await import("strip-markdown")).default;
             const plainText = await remark()
               .use(strip)
               .process(content.toString("utf-8"));
