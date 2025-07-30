@@ -25,6 +25,7 @@ export const getBaseUrl = (req: Request) => {
 
 // api パス
 export const MEMORY_PATH = "/api/memory";
+export const CONTEXT_PATH = "/api/context";
 export const HASH_PATH = "/api/supabase/hash";
 export const MENTOR_GRAPH_PATH = "/api/persona-ai/mentor/mentor-graph";
 export const CONVERSATION_SEARCH_PATH = "/api/supabase/conversation/search/";
@@ -51,6 +52,9 @@ export const TEACHER_PROMPT = `あなたは必ず補足情報を付けて説明�
   # 指示
   - userのメッセージに対してinfoを参考に140文字程度で追加情報を教えてください。
   - メッセージに対する反応はいりません。
+
+  # context
+  {context}
   
   Current conversation: ---
   {history}
@@ -70,6 +74,9 @@ export const TEACHER_PROMPT_NO_INFO = `あなたは必ず補足情報を付け�
   # 指示
   - userのメッセージに対して140文字程度で追加情報を教えてください。
   - メッセージに対する反応はいりません。
+
+  # context
+  {context}
   
   Current conversation: ---
   {history}
@@ -88,6 +95,9 @@ export const FREESTYLE_PROMPT = `あなたは株式会社フリースタイル�
   - メッセージに対する反応はいりません。
   - もしinfo情報とuserメッセージの関連性が低い場合も、取得した情報から無理やり話をこじつけて出力してください。
   
+  # context
+  {context}
+
   Current conversation: ---
   {history}
   ---
@@ -110,6 +120,9 @@ export const COMMENT_PROMPT = `あなたはオノマトペ多め、リアクシ�
   # 指示
   - userのメッセージに対して次の文章をかきだせるようなコメントやアドバイスしてください。
   - 出力は140文字程度です。
+
+  # context
+  {context}
   
   Current conversation: ---
   {history}
@@ -135,6 +148,9 @@ export const MENTOR_PROMPT = `あなたはメンターAIです。
   ## 文体の方向性
   - フレンドリーかつ、少しだけ自信家（見栄っ張り）なキャラを反映してください。
   - 語尾は優しく、強制しないトーンを心がけてください（〜かもね／〜してもいいかも）。
+
+  # context
+  {context}
   
   Current conversation: ---
   {history}

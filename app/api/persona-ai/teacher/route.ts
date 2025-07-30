@@ -2,6 +2,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
 import {
+  CONTEXT_PATH,
   getBaseUrl,
   MEMORY_PATH,
   TEACHER_PROMPT,
@@ -37,6 +38,14 @@ export async function POST(req: Request) {
       },
     });
 
+    // コンテキストの取得
+    let context = "";
+    try {
+      context = await requestApi(baseUrl, CONTEXT_PATH);
+    } catch (error) {
+      console.warn("🔎 コンテキストが取得できませんでした: " + error);
+    }
+
     // 過去履歴の同期
     let memory: string[] = [];
     try {
@@ -58,6 +67,7 @@ export async function POST(req: Request) {
     const stream = await runWithFallback(
       prompt,
       {
+        context: context,
         history: memory,
         user_message: currentUserMessage,
         info: info,

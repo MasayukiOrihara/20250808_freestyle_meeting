@@ -4,6 +4,7 @@ import { LangChainAdapter } from "ai";
 import {
   CHECK_CONTENUE_PROMPT_EN,
   CONSULTING_FINISH_MESSAGE,
+  CONTEXT_PATH,
   getBaseUrl,
   MEMORY_PATH,
   MENTOR_GRAPH_PATH,
@@ -57,6 +58,14 @@ export async function POST(req: Request) {
       contexts = mentorGraph.contexts;
     }
 
+    // コンテキストの取得
+    let context = "";
+    try {
+      context = await requestApi(baseUrl, CONTEXT_PATH);
+    } catch (error) {
+      console.warn("🔮 コンテキストが取得できませんでした: " + error);
+    }
+
     // 過去履歴の同期
     let memory: string[] = [];
     try {
@@ -70,6 +79,7 @@ export async function POST(req: Request) {
     const stream = await runWithFallback(
       prompt,
       {
+        context: context,
         question_context: contexts,
         history: memory,
         user_message: currentUserMessage,

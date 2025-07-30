@@ -1,7 +1,13 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { getBaseUrl, MEMORY_PATH, UNKNOWN_ERROR } from "@/lib/contents";
+import {
+  COMMENT_PROMPT,
+  CONTEXT_PATH,
+  getBaseUrl,
+  MEMORY_PATH,
+  UNKNOWN_ERROR,
+} from "@/lib/contents";
 import { runWithFallback } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
 import { requestApi } from "@/lib/utils";
@@ -40,8 +46,15 @@ export async function POST(req: Request) {
     const bot = Object.values(assistantData).find((item) => item.id === id);
 
     // プロンプトの確認
-    if (!bot?.aiMeta.prompt) throw new Error("プロンプトが設定されていません");
-    const prompt = PromptTemplate.fromTemplate(bot?.aiMeta.prompt);
+    const prompt = PromptTemplate.fromTemplate(COMMENT_PROMPT);
+
+    // コンテキストの取得
+    let context = "";
+    try {
+      context = await requestApi(baseUrl, CONTEXT_PATH);
+    } catch (error) {
+      console.warn("💬 コンテキストが取得できませんでした: " + error);
+    }
 
     // 過去履歴の同期
     let memory: string[] = [];
@@ -59,6 +72,7 @@ export async function POST(req: Request) {
     const stream = await runWithFallback(
       prompt,
       {
+        context: context,
         history: memory,
         user_message: currentUserMessage,
       },

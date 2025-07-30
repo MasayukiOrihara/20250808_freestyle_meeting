@@ -16,7 +16,7 @@ export async function GET() {
 
     // コンテキスト作成
     const data: string[] = [];
-    data.push("以下はあなたの設定です。");
+    data.push("以下は最新の前提情報です。");
     data.push(`今の日時は ${japanTimeString} です。`);
     data.push(`あなたの現在地は ${location} です。`);
     data.push(`あなたは ${language} を話します。`);

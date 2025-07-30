@@ -9,6 +9,7 @@ import {
   tableName,
 } from "./contents";
 import {
+  CONTEXT_PATH,
   FREESTYLE_PROMPT,
   getBaseUrl,
   MEMORY_PATH,
@@ -91,6 +92,14 @@ export async function POST(req: Request) {
       if (data) company = data;
     }
 
+    // コンテキストの取得
+    let context = "";
+    try {
+      context = await requestApi(baseUrl, CONTEXT_PATH);
+    } catch (error) {
+      console.warn("🏢 コンテキストが取得できませんでした: " + error);
+    }
+
     // 過去履歴の同期
     let memory: string[] = [];
     try {
@@ -104,6 +113,7 @@ export async function POST(req: Request) {
     const stream = await runWithFallback(
       prompt,
       {
+        context: context,
         history: memory,
         user_message: currentUserMessage,
         freestyle_summary: FREESTYLE_COMPANY_SUMMARY_EN,
