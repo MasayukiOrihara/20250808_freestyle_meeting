@@ -8,7 +8,12 @@ import {
   resolvedDirs,
   tableName,
 } from "./contents";
-import { FREESTYLE_PROMPT, getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
+import {
+  FREESTYLE_PROMPT,
+  getBaseUrl,
+  MEMORY_PATH,
+  UNKNOWN_ERROR,
+} from "@/lib/contents";
 import {
   isTableMissingOrEmpty,
   saveEmbeddingSupabase,
@@ -39,7 +44,7 @@ export async function POST(req: Request) {
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResPromise = postApi(baseUrl, "/api/memory", {
+    const memoryResPromise = postApi(baseUrl, MEMORY_PATH, {
       messages,
       threadId,
       turn,

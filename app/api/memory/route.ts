@@ -12,19 +12,18 @@ import {
 
 import { runWithFallback } from "@/lib/models";
 import {
+  CONVERSATION_CREATE_PATH,
+  CONVERSATION_SEARCH_PATH,
   getBaseUrl,
   MEMORY_SUMMARY_PROMPT_EN,
   MEMORY_UPDATE_PROMPT_EN,
+  MESSAGE_CREATE_PATH,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
-import {
-  postSupabaseConversasionCreate,
-  postSupabaseConversasionMessageCreate,
-  postSupabaseConversasionSearch,
-} from "@/lib/api";
 import { formatContent, formatConversation } from "./utils";
 import { ConversationMemory, MessageMemory } from "@/lib/types";
 import { PromptTemplate } from "@langchain/core/prompts";
+import { postApi } from "@/lib/utils";
 
 // 定数
 const SUMMARY_MAX_COUNT = 6;
@@ -35,20 +34,23 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
   const formatted: string[] = [];
   let summary = state.summary;
   const count = state.turn % SUMMARY_MAX_COUNT;
+  const sessionId = state.sessionId;
 
   // conversation データ取得
-  const conversation: ConversationMemory | null =
-    await postSupabaseConversasionSearch(globalCaseUrl, state.sessionId, count);
+  const conversation: ConversationMemory | null = await postApi(
+    globalCaseUrl,
+    `${CONVERSATION_SEARCH_PATH}${sessionId}`,
+    { count }
+  );
 
   let conversationId: string | null = null;
   if (conversation != null) {
     conversationId = conversation.id;
   } else {
     // もし取得できなかった場合、新たにconversationを作成する
-    conversationId = await postSupabaseConversasionCreate(
-      globalCaseUrl,
-      state.sessionId
-    );
+    conversationId = await postApi(globalCaseUrl, CONVERSATION_CREATE_PATH, {
+      sessionId,
+    });
 
     return { formatted: formatted, conversationId: conversationId };
   }
@@ -103,7 +105,9 @@ async function storeConversation(state: typeof GraphAnnotation.State) {
       messages: arrMessage,
     };
 
-    await postSupabaseConversasionMessageCreate(globalCaseUrl, conversation);
+    await postApi(globalCaseUrl, `${MESSAGE_CREATE_PATH}${conversation.id}`, {
+      conversation,
+    });
   }
 
   // 加工後のメッセージを追加する

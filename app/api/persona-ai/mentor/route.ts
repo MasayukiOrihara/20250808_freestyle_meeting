@@ -5,6 +5,8 @@ import {
   CHECK_CONTENUE_PROMPT_EN,
   CONSULTING_FINISH_MESSAGE,
   getBaseUrl,
+  MEMORY_PATH,
+  MENTOR_GRAPH_PATH,
   MENTOR_PROMPT,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResPromise = postApi(baseUrl, "/api/memory", {
+    const memoryResPromise = postApi(baseUrl, MEMORY_PATH, {
       messages,
       threadId,
       turn,
@@ -43,11 +45,9 @@ export async function POST(req: Request) {
     console.log("🔮 悩みの判断: " + checkContenue);
     let contexts = CONSULTING_FINISH_MESSAGE;
     if (checkContenue.includes("YES")) {
-      const mentorGraph = await postApi(
-        baseUrl,
-        "/api/persona-ai/mentor/mentor-graph",
-        { messages }
-      );
+      const mentorGraph = await postApi(baseUrl, MENTOR_GRAPH_PATH, {
+        messages,
+      });
       contexts = mentorGraph.contexts;
     }
 

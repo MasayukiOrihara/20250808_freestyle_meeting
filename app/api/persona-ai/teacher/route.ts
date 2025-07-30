@@ -3,6 +3,7 @@ import { LangChainAdapter } from "ai";
 
 import {
   getBaseUrl,
+  MEMORY_PATH,
   TEACHER_PROMPT,
   TEACHER_PROMPT_NO_INFO,
   UNKNOWN_ERROR,
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
     const infoPromise = getTavilyInfo(currentUserMessage);
-    const memoryResPromise = postApi(baseUrl, "/api/memory", {
+    const memoryResPromise = postApi(baseUrl, MEMORY_PATH, {
       messages,
       threadId,
       turn,

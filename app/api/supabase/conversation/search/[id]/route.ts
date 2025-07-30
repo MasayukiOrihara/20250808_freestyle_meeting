@@ -14,7 +14,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const { take } = await req.json();
+    const { count } = await req.json();
 
     // 1. sessionId に一致する conversation を取得
     const { data: conversation, error: convError } = await supabaseClient()
@@ -42,7 +42,7 @@ export async function POST(
       .select("role, content")
       .eq("conversation_id", conversation.id)
       .order("created_at", { ascending: false })
-      .limit(take);
+      .limit(count);
 
     // 取得できなかったらエラー
     if (msgError) {

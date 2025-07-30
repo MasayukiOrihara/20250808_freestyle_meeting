@@ -29,3 +29,20 @@ export const postApi = async (
     throw error;
   }
 };
+
+// get 共通関数
+export const getApi = async (baseUrl: string, path: string) => {
+  try {
+    const response = await axios.get(baseUrl + path, {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("GET API エラー:", error);
+    throw error;
+  }
+};

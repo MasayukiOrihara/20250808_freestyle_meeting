@@ -23,6 +23,15 @@ export const getBaseUrl = (req: Request) => {
   return { host, protocol, baseUrl };
 };
 
+// api パス
+export const MEMORY_PATH = "/api/memory";
+export const HASH_PATH = "/api/supabase/hash";
+export const MENTOR_GRAPH_PATH = "/api/persona-ai/mentor/mentor-graph";
+export const CONVERSATION_SEARCH_PATH = "/api/supabase/conversation/search/";
+export const CONVERSATION_CREATE_PATH = "/api/supabase/conversation/create";
+export const MESSAGE_CREATE_PATH = "/api/supabase/conversation/message/create/";
+export const PERSONAL_CREATE_PATH = "/api/supabase/personal/create";
+
 // アイコンパス
 export const CAT_ICON_PATH = "/icon/cat_comment.png";
 export const DOG_ICON_PATH = "/icon/dog_teacher.png";

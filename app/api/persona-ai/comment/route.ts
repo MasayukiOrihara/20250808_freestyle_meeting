@@ -1,7 +1,7 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 
-import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
+import { getBaseUrl, MEMORY_PATH, UNKNOWN_ERROR } from "@/lib/contents";
 import { runWithFallback } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
 import { postApi } from "@/lib/utils";
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResPromise = postApi(baseUrl, "/api/memory", {
+    const memoryResPromise = postApi(baseUrl, MEMORY_PATH, {
       messages,
       threadId,
       turn,

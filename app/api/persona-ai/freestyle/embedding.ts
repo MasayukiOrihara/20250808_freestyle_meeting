@@ -5,7 +5,8 @@ import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
 import _ from "lodash";
-import { getSupabaseHashData, postSupabaseHashData } from "@/lib/api";
+import { getApi, postApi } from "@/lib/utils";
+import { HASH_PATH } from "@/lib/contents";
 
 // 整形
 function cleanText(text: string) {
@@ -68,7 +69,7 @@ export async function checkUpdateDocuments(
   const hashData: string[][] = [];
 
   // データの取得
-  const globalHashData: string[] = await getSupabaseHashData(url);
+  const globalHashData: string[] = await getApi(url, HASH_PATH);
 
   // ハッシュの取得
   for (const [, dirPath] of Object.entries(resolvedDirs)) {
@@ -93,7 +94,7 @@ export async function checkUpdateDocuments(
   const isEqual = isEqualIgnoreOrder(globalHashData, flatHashData);
   if (!isEqual) {
     // データ更新
-    await postSupabaseHashData(url, flatHashData);
+    await postApi(url, HASH_PATH, { flatHashData });
   }
   return !isEqual;
 }
