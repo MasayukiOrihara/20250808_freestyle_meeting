@@ -80,22 +80,27 @@ export async function checkUpdateDocuments(
   }
 
   // ハッシュの取得
-  for (const [, dirPath] of Object.entries(resolvedDirs)) {
-    const files = await fs.readdir(dirPath);
+  try {
+    for (const [, dirPath] of Object.entries(resolvedDirs)) {
+      const files = await fs.readdir(dirPath);
 
-    const hash: string[] = [];
-    await Promise.allSettled(
-      files.map(async (file) => {
-        try {
-          const content = await fs.readFile(path.join(dirPath, file));
-          hash.push(hashDocContent(content));
-        } catch (error) {
-          console.warn(`処理失敗: ${file}`, error);
-          return null;
-        }
-      })
-    );
-    hashData.push(hash);
+      const hash: string[] = [];
+      await Promise.allSettled(
+        files.map(async (file) => {
+          try {
+            const content = await fs.readFile(path.join(dirPath, file));
+            hash.push(hashDocContent(content));
+          } catch (error) {
+            console.warn(`処理失敗: ${file}`, error);
+            return null;
+          }
+        })
+      );
+      hashData.push(hash);
+    }
+  } catch (error) {
+    console.warn("ハッシュが取得できませんでした。" + error);
+    return false;
   }
   // 比較
   const flatHashData = hashData.flat();
