@@ -1,3 +1,4 @@
+import { UNKNOWN_ERROR } from "@/lib/contents";
 import { supabaseClient } from "@/lib/models";
 import { ConversationMemory } from "@/lib/types";
 
@@ -26,13 +27,13 @@ export async function POST(
 
     // 取得できなかったらエラー
     if (convError) {
-      console.error("❌ conversation select error:", convError.message);
-      return Response.json({ error: convError.message }, { status: 500 });
+      console.error("❌ conversation select error:", convError?.message);
+      return Response.json({ error: convError?.message }, { status: 500 });
     }
 
     // 0件なら null を返す
     if (conversation === null) {
-      console.warn("△ conversation is null");
+      console.warn("⚠️ conversation is null");
       return Response.json(null, { status: 200 });
     }
 
@@ -40,28 +41,27 @@ export async function POST(
     const { data: messages, error: msgError } = await supabaseClient()
       .from("message")
       .select("role, content")
-      .eq("conversation_id", conversation.id)
+      .eq("conversation_id", conversation?.id)
       .order("created_at", { ascending: false })
       .limit(count);
 
     // 取得できなかったらエラー
     if (msgError) {
-      console.error("❌ messages select error:", msgError.message);
-      return Response.json({ error: msgError.message }, { status: 500 });
+      console.error("❌ messages select error:", msgError?.message);
+      return Response.json({ error: msgError?.message }, { status: 500 });
     }
 
     // 3. 形式を整えて返す
     const conversations: ConversationMemory = {
-      id: conversation.id,
-      summary: conversation.summary,
-      messages,
+      id: conversation?.id,
+      summary: conversation?.summary,
+      messages: messages ?? [],
     };
     return Response.json(conversations ?? null, {
       status: 200,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error occurred";
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
     console.error("🔥 supabase Conversation/search API GET error" + message);
     return Response.json({ error: message }, { status: 500 });

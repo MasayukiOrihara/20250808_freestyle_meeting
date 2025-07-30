@@ -1,3 +1,4 @@
+import { UNKNOWN_ERROR } from "@/lib/contents";
 import { supabaseClient } from "@/lib/models";
 
 /** DB に 会話履歴 の保存 */
@@ -15,8 +16,8 @@ export async function POST(req: Request) {
       .single(); // 1件返してほしい場合
 
     if (error) {
-      console.error("❌ conversation insert error:", error.message);
-      return Response.json({ error: error.message }, { status: 500 });
+      console.error("❌ conversation insert error:", error?.message);
+      return Response.json({ error: error?.message }, { status: 500 });
     }
 
     console.log("🔥 conversation inserted");
@@ -24,8 +25,7 @@ export async function POST(req: Request) {
       status: 200,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error occurred";
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
     console.error("🔥 Supabase Conversation/generate API POST error" + message);
     return Response.json({ error: message }, { status: 500 });

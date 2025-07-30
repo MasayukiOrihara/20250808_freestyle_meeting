@@ -44,11 +44,16 @@ export async function POST(req: Request) {
     const prompt = PromptTemplate.fromTemplate(bot?.aiMeta.prompt);
 
     // 過去履歴の同期
-    const memory = await memoryResPromise;
+    let memory: string[] = [];
+    try {
+      memory = await memoryResPromise;
 
-    console.log("💿 記憶 ---");
-    console.log(memory);
-    console.log(" --- ");
+      console.log("💿 記憶 ---");
+      console.log(memory);
+      console.log(" --- ");
+    } catch (error) {
+      console.warn("💬 会話記憶が取得できませんでした");
+    }
 
     // ストリーム
     const stream = await runWithFallback(

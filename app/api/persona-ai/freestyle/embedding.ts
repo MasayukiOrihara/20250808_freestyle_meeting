@@ -69,9 +69,15 @@ export async function checkUpdateDocuments(
   const hashData: string[][] = [];
 
   // データの取得
-  const globalHashData: string[] = await requestApi(url, HASH_PATH, {
-    method: "GET",
-  });
+  let globalHashData: string[];
+  try {
+    globalHashData = await requestApi(url, HASH_PATH, {
+      method: "GET",
+    });
+  } catch (error) {
+    console.warn("Hash data を読み込めませんでした。", error);
+    return null;
+  }
 
   // ハッシュの取得
   for (const [, dirPath] of Object.entries(resolvedDirs)) {
@@ -85,7 +91,7 @@ export async function checkUpdateDocuments(
           hash.push(hashDocContent(content));
         } catch (error) {
           console.warn(`処理失敗: ${file}`, error);
-          return;
+          return null;
         }
       })
     );
@@ -96,10 +102,14 @@ export async function checkUpdateDocuments(
   const isEqual = isEqualIgnoreOrder(globalHashData, flatHashData);
   if (!isEqual) {
     // データ更新
-    await requestApi(url, HASH_PATH, {
-      method: "POST",
-      body: { flatHashData },
-    });
+    try {
+      await requestApi(url, HASH_PATH, {
+        method: "POST",
+        body: { flatHashData },
+      });
+    } catch (error) {
+      console.warn("Hash data を書き込めませんでした。", error);
+    }
   }
   return !isEqual;
 }

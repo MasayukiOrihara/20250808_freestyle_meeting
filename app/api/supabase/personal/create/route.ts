@@ -1,3 +1,4 @@
+import { UNKNOWN_ERROR } from "@/lib/contents";
 import { supabaseClient } from "@/lib/models";
 
 export async function POST(req: Request) {
@@ -35,8 +36,7 @@ export async function POST(req: Request) {
 
     return new Response(null, { status: 204 });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error occurred";
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
     console.error("🔥 supabase personal API GET error" + message);
     return Response.json({ error: message }, { status: 500 });

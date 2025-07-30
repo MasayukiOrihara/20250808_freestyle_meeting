@@ -58,7 +58,12 @@ export async function POST(req: Request) {
     }
 
     // 過去履歴の同期
-    const memory = await memoryResPromise;
+    let memory: string[] = [];
+    try {
+      memory = await memoryResPromise;
+    } catch (error) {
+      console.warn("🔮 会話記憶が取得できませんでした");
+    }
 
     /* AI */
     const prompt = PromptTemplate.fromTemplate(MENTOR_PROMPT);

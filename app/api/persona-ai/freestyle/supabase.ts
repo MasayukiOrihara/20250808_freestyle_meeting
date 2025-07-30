@@ -2,6 +2,7 @@ import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase"
 import { Document } from "langchain/document";
 
 import { embeddings, supabaseClient } from "@/lib/models";
+import { UNKNOWN_ERROR } from "@/lib/contents";
 
 /** supabase にドキュメントを埋め込む */
 export async function saveEmbeddingSupabase(
@@ -34,31 +35,43 @@ export async function saveEmbeddingSupabase(
 export async function isTableMissingOrEmpty(
   tableName: string
 ): Promise<boolean> {
-  // 1. テーブルが存在するかを情報スキーマから確認
-  const { data: tables, error: schemaError } = await supabaseClient()
-    .from("information_schema.tables")
-    .select("table_name")
-    .eq("table_schema", "public")
-    .eq("table_name", tableName);
+  try {
+    // 1. テーブルが存在するかを情報スキーマから確認
+    const { data: tables, error: schemaError } = await supabaseClient().rpc(
+      "table_exists",
+      {
+        tname: tableName,
+      }
+    );
 
-  if (schemaError || !tables || tables.length === 0) {
-    // テーブルが存在しない
+    if (schemaError || !tables || tables.length === 0) {
+      // テーブルが存在しない
+      console.warn(
+        "⚠️ supabase にテーブルが存在しません。: " + schemaError?.message
+      );
+      return true;
+    }
+
+    // 2. 中身が空かチェック（limit 1 で十分）
+    const { data: rows, error: dataError } = await supabaseClient()
+      .from(tableName)
+      .select("id") // 何か1列だけでOK
+      .limit(1);
+
+    if (dataError || !rows || rows.length === 0) {
+      // 空のテーブル
+      console.warn("⚠️ supabase のテーブルが空です。: " + dataError?.message);
+      return true;
+    }
+
+    // テーブルが存在して、かつデータが入っている
+    return false;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
+
+    console.error("✖ 接続エラー（Supabaseと通信できない） :" + message);
     return true;
   }
-
-  // 2. 中身が空かチェック（limit 1 で十分）
-  const { data: rows, error: dataError } = await supabaseClient()
-    .from(tableName)
-    .select("id") // 何か1列だけでOK
-    .limit(1);
-
-  if (dataError || !rows || rows.length === 0) {
-    // 空のテーブル
-    return true;
-  }
-
-  // テーブルが存在して、かつデータが入っている
-  return false;
 }
 
 /**
@@ -73,14 +86,22 @@ export async function searchDocuments(
   tableName: string,
   queryName: string
 ) {
-  // VectorStoreをSupabaseのテーブル 'documents' で初期化
-  const vectorStore = new SupabaseVectorStore(embeddings, {
-    client: supabaseClient(),
-    tableName: tableName,
-    queryName: queryName, // 事前にSQLで作成している関数名
-  });
+  try {
+    // VectorStoreをSupabaseのテーブル 'documents' で初期化
+    const vectorStore = new SupabaseVectorStore(embeddings, {
+      client: supabaseClient(),
+      tableName: tableName,
+      queryName: queryName, // 事前にSQLで作成している関数名
+    });
 
-  // 類似度検索
-  const results = await vectorStore.similaritySearch(query, k);
-  return results; // { pageContent, metadata } の配列
+    // 類似度検索
+    const results = await vectorStore.similaritySearch(query, k);
+    const data = results.map((val) => val.pageContent);
+    return data;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
+
+    console.error("✖ 接続エラー（Supabaseと通信できない） :" + message);
+    return null;
+  }
 }

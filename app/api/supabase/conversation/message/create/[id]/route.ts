@@ -1,3 +1,4 @@
+import { UNKNOWN_ERROR } from "@/lib/contents";
 import { supabaseClient } from "@/lib/models";
 import { MessageMemory } from "@/lib/types";
 
@@ -23,8 +24,8 @@ export async function POST(
 
     // 更新エラー
     if (updateError) {
-      console.error("❌ conversation update error:", updateError.message);
-      return Response.json({ error: updateError.message }, { status: 500 });
+      console.error("❌ conversation update error:", updateError?.message);
+      return Response.json({ error: updateError?.message }, { status: 500 });
     }
 
     // 2. messages の一括挿入
@@ -43,15 +44,14 @@ export async function POST(
 
       // 挿入エラー
       if (insertError) {
-        console.error("❌ messages insart error:", insertError.message);
-        return Response.json({ error: insertError.message }, { status: 500 });
+        console.error("❌ messages insart error:", insertError?.message);
+        return Response.json({ error: insertError?.message }, { status: 500 });
       }
     }
 
     return new Response(null, { status: 204 });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error occurred";
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
     console.error("🔥 supabase Conversation/save API POST error" + message);
     return Response.json({ error: message }, { status: 500 });

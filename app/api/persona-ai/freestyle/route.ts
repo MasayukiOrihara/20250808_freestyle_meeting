@@ -3,7 +3,7 @@ import { LangChainAdapter } from "ai";
 
 import { runWithFallback, supabaseClient } from "@/lib/models";
 import {
-  FREESTYLE_COMPANY_SUMMARY,
+  FREESTYLE_COMPANY_SUMMARY_EN,
   queryName,
   resolvedDirs,
   tableName,
@@ -57,11 +57,14 @@ export async function POST(req: Request) {
     // コレクションのアップデートが必要か調べる
     // ※※ 全消去→再挿入にしているので、差分更新に変えたい
     // vercelに上げる場合差分チェックを行いません（ファイルはローカルにしかないので）
-    const isLocal = getBaseUrl(req).host.includes("localhost");
-    if (isLocal) {
+
+    let company: string[] = [];
+    const isSupabaseTable = await isTableMissingOrEmpty(tableName);
+    if (!isSupabaseTable) {
+      const isLocal = getBaseUrl(req).host.includes("localhost");
       const needsUpdate = await checkUpdateDocuments(baseUrl, resolvedDirs);
-      const isSupabaseTable = await isTableMissingOrEmpty(tableName);
-      if (needsUpdate || !isSupabaseTable) {
+      console.log("🏢 社内文書データベースを更新するか: " + needsUpdate);
+      if (isLocal && needsUpdate) {
         // すべて削除
         const { error } = await supabaseClient()
           .from(tableName)
@@ -77,17 +80,24 @@ export async function POST(req: Request) {
           );
         }
       }
+
+      // 社内文書セマンティック検索
+      const data = await searchDocuments(
+        currentUserMessage,
+        4,
+        tableName,
+        queryName
+      );
+      if (data) company = data;
     }
 
-    const company = await searchDocuments(
-      currentUserMessage,
-      4,
-      tableName,
-      queryName
-    );
-
     // 過去履歴の同期
-    const memory = await memoryResPromise;
+    let memory: string[] = [];
+    try {
+      memory = await memoryResPromise;
+    } catch (error) {
+      console.warn("🏢 会話記憶が取得できませんでした");
+    }
 
     /** AI */
     const prompt = PromptTemplate.fromTemplate(FREESTYLE_PROMPT);
@@ -96,7 +106,7 @@ export async function POST(req: Request) {
       {
         history: memory,
         user_message: currentUserMessage,
-        freestyle_summary: FREESTYLE_COMPANY_SUMMARY,
+        freestyle_summary: FREESTYLE_COMPANY_SUMMARY_EN,
         info: company,
       },
       "stream"

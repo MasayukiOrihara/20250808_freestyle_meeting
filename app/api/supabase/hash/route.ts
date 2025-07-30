@@ -1,3 +1,4 @@
+import { UNKNOWN_ERROR } from "@/lib/contents";
 import { supabaseClient } from "@/lib/models";
 
 /** DB に hash の保存 */
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
     // 保存エラー
     if (error) {
       console.error("🔥 supabase Upsert failed:", error);
-      return Response.json({ error: error.message }, { status: 500 });
+      return Response.json({ error: error?.message }, { status: 500 });
     }
 
     console.log("🔥 supabase Upsert succeeded!");
@@ -48,9 +49,9 @@ export async function GET() {
       .single(); // 1件だけ取得する
 
     // 読み込みエラー: PGRST116 = no rows found
-    if (error && error.code !== "PGRST116") {
+    if (error && error?.code !== "PGRST116") {
       console.error("Supabase query error:", error);
-      return Response.json({ error: error.message }, { status: 500 });
+      return Response.json({ error: error?.message }, { status: 500 });
     }
 
     const hash: string[] = data?.hashes ?? [];
@@ -59,8 +60,7 @@ export async function GET() {
       status: 200,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error occurred";
+    const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
     console.error("🔥 supabase Hash API GET error" + message);
     return Response.json({ error: message }, { status: 500 });

@@ -38,11 +38,16 @@ export async function POST(req: Request) {
     });
 
     // 過去履歴の同期
-    const memory = await memoryResPromise;
-    const info = await infoPromise;
+    let memory: string[] = [];
+    try {
+      memory = await memoryResPromise;
+    } catch (error) {
+      console.warn("🔎 会話記憶が取得できませんでした");
+    }
 
-    // プロンプト取得
+    // 検索結果の取得状況によってプロンプト取得
     let prompt;
+    const info = await infoPromise;
     if (info && info.length > 0) {
       prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
     } else {

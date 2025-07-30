@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import axios from "axios";
+import { UNKNOWN_ERROR } from "./contents";
 
 // 型
 type RequestBody = Record<string, any>;
@@ -41,15 +42,20 @@ export const requestApi = async (
         },
       });
       return response.data; // axiosはレスポンスデータがここに入る
-    } catch (error: any) {
-      const status = error?.response?.state;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
-      const isRetryable =
-        !status || // ネットワーク系 (タイムアウトなど)
-        (status >= 500 && status < 600); // サーバーエラー
+      let isRetryable = true;
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+
+        isRetryable =
+          !status || // ネットワーク系 (タイムアウトなど)
+          (status >= 500 && status < 600); // サーバーエラー
+      }
 
       if (attempt === maxRetries || !isRetryable) {
-        console.error("APIリクエストエラー:", error);
+        console.error("APIリクエストエラー:", message);
         throw error;
       }
 
