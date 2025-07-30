@@ -2,24 +2,37 @@ import { useState } from "react";
 import { useChatMessages } from "../provider/ChatMessageProvider";
 import { clsx } from "clsx";
 
+const MAX_LENGTH = 140;
+
 export const MessageInput = () => {
   const [text, setText] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
   const { addChatMessage } = useChatMessages();
 
+  const isOverLimit = text.length > MAX_LENGTH;
+
   const handleEnterkey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (text.trim()) {
+      const trimmed = text.trim();
+
+      // 文字数制限チェック
+      if (trimmed.length > MAX_LENGTH) {
+        console.warn("文字数制限を超えています。送信できません。");
+        // 送れなかった場合の演出を考える
+        return;
+      }
+
+      if (trimmed) {
         addChatMessage({ content: text.trim(), role: "user" });
         setText("");
         // 入力欄を無効化
         setIsDisabled(true);
 
-        // 3秒後に再び有効化
+        // 5秒後に再び有効化
         setTimeout(() => {
           setIsDisabled(false);
-        }, 3000);
+        }, 5000);
       }
     }
   };
@@ -39,6 +52,10 @@ export const MessageInput = () => {
         disabled={isDisabled}
         placeholder={isDisabled ? " [ 待機中 ... ]" : " [ ENTER で 送信 ... ]"}
       />
+
+      <div className={isOverLimit ? "text-red-500" : "text-gray-500"}>
+        {text.length} / {MAX_LENGTH}
+      </div>
     </div>
   );
 };
