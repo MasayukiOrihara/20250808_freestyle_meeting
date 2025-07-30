@@ -6,7 +6,6 @@ import {
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 
 import * as CONTENTS from "./contents";
-import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { createClient } from "@supabase/supabase-js";
 import { Runnable } from "@langchain/core/runnables";
@@ -119,44 +118,4 @@ const getFakeStream = async () => {
   const prompt = PromptTemplate.fromTemplate("TEMPLATE1");
 
   return await prompt.pipe(fakeModel).stream({});
-};
-
-/**
- * tavilyでクエリから記事を取得するための関数
- * もし何らかのエラーで取得できなかった場合は null を返す
- */
-export const getTavilyInfo = async (query: string) => {
-  // API チェック
-  const api = process.env.TAVILY_API_KEY;
-  if (!api) {
-    console.error("APIキーが未設定です");
-    return null;
-  }
-
-  // query チェック
-  if (!query || query.trim().length === 0) {
-    console.warn("空のクエリが渡されました");
-    return null;
-  }
-
-  // Tavilyツールの準備
-  try {
-    const tavily = new TavilySearchAPIRetriever({
-      apiKey: api,
-      k: 2,
-      includeGeneratedAnswer: true,
-    });
-
-    const result = await tavily.invoke(query);
-    console.log("検索結果: ");
-    console.log(
-      result.map((doc, index) => `${index} ページ目: ${doc.pageContent}`)
-    );
-    if (!result || result.length === 0) return null;
-
-    return result;
-  } catch (error) {
-    console.warn("Tavily検索中にエラー:", error);
-    return null;
-  }
 };

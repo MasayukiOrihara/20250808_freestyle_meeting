@@ -9,8 +9,10 @@ import {
   TEACHER_PROMPT_NO_INFO,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
-import { getTavilyInfo, runWithFallback } from "@/lib/models";
+import { runWithFallback } from "@/lib/models";
 import { requestApi } from "@/lib/utils";
+import { getTavilyInfo, searchWeb } from "./tavily";
+import { DocumentInterface } from "@langchain/core/documents";
 
 export async function POST(req: Request) {
   try {
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const infoPromise = getTavilyInfo(currentUserMessage);
+    const infoPromise = searchWeb(currentUserMessage);
     const memoryResPromise = requestApi(baseUrl, MEMORY_PATH, {
       method: "POST",
       body: {
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
 
     // 検索結果の取得状況によってプロンプト取得
     let prompt;
-    const info = await infoPromise;
+    const info: string[] | null = await infoPromise;
     if (info && info.length > 0) {
       prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
     } else {
@@ -83,4 +85,19 @@ export async function POST(req: Request) {
     console.error("🔎 Teacher API error :" + message);
     return Response.json({ error: message }, { status: 500 });
   }
+}
+function createReactAgent(arg0: {
+  llm: any; // LLMインスタンス（OpenAIとか）
+  tools: {
+    name: string;
+    description: string;
+    func: ({
+      query,
+    }: {
+      query: any;
+    }) => Promise<DocumentInterface<Record<string, any>>[] | null>;
+  }[]; // 使用するツール群（API呼び出しや関数など）
+  checkpointSaver: any;
+}) {
+  throw new Error("Function not implemented.");
 }
