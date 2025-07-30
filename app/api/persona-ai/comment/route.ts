@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       console.log(memory);
       console.log(" --- ");
     } catch (error) {
-      console.warn("💬 会話記憶が取得できませんでした");
+      console.warn("💬 会話記憶が取得できませんでした: " + error);
     }
 
     // ストリーム

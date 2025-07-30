@@ -1,4 +1,3 @@
-import { ChatAnthropic } from "@langchain/anthropic";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import {
   JsonOutputParser,
@@ -64,7 +63,7 @@ const fallbackLLMs: Runnable[] = [OpenAi4_1Mini, OpenAi4oMini, OpenAi4_1Nano];
 // レート制限に達したときに別のモデルに切り替える対策 + 指数バックオフ付き
 export async function runWithFallback(
   runnable: Runnable,
-  input: Record<string, any>,
+  input: Record<string, unknown>,
   mode: "invoke" | "stream" = "invoke",
   parser?: Runnable,
   maxRetries = 3,
@@ -83,13 +82,13 @@ export async function runWithFallback(
         // ✅ 成功モデルのログ
         console.log(`[LLM] Using model: ${model.lc_kwargs.model}`);
         return result;
-      } catch (err: any) {
-        const message = err?.message ?? "";
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : CONTENTS.UNKNOWN_ERROR;
         const isRateLimited =
           message.includes("429") ||
           message.includes("rate limit") ||
-          message.includes("overloaded") ||
-          err.type === "rate_limit_exceeded";
+          message.includes("overloaded");
         if (!isRateLimited) throw err;
 
         // 指数バックオフの処理

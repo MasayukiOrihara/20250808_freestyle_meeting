@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     try {
       memory = await memoryResPromise;
     } catch (error) {
-      console.warn("🔎 会話記憶が取得できませんでした");
+      console.warn("🔎 会話記憶が取得できませんでした: " + error);
     }
 
     // 検索結果の取得状況によってプロンプト取得

@@ -96,7 +96,7 @@ export async function POST(req: Request) {
     try {
       memory = await memoryResPromise;
     } catch (error) {
-      console.warn("🏢 会話記憶が取得できませんでした");
+      console.warn("🏢 会話記憶が取得できませんでした: " + error);
     }
 
     /** AI */

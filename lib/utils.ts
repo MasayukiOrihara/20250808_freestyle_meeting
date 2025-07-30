@@ -4,7 +4,7 @@ import axios from "axios";
 import { UNKNOWN_ERROR } from "./contents";
 
 // 型
-type RequestBody = Record<string, any>;
+type RequestBody = Record<string, unknown>;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
