@@ -11,7 +11,7 @@ import {
   UNKNOWN_ERROR,
 } from "@/lib/contents";
 import { OpenAi4_1Nano, runWithFallback, strParser } from "@/lib/models";
-import { postApi } from "@/lib/utils";
+import { requestApi } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
@@ -29,10 +29,13 @@ export async function POST(req: Request) {
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResPromise = postApi(baseUrl, MEMORY_PATH, {
-      messages,
-      threadId,
-      turn,
+    const memoryResPromise = requestApi(baseUrl, MEMORY_PATH, {
+      method: "POST",
+      body: {
+        messages,
+        threadId,
+        turn,
+      },
     });
 
     /* mentor graph API */
@@ -45,8 +48,11 @@ export async function POST(req: Request) {
     console.log("🔮 悩みの判断: " + checkContenue);
     let contexts = CONSULTING_FINISH_MESSAGE;
     if (checkContenue.includes("YES")) {
-      const mentorGraph = await postApi(baseUrl, MENTOR_GRAPH_PATH, {
-        messages,
+      const mentorGraph = await requestApi(baseUrl, MENTOR_GRAPH_PATH, {
+        method: "POST",
+        body: {
+          messages,
+        },
       });
       contexts = mentorGraph.contexts;
     }

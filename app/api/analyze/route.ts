@@ -14,7 +14,7 @@ import {
 } from "./personal";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getBaseUrl, PERSONAL_CREATE_PATH } from "@/lib/contents";
-import { postApi } from "@/lib/utils";
+import { requestApi } from "@/lib/utils";
 
 // /** メッセージを挿入する処理 */
 async function insertMessages(state: typeof GraphAnnotation.State) {
@@ -149,7 +149,10 @@ export async function POST(req: Request) {
     // DB への追加
     const analyzeData = results.analyze;
     if (analyzeData) {
-      await postApi(baseUrl, PERSONAL_CREATE_PATH, { analyzeData, threadId });
+      await requestApi(baseUrl, PERSONAL_CREATE_PATH, {
+        method: "POST",
+        body: { analyzeData, threadId },
+      });
     }
 
     return Response.json(results, {

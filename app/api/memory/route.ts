@@ -23,7 +23,7 @@ import {
 import { formatContent, formatConversation } from "./utils";
 import { ConversationMemory, MessageMemory } from "@/lib/types";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { postApi } from "@/lib/utils";
+import { requestApi } from "@/lib/utils";
 
 // 定数
 const SUMMARY_MAX_COUNT = 6;
@@ -37,10 +37,10 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
   const sessionId = state.sessionId;
 
   // conversation データ取得
-  const conversation: ConversationMemory | null = await postApi(
+  const conversation: ConversationMemory | null = await requestApi(
     globalCaseUrl,
     `${CONVERSATION_SEARCH_PATH}${sessionId}`,
-    { count }
+    { method: "POST", body: { count } }
   );
 
   let conversationId: string | null = null;
@@ -48,8 +48,9 @@ async function loadConversation(state: typeof GraphAnnotation.State) {
     conversationId = conversation.id;
   } else {
     // もし取得できなかった場合、新たにconversationを作成する
-    conversationId = await postApi(globalCaseUrl, CONVERSATION_CREATE_PATH, {
-      sessionId,
+    conversationId = await requestApi(globalCaseUrl, CONVERSATION_CREATE_PATH, {
+      method: "POST",
+      body: { sessionId },
     });
 
     return { formatted: formatted, conversationId: conversationId };
@@ -105,9 +106,16 @@ async function storeConversation(state: typeof GraphAnnotation.State) {
       messages: arrMessage,
     };
 
-    await postApi(globalCaseUrl, `${MESSAGE_CREATE_PATH}${conversation.id}`, {
-      conversation,
-    });
+    await requestApi(
+      globalCaseUrl,
+      `${MESSAGE_CREATE_PATH}${conversation.id}`,
+      {
+        method: "POST",
+        body: {
+          conversation,
+        },
+      }
+    );
   }
 
   // 加工後のメッセージを追加する

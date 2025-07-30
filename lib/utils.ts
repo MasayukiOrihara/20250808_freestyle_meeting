@@ -9,40 +9,60 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// post 共通関数
-export const postApi = async (
-  baseUrl: string,
-  path: string,
-  body: RequestBody
-) => {
-  try {
-    const response = await axios.post(baseUrl + path, body, {
-      withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    });
-    return response.data; // axiosはレスポンスデータがここに入る
-  } catch (error) {
-    console.error("APIリクエストエラー:", error);
-    throw error;
-  }
+type HttpMethod = "GET" | "POST";
+type RequestOptions = {
+  method?: HttpMethod;
+  body?: RequestBody;
+  maxRetries?: number;
+  baseDelay?: number;
 };
 
-// get 共通関数
-export const getApi = async (baseUrl: string, path: string) => {
-  try {
-    const response = await axios.get(baseUrl + path, {
-      withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("GET API エラー:", error);
-    throw error;
+// api 共通関数
+export const requestApi = async (
+  baseUrl: string,
+  path: string,
+  {
+    method = "GET",
+    body,
+    maxRetries = 3,
+    baseDelay = 200, // ミリ秒
+  }: RequestOptions = {}
+) => {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await axios.request({
+        url: baseUrl + path,
+        method,
+        data: method === "POST" ? body : undefined,
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data; // axiosはレスポンスデータがここに入る
+    } catch (error: any) {
+      const status = error?.response?.state;
+
+      const isRetryable =
+        !status || // ネットワーク系 (タイムアウトなど)
+        (status >= 500 && status < 600); // サーバーエラー
+
+      if (attempt === maxRetries || !isRetryable) {
+        console.error("APIリクエストエラー:", error);
+        throw error;
+      }
+
+      const delay = Math.min(baseDelay * 2 ** attempt, 5000); // 最大5秒
+      const jitter = Math.random() * 100;
+
+      console.warn(
+        `API失敗 (試行${attempt + 1}/${maxRetries})。${
+          delay + jitter
+        }ms 待機してリトライ...`
+      );
+      await new Promise((res) => setTimeout(res, delay + jitter));
+    }
   }
+  throw new Error("最大リトライ回数を超えました");
 };

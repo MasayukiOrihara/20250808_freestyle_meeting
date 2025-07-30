@@ -20,7 +20,7 @@ import {
   searchDocuments,
 } from "./supabase";
 import { buildDocumentChunks, checkUpdateDocuments } from "./embedding";
-import { postApi } from "@/lib/utils";
+import { requestApi } from "@/lib/utils";
 
 /**
  * 社内文書検索API
@@ -44,10 +44,13 @@ export async function POST(req: Request) {
 
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResPromise = postApi(baseUrl, MEMORY_PATH, {
-      messages,
-      threadId,
-      turn,
+    const memoryResPromise = requestApi(baseUrl, MEMORY_PATH, {
+      method: "POST",
+      body: {
+        messages,
+        threadId,
+        turn,
+      },
     });
 
     /* 社内情報RAG　*/

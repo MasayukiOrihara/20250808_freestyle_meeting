@@ -4,7 +4,7 @@ import { LangChainAdapter } from "ai";
 import { getBaseUrl, MEMORY_PATH, UNKNOWN_ERROR } from "@/lib/contents";
 import { runWithFallback } from "@/lib/models";
 import { assistantData } from "@/lib/assistantData";
-import { postApi } from "@/lib/utils";
+import { requestApi } from "@/lib/utils";
 
 /**
  * パーソナAI: コメント
@@ -27,10 +27,13 @@ export async function POST(req: Request) {
 
     // メッセージ処理
     const currentUserMessage = messages[messages.length - 1].content;
-    const memoryResPromise = postApi(baseUrl, MEMORY_PATH, {
-      messages,
-      threadId,
-      turn,
+    const memoryResPromise = requestApi(baseUrl, MEMORY_PATH, {
+      method: "POST",
+      body: {
+        messages,
+        threadId,
+        turn,
+      },
     });
 
     // bot情報取得

@@ -9,7 +9,7 @@ import {
   UNKNOWN_ERROR,
 } from "@/lib/contents";
 import { getTavilyInfo, runWithFallback } from "@/lib/models";
-import { postApi } from "@/lib/utils";
+import { requestApi } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
@@ -28,10 +28,13 @@ export async function POST(req: Request) {
     // メッセージの処理
     const currentUserMessage = messages[messages.length - 1].content;
     const infoPromise = getTavilyInfo(currentUserMessage);
-    const memoryResPromise = postApi(baseUrl, MEMORY_PATH, {
-      messages,
-      threadId,
-      turn,
+    const memoryResPromise = requestApi(baseUrl, MEMORY_PATH, {
+      method: "POST",
+      body: {
+        messages,
+        threadId,
+        turn,
+      },
     });
 
     // 過去履歴の同期
