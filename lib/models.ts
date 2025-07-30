@@ -61,39 +61,52 @@ export const OpenAi4_1Nano = new ChatOpenAI({
 
 // フォールバック可能なLLM一覧
 const fallbackLLMs: Runnable[] = [OpenAi4_1Mini, OpenAi4oMini, OpenAi4_1Nano];
-// レート制限に達したときに別のモデルに切り替える対策
+// レート制限に達したときに別のモデルに切り替える対策 + 指数バックオフ付き
 export async function runWithFallback(
   runnable: Runnable,
   input: Record<string, any>,
   mode: "invoke" | "stream" = "invoke",
-  parser?: Runnable
+  parser?: Runnable,
+  maxRetries = 3,
+  baseDelay = 200
 ) {
   for (const model of fallbackLLMs) {
-    try {
-      const pipeline = runnable.pipe(model);
-      if (parser) pipeline.pipe(parser);
-      const result =
-        mode === "stream"
-          ? await pipeline.stream(input)
-          : await pipeline.invoke(input);
+    for (let retry = 0; retry < maxRetries; retry++) {
+      try {
+        const pipeline = runnable.pipe(model);
+        if (parser) pipeline.pipe(parser);
+        const result =
+          mode === "stream"
+            ? await pipeline.stream(input)
+            : await pipeline.invoke(input);
 
-      // ✅ 成功モデルのログ
-      console.log(`[LLM] Using model: ${model.lc_kwargs.model}`);
-      return result;
-    } catch (err: any) {
-      const message = err?.message ?? "";
-      const isRateLimited =
-        message.includes("429") ||
-        message.includes("rate limit") ||
-        message.includes("overloaded") ||
-        err.type === "rate_limit_exceeded";
+        // ✅ 成功モデルのログ
+        console.log(`[LLM] Using model: ${model.lc_kwargs.model}`);
+        return result;
+      } catch (err: any) {
+        const message = err?.message ?? "";
+        const isRateLimited =
+          message.includes("429") ||
+          message.includes("rate limit") ||
+          message.includes("overloaded") ||
+          err.type === "rate_limit_exceeded";
+        if (!isRateLimited) throw err;
 
-      if (!isRateLimited) {
-        throw err;
+        // 指数バックオフの処理
+        const delay = Math.min(baseDelay * 2 ** retry, 5000); // 最大5秒
+        const jitter = Math.random() * 100;
+        console.warn(
+          `Model ${model.lc_kwargs.model} failed with rate limit (${
+            retry + 1
+          }/${maxRetries}): ${message}`
+        );
+        await new Promise((res) => setTimeout(res, delay + jitter));
       }
-      console.warn(`Model failed with rate limit: ${message}`);
-      // 次のモデルにフォールバック（次のループへ）
     }
+    // 次のモデルにフォールバック（次のループへ）
+    console.warn(
+      `Model ${model.lc_kwargs.model} failed all retries. Trying next model.`
+    );
   }
   // どのモデルでも成功しなかった場合
   throw new Error("All fallback models failed.");
