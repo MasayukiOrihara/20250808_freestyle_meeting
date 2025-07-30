@@ -1,4 +1,4 @@
-import { RemoveMessage, SystemMessage } from "@langchain/core/messages";
+import { RemoveMessage } from "@langchain/core/messages";
 import {
   Annotation,
   MemorySaver,
@@ -6,7 +6,7 @@ import {
   StateGraph,
 } from "@langchain/langgraph";
 
-import { jsonParser, runWithFallback, strParser } from "@/lib/models";
+import { jsonParser, runWithFallback } from "@/lib/models";
 import {
   validateProfile,
   HumanProfile,
@@ -26,7 +26,6 @@ let globalBaseUrl: string = "";
 
 /** メッセージを挿入する処理 */
 async function insertMessages(state: typeof GraphAnnotation.State) {
-  console.log("📩 insart messages");
   const messages = state.messages;
   // ※※ sessionID の命名規則が personaAI名 + セッションID のため、とりあえず コメントAI から取得
   const sessionId = "comment_" + state.sessionId;
@@ -47,7 +46,7 @@ async function insertMessages(state: typeof GraphAnnotation.State) {
       return { userMessages: userMessages };
     }
   } catch (error) {
-    console.warn("⚠️ DB から message を取得できませんでした。");
+    console.warn("⚠️ DB から message を取得できませんでした。: " + error);
   }
 
   // DB からメッセージを取得できなかった場合
@@ -59,7 +58,6 @@ async function insertMessages(state: typeof GraphAnnotation.State) {
 
 /** 分析を行うかの判断処理 */
 async function shouldAnalyze(state: typeof GraphAnnotation.State) {
-  console.log("❓ should analyze");
   const userMessages = state.userMessages;
 
   if (userMessages.length > 0) return "analyzeNode";
@@ -80,7 +78,6 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
     {humanProfileDescriptions}`;
 
   // 要約処理
-  console.log(userMessages);
   const template = userMessages.join("\n") + "\n" + analyzeMessage;
   const prompt = PromptTemplate.fromTemplate(template);
   const response = await runWithFallback(
@@ -95,8 +92,6 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
 
   const validProfile = validateProfile(parsed);
   if (validProfile) analyze = validProfile;
-
-  console.log(analyze);
 
   // 要約したメッセージ除去
   const deleteMessages = state.messages
@@ -119,7 +114,7 @@ async function updateDatabase(state: typeof GraphAnnotation.State) {
       });
     }
   } catch (error) {
-    console.warn("⚠️ DB を更新できませんでした。");
+    console.warn("⚠️ DB を更新できませんでした。: " + error);
   }
 }
 

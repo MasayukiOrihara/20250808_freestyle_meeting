@@ -6,7 +6,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const humanProfile = body.analyze;
     const sessionId = body.sessionId ?? "";
-    console.log(humanProfile);
 
     // 1. Supabaseのテーブルに合う形式で整形
     const data = {
@@ -25,7 +24,9 @@ export async function POST(req: Request) {
     // 2. データを Supabase に挿入
     const { error } = await supabaseClient()
       .from("human_profile")
-      .upsert([data]);
+      .upsert([data], {
+        onConflict: "session_id",
+      });
 
     // 挿入エラー
     if (error) {

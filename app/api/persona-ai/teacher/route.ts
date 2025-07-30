@@ -11,8 +11,7 @@ import {
 } from "@/lib/contents";
 import { runWithFallback } from "@/lib/models";
 import { requestApi } from "@/lib/utils";
-import { getTavilyInfo, searchWeb } from "./tavily";
-import { DocumentInterface } from "@langchain/core/documents";
+import { searchWeb } from "./tavily";
 
 export async function POST(req: Request) {
   try {
@@ -85,19 +84,4 @@ export async function POST(req: Request) {
     console.error("🔎 Teacher API error :" + message);
     return Response.json({ error: message }, { status: 500 });
   }
-}
-function createReactAgent(arg0: {
-  llm: any; // LLMインスタンス（OpenAIとか）
-  tools: {
-    name: string;
-    description: string;
-    func: ({
-      query,
-    }: {
-      query: any;
-    }) => Promise<DocumentInterface<Record<string, any>>[] | null>;
-  }[]; // 使用するツール群（API呼び出しや関数など）
-  checkpointSaver: any;
-}) {
-  throw new Error("Function not implemented.");
 }

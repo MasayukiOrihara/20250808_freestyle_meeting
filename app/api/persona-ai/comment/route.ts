@@ -9,7 +9,6 @@ import {
   UNKNOWN_ERROR,
 } from "@/lib/contents";
 import { runWithFallback } from "@/lib/models";
-import { assistantData } from "@/lib/assistantData";
 import { requestApi } from "@/lib/utils";
 
 /**
@@ -20,8 +19,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
     const { baseUrl } = getBaseUrl(req);
-
-    const id = req.headers.get("id") ?? "comment";
 
     console.log(" --- \n💬 COMMENT API");
     console.log("session: " + body.sessionId);
@@ -41,9 +38,6 @@ export async function POST(req: Request) {
         turn,
       },
     });
-
-    // bot情報取得
-    const bot = Object.values(assistantData).find((item) => item.id === id);
 
     // プロンプトの確認
     const prompt = PromptTemplate.fromTemplate(COMMENT_PROMPT);

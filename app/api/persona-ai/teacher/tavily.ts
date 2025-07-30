@@ -57,7 +57,8 @@ export const searchWeb = async (userMessage: string) => {
       .pipe(strParser)
       .invoke({ user_message: userMessage });
 
-    if (repsponse && repsponse.length != 0) {
+    const isMarkdown = repsponse.includes("```");
+    if (repsponse && repsponse.length != 0 && !isMarkdown) {
       console.log("🔎 検索実行中...: " + repsponse);
       const search = await getTavilyInfo(repsponse);
       return search;
