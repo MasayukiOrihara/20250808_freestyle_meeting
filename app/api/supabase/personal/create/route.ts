@@ -4,8 +4,9 @@ import { supabaseClient } from "@/lib/models";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const humanProfile = body.analyzeData;
-    const sessionId = body.threadId ?? "";
+    const humanProfile = body.analyze;
+    const sessionId = body.sessionId ?? "";
+    console.log(humanProfile);
 
     // 1. Supabaseのテーブルに合う形式で整形
     const data = {
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     // 2. データを Supabase に挿入
     const { error } = await supabaseClient()
       .from("human_profile")
-      .insert([data]);
+      .upsert([data]);
 
     // 挿入エラー
     if (error) {

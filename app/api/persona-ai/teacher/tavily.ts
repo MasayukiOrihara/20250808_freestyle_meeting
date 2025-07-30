@@ -46,8 +46,9 @@ export const getTavilyInfo = async (query: string) => {
 // クエリの取得 + 検索するかどうかの決定
 export const searchWeb = async (userMessage: string) => {
   try {
-    const template = `次のユーザーメッセージから検索するためのクエリを作成し、クエリのみで出力してください。
+    const template = `次のユーザーメッセージから検索するためのクエリを作成し、クエリだけを出力してください。コードブロックなどは不要です。
   作成できない場合は空欄で出力してください。
+  ユーザーの発言に意味がないと判断した場合は空欄で出力してください。
 
     User Message: {user_message}`;
     const prmpt = PromptTemplate.fromTemplate(template);

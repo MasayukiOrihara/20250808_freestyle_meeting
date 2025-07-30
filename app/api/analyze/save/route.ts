@@ -11,75 +11,92 @@ import {
   validateProfile,
   HumanProfile,
   humanProfileDescriptions,
-} from "./personal";
+} from "../personal";
 import { PromptTemplate } from "@langchain/core/prompts";
 import {
+  CONVERSATION_SEARCH_PATH,
   getBaseUrl,
   PERSONAL_CREATE_PATH,
   UNKNOWN_ERROR,
 } from "@/lib/contents";
 import { requestApi } from "@/lib/utils";
+import { ConversationMemory } from "@/lib/types";
 
-// /** メッセージを挿入する処理 */
+let globalBaseUrl: string = "";
+
+/** メッセージを挿入する処理 */
 async function insertMessages(state: typeof GraphAnnotation.State) {
   console.log("📩 insart messages");
-
-  console.log(state.messages);
   const messages = state.messages;
+  // ※※ sessionID の命名規則が personaAI名 + セッションID のため、とりあえず コメントAI から取得
+  const sessionId = "comment_" + state.sessionId;
 
-  return { messages };
+  let userMessages: string[] = [];
+  // conversation データ取得
+  try {
+    const conversation: ConversationMemory | null = await requestApi(
+      globalBaseUrl,
+      `${CONVERSATION_SEARCH_PATH}${sessionId}`,
+      { method: "POST", body: { count: 1000 } }
+    );
+    // userメッセージを分離
+    if (conversation) {
+      userMessages = conversation.messages
+        .filter((msg) => msg.role === "user")
+        .map((msg) => msg.content);
+      return { userMessages: userMessages };
+    }
+  } catch (error) {
+    console.warn("⚠️ DB から message を取得できませんでした。");
+  }
+
+  // DB からメッセージを取得できなかった場合
+  const contents = messages.map((msg) => msg.content);
+  userMessages = contents.map((c) => c.toString());
+
+  return { userMessages: userMessages };
 }
 
 /** 分析を行うかの判断処理 */
 async function shouldAnalyze(state: typeof GraphAnnotation.State) {
   console.log("❓ should analyze");
-  const messages = state.messages;
+  const userMessages = state.userMessages;
 
-  if (messages.length > 3) return "analyzeNode";
+  if (userMessages.length > 0) return "analyzeNode";
   return "__end__";
 }
 
 /** 会話の分析処理 */
 async function analyzeConversation(state: typeof GraphAnnotation.State) {
   console.log("📃 analyze conversation");
+  const userMessages = state.userMessages;
   let analyze = state.analyze;
 
-  let analyzeMessage;
-  if (analyze) {
-    analyzeMessage = `これまでのユーザー分析: {analyzeContext}
-    
-    上記の新しいメッセージを考慮してユーザー分析を拡張してください。
-    以下のフォーマットに従って、これまでのユーザー分析に追記、もしくは発展する形で更新して、出力をJSON形式で生成してください。
-    
-    出力形式：
-      {humanProfileDescriptions} `;
-  } else {
-    analyzeMessage = `上記の入力からユーザーの情報や趣味趣向や特徴などを分析し、パーソナル情報として記録してください。 
+  const analyzeMessage = `上記の入力からユーザーの情報や趣味趣向や特徴などを分析し、パーソナル情報として記録してください。 
   以下のフォーマットに従って、出力をJSON形式で生成してください。
   情報が読み取れなかった場合は空欄で出力してください。
 
   出力形式：
     {humanProfileDescriptions}`;
-  }
 
   // 要約処理
-  const messages =
-    state.messages.map((msg) => msg.content).join("\n") + "\n" + analyzeMessage;
-  const prompt = PromptTemplate.fromTemplate(messages);
+  console.log(userMessages);
+  const template = userMessages.join("\n") + "\n" + analyzeMessage;
+  const prompt = PromptTemplate.fromTemplate(template);
   const response = await runWithFallback(
     prompt,
     {
-      analyzeContext: analyze,
       humanProfileDescriptions: humanProfileDescriptions,
     },
     "invoke",
     jsonParser
   );
-  // const json = JSON.parse(response.content);
   const parsed = await jsonParser.parse(response.content);
 
   const validProfile = validateProfile(parsed);
   if (validProfile) analyze = validProfile;
+
+  console.log(analyze);
 
   // 要約したメッセージ除去
   const deleteMessages = state.messages
@@ -89,28 +106,28 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
   return { analyze: analyze, messages: deleteMessages };
 }
 
-async function generateUserText(state: typeof GraphAnnotation.State) {
+async function updateDatabase(state: typeof GraphAnnotation.State) {
   const analyze = state.analyze;
+  const sessionId = state.sessionId;
 
-  let context = "";
-  if (analyze) {
-    const template = `以下のユーザー分析をほかの LLM が情報を扱いやすいように具体的な文章として要約してください。\n\n{analyze_context}`;
-
-    const prompt = PromptTemplate.fromTemplate(template);
-    context = await runWithFallback(
-      prompt,
-      { analyze_context: analyze },
-      "invoke",
-      strParser
-    );
+  // DB への追加
+  try {
+    if (analyze) {
+      await requestApi(globalBaseUrl, PERSONAL_CREATE_PATH, {
+        method: "POST",
+        body: { analyze, sessionId },
+      });
+    }
+  } catch (error) {
+    console.warn("⚠️ DB を更新できませんでした。");
   }
-  const messages = [...state.messages, new SystemMessage(context)];
-  return { context: context, messages: messages };
 }
 
 // アノテーションの追加
 const GraphAnnotation = Annotation.Root({
   analyze: Annotation<HumanProfile>(),
+  sessionId: Annotation<string>(),
+  userMessages: Annotation<string[]>(),
   context: Annotation<string>(),
   ...MessagesAnnotation.spec,
 });
@@ -120,20 +137,20 @@ const workflow = new StateGraph(GraphAnnotation)
   // ノード追加
   .addNode("insertNode", insertMessages)
   .addNode("analyzeNode", analyzeConversation)
-  .addNode("textNode", generateUserText)
+  .addNode("updateNode", updateDatabase)
 
   // エッジ追加
   .addEdge("__start__", "insertNode")
   .addConditionalEdges("insertNode", shouldAnalyze)
-  .addEdge("analyzeNode", "textNode")
-  .addEdge("textNode", "__end__");
+  .addEdge("analyzeNode", "updateNode")
+  .addEdge("updateNode", "__end__");
 
 // 記憶の追加
 const memory = new MemorySaver();
 const app = workflow.compile({ checkpointer: memory });
 
 /**
- * 会話履歴要約API
+ * ユーザー分析データ保存API
  * @param req
  * @returns
  */
@@ -142,22 +159,18 @@ export async function POST(req: Request) {
     const body = await req.json();
     const userMessages = body.userMessages;
     const threadId = body.sessionId ?? "analyze-abc123";
-    const { baseUrl } = getBaseUrl(req);
 
-    console.log("📂 Analize API | ID: " + threadId);
-    const currentUserMessages = userMessages[userMessages.length - 1];
+    // URL を取得
+    const { baseUrl } = getBaseUrl(req);
+    globalBaseUrl = baseUrl;
+
+    console.log("📂 Analyze save API | ID: " + threadId);
     // 履歴用キー
     const config = { configurable: { thread_id: threadId } };
-    const results = await app.invoke({ messages: currentUserMessages }, config);
-
-    // DB への追加
-    const analyzeData = results.analyze;
-    if (analyzeData) {
-      await requestApi(baseUrl, PERSONAL_CREATE_PATH, {
-        method: "POST",
-        body: { analyzeData, threadId },
-      });
-    }
+    const results = await app.invoke(
+      { messages: userMessages, sessionId: threadId },
+      config
+    );
 
     return Response.json(results, {
       status: 200,
@@ -165,7 +178,7 @@ export async function POST(req: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
-    console.error("📂 Analize API error" + message);
+    console.error("📂 Analyze Save API error" + message);
     return Response.json({ error: message }, { status: 500 });
   }
 }

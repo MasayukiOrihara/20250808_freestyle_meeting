@@ -1,13 +1,30 @@
 import { useState } from "react";
 import { useChatMessages } from "../provider/ChatMessageProvider";
 import { clsx } from "clsx";
+import { ChatMessage } from "@/lib/types";
+import { useSessionId } from "@/hooks/useSessionId";
 
 const MAX_LENGTH = 140;
+
+async function fetchAnalize(
+  userMessages: ChatMessage[],
+  sessionId: string | null = null
+) {
+  const res = await fetch("/api/analyze/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userMessages, sessionId }),
+  });
+  const data = await res.json();
+  return data;
+}
 
 export const MessageInput = () => {
   const [text, setText] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
-  const { addChatMessage } = useChatMessages();
+  const [showScreen, setShowScreen] = useState(false);
+  const { userMessages, addChatMessage } = useChatMessages();
+  const sessionId = useSessionId();
 
   const isOverLimit = text.length > MAX_LENGTH;
 
@@ -37,8 +54,15 @@ export const MessageInput = () => {
     }
   };
 
+  const handleButton = () => {
+    if (userMessages.length != 0) {
+      console.log(fetchAnalize(userMessages, sessionId));
+    }
+    setShowScreen(true); // 表示に切り替える
+  };
+
   return (
-    <div className="w-full flex justify-center">
+    <div className="w-full flex flex-col justify-center">
       {/* テキストエリア */}
       <textarea
         className={clsx(
@@ -53,9 +77,24 @@ export const MessageInput = () => {
         placeholder={isDisabled ? " [ 待機中 ... ]" : " [ ENTER で 送信 ... ]"}
       />
 
+      {/* 文字カウンター */}
       <div className={isOverLimit ? "text-red-500" : "text-gray-500"}>
         {text.length} / {MAX_LENGTH}
       </div>
+
+      {/* まとめボタン  */}
+      <div>
+        <button onClick={handleButton} className="cursor-pointer">
+          ボタン
+        </button>
+      </div>
+
+      {showScreen && (
+        <div style={{ marginTop: 20, padding: 20, backgroundColor: "#f0f0f0" }}>
+          <h2>これは表示された画面です</h2>
+          <p>ボタンを押したので表示されました。</p>
+        </div>
+      )}
     </div>
   );
 };
