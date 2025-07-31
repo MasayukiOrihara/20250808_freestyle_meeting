@@ -66,11 +66,11 @@ async function shouldAnalyze(state: typeof GraphAnnotation.State) {
 
 /** 会話の分析処理 */
 async function analyzeConversation(state: typeof GraphAnnotation.State) {
-  console.log("📃 analyze conversation");
+  console.log("📂 analyze conversation");
   const userMessages = state.userMessages;
-  let analyze = state.analyze;
+  let humanProfile = state.humanProfile;
 
-  const analyzeMessage = `上記の入力からユーザーの情報や趣味趣向や特徴などを分析し、パーソナル情報として記録してください。 
+  const PERSONAL_ANALYZE_PROMPT = `上記の入力からユーザーの情報や趣味趣向や特徴などを分析し、パーソナル情報として記録してください。 
   以下のフォーマットに従って、出力をJSON形式で生成してください。
   情報が読み取れなかった場合は空欄で出力してください。
 
@@ -78,7 +78,7 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
     {humanProfileDescriptions}`;
 
   // 要約処理
-  const template = userMessages.join("\n") + "\n" + analyzeMessage;
+  const template = userMessages.join("\n") + "\n" + PERSONAL_ANALYZE_PROMPT;
   const prompt = PromptTemplate.fromTemplate(template);
   const response = await runWithFallback(
     prompt,
@@ -91,26 +91,26 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
   const parsed = await jsonParser.parse(response.content);
 
   const validProfile = validateProfile(parsed);
-  if (validProfile) analyze = validProfile;
+  if (validProfile) humanProfile = validProfile;
 
   // 要約したメッセージ除去
   const deleteMessages = state.messages
     .slice(0, -1)
     .map((m) => new RemoveMessage({ id: m.id! }));
 
-  return { analyze: analyze, messages: deleteMessages };
+  return { humanProfile: humanProfile, messages: deleteMessages };
 }
 
 async function updateDatabase(state: typeof GraphAnnotation.State) {
-  const analyze = state.analyze;
+  const humanProfile = state.humanProfile;
   const sessionId = state.sessionId;
 
   // DB への追加
   try {
-    if (analyze) {
+    if (humanProfile) {
       await requestApi(globalBaseUrl, PERSONAL_CREATE_PATH, {
         method: "POST",
-        body: { analyze, sessionId },
+        body: { humanProfile, sessionId },
       });
     }
   } catch (error) {
@@ -120,7 +120,7 @@ async function updateDatabase(state: typeof GraphAnnotation.State) {
 
 // アノテーションの追加
 const GraphAnnotation = Annotation.Root({
-  analyze: Annotation<HumanProfile>(),
+  humanProfile: Annotation<HumanProfile>(),
   sessionId: Annotation<string>(),
   userMessages: Annotation<string[]>(),
   context: Annotation<string>(),
@@ -162,14 +162,9 @@ export async function POST(req: Request) {
     console.log("📂 Analyze save API | ID: " + threadId);
     // 履歴用キー
     const config = { configurable: { thread_id: threadId } };
-    const results = await app.invoke(
-      { messages: userMessages, sessionId: threadId },
-      config
-    );
+    await app.invoke({ messages: userMessages, sessionId: threadId }, config);
 
-    return Response.json(results, {
-      status: 200,
-    });
+    return new Response(null, { status: 204 });
   } catch (error) {
     const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 

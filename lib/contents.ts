@@ -32,6 +32,7 @@ export const CONVERSATION_SEARCH_PATH = "/api/supabase/conversation/search/";
 export const CONVERSATION_CREATE_PATH = "/api/supabase/conversation/create";
 export const MESSAGE_CREATE_PATH = "/api/supabase/conversation/message/create/";
 export const PERSONAL_CREATE_PATH = "/api/supabase/personal/create";
+export const PERSONAL_SEARCH_PATH = "/api/supabase/personal/search/";
 
 // アイコンパス
 export const CAT_ICON_PATH = "/icon/cat_comment.png";

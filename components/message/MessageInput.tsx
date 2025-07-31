@@ -3,10 +3,14 @@ import { useChatMessages } from "../provider/ChatMessageProvider";
 import { clsx } from "clsx";
 import { ChatMessage } from "@/lib/types";
 import { useSessionId } from "@/hooks/useSessionId";
+import { requestApi } from "@/lib/utils";
 
 const MAX_LENGTH = 140;
+const ANALYZE_SAVE_PATH = "/api/analyze/save";
+const ANARYZE_SUMMARY_PATH = "/api/analyze/summary";
 
 async function fetchAnalize(
+  url: string,
   userMessages: ChatMessage[],
   sessionId: string | null = null
 ) {
@@ -54,9 +58,20 @@ export const MessageInput = () => {
     }
   };
 
-  const handleButton = () => {
+  const handleButton = async () => {
     if (userMessages.length != 0) {
-      console.log(fetchAnalize(userMessages, sessionId));
+      // 1. プロファイル情報を作成して DB に保存
+      await requestApi("", ANALYZE_SAVE_PATH, {
+        method: "POST",
+        body: { userMessages, sessionId },
+      });
+
+      // 2. 要約を作成し取得
+      const parsonalSummary = await requestApi("", ANARYZE_SUMMARY_PATH, {
+        method: "POST",
+        body: { sessionId },
+      });
+      console.log(parsonalSummary);
     }
     setShowScreen(true); // 表示に切り替える
   };

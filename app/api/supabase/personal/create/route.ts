@@ -4,7 +4,7 @@ import { supabaseClient } from "@/lib/models";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const humanProfile = body.analyze;
+    const humanProfile = body.humanProfile;
     const sessionId = body.sessionId ?? "";
 
     // 1. Supabaseのテーブルに合う形式で整形

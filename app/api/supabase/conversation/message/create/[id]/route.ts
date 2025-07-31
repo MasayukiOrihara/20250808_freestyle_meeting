@@ -5,7 +5,7 @@ import { MessageMemory } from "@/lib/types";
 /** DB に 会話履歴 の保存 */
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { id } = await params;
