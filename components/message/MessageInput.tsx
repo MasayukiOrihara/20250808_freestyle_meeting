@@ -8,6 +8,7 @@ import { requestApi } from "@/lib/utils";
 const MAX_LENGTH = 140;
 const ANALYZE_SAVE_PATH = "/api/analyze/save";
 const ANARYZE_SUMMARY_PATH = "/api/analyze/summary";
+const ANARYZE_MINUTES_PATH = "/api/analyze/minutes";
 
 async function fetchAnalize(
   url: string,
@@ -27,7 +28,7 @@ export const MessageInput = () => {
   const [text, setText] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
   const [showScreen, setShowScreen] = useState(false);
-  const { userMessages, addChatMessage } = useChatMessages();
+  const { chatMessages, userMessages, addChatMessage } = useChatMessages();
   const sessionId = useSessionId();
 
   const isOverLimit = text.length > MAX_LENGTH;
@@ -61,17 +62,22 @@ export const MessageInput = () => {
   const handleButton = async () => {
     if (userMessages.length != 0) {
       // 1. プロファイル情報を作成して DB に保存
-      await requestApi("", ANALYZE_SAVE_PATH, {
-        method: "POST",
-        body: { userMessages, sessionId },
-      });
+      // await requestApi("", ANALYZE_SAVE_PATH, {
+      //   method: "POST",
+      //   body: { userMessages, sessionId },
+      // });
 
-      // 2. 要約を作成し取得
-      const parsonalSummary = await requestApi("", ANARYZE_SUMMARY_PATH, {
+      // // 2. 要約を作成し取得
+      // const parsonalSummary = await requestApi("", ANARYZE_SUMMARY_PATH, {
+      //   method: "POST",
+      //   body: { sessionId },
+      // });
+
+      // 3. 議事録を作成し取得
+      const conversationMinutes = await requestApi("", ANARYZE_MINUTES_PATH, {
         method: "POST",
-        body: { sessionId },
+        body: { chatMessages, sessionId },
       });
-      console.log(parsonalSummary);
     }
     setShowScreen(true); // 表示に切り替える
   };

@@ -66,7 +66,6 @@ async function shouldAnalyze(state: typeof GraphAnnotation.State) {
 
 /** 会話の分析処理 */
 async function analyzeConversation(state: typeof GraphAnnotation.State) {
-  console.log("📂 analyze conversation");
   const userMessages = state.userMessages;
   let humanProfile = state.humanProfile;
 
@@ -92,6 +91,7 @@ async function analyzeConversation(state: typeof GraphAnnotation.State) {
 
   const validProfile = validateProfile(parsed);
   if (validProfile) humanProfile = validProfile;
+  console.log("📂 ユーザー分析を実行しました");
 
   // 要約したメッセージ除去
   const deleteMessages = state.messages
