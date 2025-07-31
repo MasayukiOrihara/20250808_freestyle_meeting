@@ -23,7 +23,7 @@ export const MessageOutput = () => {
   return (
     <div className="flex flex-col items-center font-serif">
       {/* 表示エリア */}
-      <div className="relative w-3xl h-50 perspective-dramatic bg-white overflow-hidden">
+      <div className="relative w-3xl h-50 perspective-dramatic overflow-hidden">
         <div
           className="absolute w-full h-80 left-1/2 -translate-x-1/2 transition-all duration-700 ease-out border-4 border-zinc-800 overflow-hidden"
           style={{
