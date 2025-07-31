@@ -10,7 +10,6 @@ import { supabaseClient } from "@/lib/models";
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = await params;
-    console.log("id: " + id);
 
     // 1. sessionId に一致する conversation を取得
     const { data: conversation, error: convError } = await supabaseClient()

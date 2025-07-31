@@ -8,13 +8,8 @@ import {
 
 import { runWithFallback, strParser } from "@/lib/models";
 import { PromptTemplate } from "@langchain/core/prompts";
-import {
-  CONVERSATION_SEARCH_PATH,
-  getBaseUrl,
-  UNKNOWN_ERROR,
-} from "@/lib/contents";
+import { getBaseUrl, UNKNOWN_ERROR } from "@/lib/contents";
 import { requestApi } from "@/lib/utils";
-import { ConversationMemory } from "@/lib/types";
 
 let globalBaseUrl: string = "";
 const CONVERSATION_SEARCHLIKE_PATH = "/api/supabase/conversation/searchLike/";
@@ -127,7 +122,7 @@ export async function POST(req: Request) {
       config
     );
 
-    return new Response(minutes.context, { status: 204 });
+    return Response.json(minutes.context, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : UNKNOWN_ERROR;
 
