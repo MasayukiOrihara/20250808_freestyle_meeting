@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useChatMessages } from "../provider/ChatMessageProvider";
 
 // 定数
-const MAX_Y_OFFSET = 200;
+const MAX_Y_OFFSET = 160;
 const MAX_LENGTH = 5;
 
 export const MessageOutput = () => {
@@ -25,7 +25,7 @@ export const MessageOutput = () => {
       {/* 表示エリア */}
       <div className="relative w-3xl h-50 perspective-dramatic bg-white overflow-hidden">
         <div
-          className="absolute w-full h-80 left-1/2 -translate-x-1/2 whitespace-nowrap transition-all duration-700 ease-out border-4 border-zinc-800 overflow-hidden"
+          className="absolute w-full h-80 left-1/2 -translate-x-1/2 transition-all duration-700 ease-out border-4 border-zinc-800 overflow-hidden"
           style={{
             transformOrigin: "center bottom",
             transform: `rotateX(40deg) translateY(${yOffset}px) translateZ(0px)`,
