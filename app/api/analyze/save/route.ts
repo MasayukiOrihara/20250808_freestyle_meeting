@@ -33,10 +33,11 @@ async function insertMessages(state: typeof GraphAnnotation.State) {
   let userMessages: string[] = [];
   // conversation データ取得
   try {
+    const count = 1000;
     const conversation: ConversationMemory | null = await requestApi(
       globalBaseUrl,
       `${CONVERSATION_SEARCH_PATH}${sessionId}`,
-      { method: "POST", body: { count: 1000 } }
+      { method: "POST", body: { count } }
     );
     // userメッセージを分離
     if (conversation) {

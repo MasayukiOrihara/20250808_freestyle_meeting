@@ -3,12 +3,9 @@ import { supabaseClient } from "@/lib/models";
 import { MessageMemory } from "@/lib/types";
 
 /** DB に 会話履歴 の保存 */
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: Request, context: { params: { id: string } }) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const { conversation } = await req.json();
 
     const messages: MessageMemory[] = conversation.messages;

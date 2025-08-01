@@ -21,11 +21,11 @@ export const ResponseContainer: React.FC = () => {
       <AssistantResponse />
 
       {/* 新表示 */}
-      <div ref={ref} className="relative w-full h-full m-auto border">
+      <div ref={ref} className="relative w-full h-full m-auto z-6">
         {Object.entries(assistantData).map(([id, data], i, array) => {
           const total = array.length;
-          const rx = width / 2; // 楕円x方向の半径（横に広げる）
-          const ry = height / 1.5; // 楕円y方向の半径（縦に狭める）
+          const rx = width / 3; // 楕円x方向の半径（横に広げる）
+          const ry = height / 1.8; // 楕円y方向の半径（縦に狭める）
           const mx = rx / 4; // 横幅のマージンサイズ
           const block = width / 5; // ブロックのサイズ
           const icon = block / 3; // アイコンサイズ
@@ -48,7 +48,9 @@ export const ResponseContainer: React.FC = () => {
             >
               {/* 表示ゾーン全体表示 */}
               <div
-                className={`flex ${isRight ? "flex-row-reverse" : "flex-row"}`}
+                className={`flex flex-col ${
+                  isRight ? "md:flex-row-reverse" : "md:flex-row"
+                }`}
               >
                 {/* 個々のAL表示セット */}
                 {/* アイコン */}
@@ -57,15 +59,15 @@ export const ResponseContainer: React.FC = () => {
                 </div>
 
                 {/* 吹き出し（縦書き） */}
-                <div className={`max-w-[70%] h-48 mt-4`}>
+                <div className={`max-w-[70%] h-48 md:mt-4`}>
                   {assistantMessages.map((msg) => (
                     <motion.div
                       key={msg.id}
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
-                      className={`bg-white text-sm ${
-                        isRight ? "mr-2" : "ml-2"
+                      className={`bg-white text-xs md:text-sm ${
+                        isRight ? "md:mr-2" : "md:ml-2"
                       }`}
                       style={{
                         writingMode: "vertical-rl",
@@ -73,7 +75,7 @@ export const ResponseContainer: React.FC = () => {
                       }}
                     >
                       {msg.key === id && (
-                        <div className="p-2 border-2 rounded-xl">
+                        <div className="p-2 border-2 rounded-xl break-words whitespace-pre-line">
                           {msg.content}
                         </div>
                       )}
@@ -85,37 +87,6 @@ export const ResponseContainer: React.FC = () => {
           );
         })}
       </div>
-      {/* 旧表示 */}
-      {/* <div className="max-w-4xl flex justify-between m-auto">
-        {Object.entries(assistantData).map(([id, data]) => (
-          <div key={id} className="basis-1/4 border m-2 px-2 py-1"> */}
-      {/** 名前 */}
-      {/* <div className="h-7.5 overflow-hidden">
-              <p className="text-center text-[clamp(1rem,1.2vw,2.5rem)] ">
-                {data.name}
-              </p>
-            </div>
-            {/** アイコン */}
-      {/* <div className="flex justify-center">
-              <AssistantIcon iconSrc={data.icon} size={60} />
-            </div>
-            <div className="min-h-30 py-2"> */}
-      {/* コンテンツ */}
-      {/* {assistantMessages.map((msg) => (
-                <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="mb-2 text-sm"
-                >
-                  {msg.key === id ? msg.content : ""}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div> */}
     </div>
   );
 };

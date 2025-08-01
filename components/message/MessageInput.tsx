@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useChatMessages } from "../provider/ChatMessageProvider";
-import { clsx } from "clsx";
-import { ChatMessage } from "@/lib/types";
 import { useSessionId } from "@/hooks/useSessionId";
 import { requestApi } from "@/lib/utils";
 import { NotebookText, Send, UserCog } from "lucide-react";
@@ -10,20 +8,6 @@ const MAX_LENGTH = 140;
 const ANALYZE_SAVE_PATH = "/api/analyze/save";
 const ANARYZE_SUMMARY_PATH = "/api/analyze/summary";
 const ANARYZE_MINUTES_PATH = "/api/analyze/minutes";
-
-async function fetchAnalize(
-  url: string,
-  userMessages: ChatMessage[],
-  sessionId: string | null = null
-) {
-  const res = await fetch("/api/analyze/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userMessages, sessionId }),
-  });
-  const data = await res.json();
-  return data;
-}
 
 /**
  * 入力UI
@@ -80,7 +64,9 @@ export const MessageInput = () => {
         method: "POST",
         body: { sessionId },
       });
+      console.log(parsonalSummary);
     }
+
     setShowScreen(true); // 表示に切り替える
   };
 
@@ -92,6 +78,7 @@ export const MessageInput = () => {
         method: "POST",
         body: { chatMessages, sessionId },
       });
+      console.log(conversationMinutes);
     }
     setShowScreen(true); // 表示に切り替える
   };
