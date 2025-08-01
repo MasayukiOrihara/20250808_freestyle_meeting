@@ -7,7 +7,10 @@ import { supabaseClient } from "@/lib/models";
  * @param param1
  * @returns
  */
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await params;
 

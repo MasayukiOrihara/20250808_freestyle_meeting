@@ -3,7 +3,10 @@ import { UNKNOWN_ERROR } from "@/lib/contents";
 import { supabaseClient } from "@/lib/models";
 
 /** supabase から保存してた human_profile を取り出す */
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await params; // セッション ID
 

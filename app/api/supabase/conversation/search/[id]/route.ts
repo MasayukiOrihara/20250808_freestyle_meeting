@@ -11,7 +11,7 @@ import { ConversationMemory } from "@/lib/types";
  */
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
