@@ -101,7 +101,7 @@ export const MessageInput = () => {
       <div className="relative px-2 py-1 bg-white shadow-xl rounded-xl">
         {/* テキストエリア */}
         <textarea
-          className="resize-none focus:outline-none w-2xl p-2 text-zinc-400 placeholder:text-neutral-400 transition-colors duration-300"
+          className="resize-none focus:outline-none md:w-2xl w-md p-2 text-zinc-400 placeholder:text-neutral-400 transition-colors duration-300"
           rows={2}
           value={text}
           onChange={(e) => setText(e.target.value)}

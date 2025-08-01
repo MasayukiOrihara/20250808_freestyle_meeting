@@ -29,7 +29,7 @@ export const MessageOutput = () => {
       {/* 表示エリア */}
       <div className="relative w-[70%] h-full perspective-dramatic overflow-hidden">
         <div
-          className="absolute w-full h-screen left-1/2 -translate-x-1/2 transition-all duration-700 ease-out border-4 border-zinc-800 overflow-hidden"
+          className="absolute w-full h-screen left-1/2 -translate-x-1/2 transition-all duration-700 ease-out border-4 border-zinc-800 bg-white overflow-hidden"
           style={{
             transformOrigin: "center bottom",
             transform: `rotateX(20deg) translateY(${yOffset}px) translateZ(0px)`,
