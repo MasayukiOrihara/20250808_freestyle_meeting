@@ -8,7 +8,7 @@ import { MessageOutput } from "./message/MessageOutput";
 
 export const MainPage: React.FC = () => {
   return (
-    <div className="w-full h-screen overflow-hidden bg-white">
+    <div className="flex flex-col max-w-[1440px] h-full m-auto bg-white overflow-hidden">
       <AssistantDataProvider>
         <ChatMessageProvider>
           <ResponseContainer />

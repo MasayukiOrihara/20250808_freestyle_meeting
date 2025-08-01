@@ -25,6 +25,10 @@ async function fetchAnalize(
   return data;
 }
 
+/**
+ * 入力UI
+ * @returns
+ */
 export const MessageInput = () => {
   const [text, setText] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);

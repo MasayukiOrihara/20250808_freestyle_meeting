@@ -5,6 +5,10 @@ import { useChatMessages } from "../provider/ChatMessageProvider";
 const MAX_Y_OFFSET = 160;
 const MAX_LENGTH = 5;
 
+/**
+ * ユーザーが入力したメッセージを表示する
+ * @returns
+ */
 export const MessageOutput = () => {
   const { userMessages } = useChatMessages();
 

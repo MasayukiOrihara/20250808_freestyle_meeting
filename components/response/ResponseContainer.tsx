@@ -1,59 +1,70 @@
 import { motion } from "framer-motion";
+import { useMeasure } from "react-use";
 
 import { useAssistantData } from "../provider/AssistantDataProvider";
 import { AssistantResponse } from "./AssistantResponse";
 import { useChatMessages } from "../provider/ChatMessageProvider";
 import { AssistantIcon } from "./AssistantIcon";
 
+/**
+ * AI が出力したメッセージを表示する
+ * @returns
+ */
 export const ResponseContainer: React.FC = () => {
   const assistantData = useAssistantData();
   const { assistantMessages } = useChatMessages();
+  const [ref, { width, height }] = useMeasure<HTMLDivElement>();
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full">
       {/** ai の反応をもらう */}
       <AssistantResponse />
 
       {/* 新表示 */}
-      <div className="relative max-w-4xl h-[200px] m-auto">
+      <div ref={ref} className="relative w-full h-full m-auto border">
         {Object.entries(assistantData).map(([id, data], i, array) => {
           const total = array.length;
-          const rx = 220; // x方向の半径（横に広げる）
-          const ry = 100; // y方向の半径（縦に狭める）
+          const rx = width / 2; // 楕円x方向の半径（横に広げる）
+          const ry = height / 1.5; // 楕円y方向の半径（縦に狭める）
+          const mx = rx / 4; // 横幅のマージンサイズ
+          const block = width / 5; // ブロックのサイズ
+          const icon = block / 3; // アイコンサイズ
+          const isRight = i >= total / 2; // 画面の右側にあるかどうか
 
           const angle = (Math.PI * i) / (total - 1); // 0〜πで均等に分ける
-          const x = rx * Math.cos(angle); // 中心基準で回転
+          const x = (rx - mx) * Math.cos(angle); // 中心基準で回転
           const y = ry * Math.sin(angle);
 
           return (
             <div
               key={id}
-              className="absolute"
+              className={`absolute border`}
               style={{
+                width: `${block}px`,
                 left: `calc(50% - ${x}px)`,
-                top: `calc(120% - ${y}px)`,
+                top: `calc(90% - ${y}px)`,
                 transform: "translate(-50%, -50%)",
               }}
             >
+              {/* 表示ゾーン全体表示 */}
               <div
-                className={`flex ${
-                  i >= total / 2 ? "flex-row-reverse" : "flex-row"
-                }`}
+                className={`flex ${isRight ? "flex-row-reverse" : "flex-row"}`}
               >
+                {/* 個々のAL表示セット */}
                 {/* アイコン */}
                 <div className="relative">
-                  <AssistantIcon iconSrc={data.icon} size={60} />
+                  <AssistantIcon iconSrc={data.icon} size={icon} />
                 </div>
 
                 {/* 吹き出し（縦書き） */}
-                <div className="w-28 h-48 mt-2">
+                <div className={`max-w-[70%] h-48 mt-4`}>
                   {assistantMessages.map((msg) => (
                     <motion.div
                       key={msg.id}
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
-                      className={`text-xs ${i >= total / 2 ? "mr-2" : "ml-2"}`}
+                      className={`text-sm ${isRight ? "mr-2" : "ml-2"}`}
                       style={{
                         writingMode: "vertical-rl",
                         textOrientation: "upright",
