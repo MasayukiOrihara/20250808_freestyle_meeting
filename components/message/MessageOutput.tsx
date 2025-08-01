@@ -17,7 +17,7 @@ export const MessageOutput = () => {
 
   useEffect(() => {
     if (showMessages.length < MAX_LENGTH) {
-      setYOffset(-40 * showMessages.length + MAX_Y_OFFSET);
+      setYOffset(-40 * (showMessages.length + 1) + MAX_Y_OFFSET);
     }
 
     setShowMessages(userMessages.map((msg) => msg.content).slice(-MAX_LENGTH));
@@ -25,14 +25,14 @@ export const MessageOutput = () => {
   }, [userMessages]);
 
   return (
-    <div className="flex flex-col items-center font-serif">
+    <div className="w-full h-1/2 flex flex-col items-center font-serif">
       {/* 表示エリア */}
-      <div className="relative w-3xl h-50 perspective-dramatic overflow-hidden">
+      <div className="relative w-[70%] h-full perspective-dramatic overflow-hidden">
         <div
-          className="absolute w-full h-80 left-1/2 -translate-x-1/2 transition-all duration-700 ease-out border-4 border-zinc-800 overflow-hidden"
+          className="absolute w-full h-screen left-1/2 -translate-x-1/2 transition-all duration-700 ease-out border-4 border-zinc-800 overflow-hidden"
           style={{
             transformOrigin: "center bottom",
-            transform: `rotateX(40deg) translateY(${yOffset}px) translateZ(0px)`,
+            transform: `rotateX(20deg) translateY(${yOffset}px) translateZ(0px)`,
           }}
         >
           <div className="px-12 py-4 text-2xl text-zinc-800 text-left">

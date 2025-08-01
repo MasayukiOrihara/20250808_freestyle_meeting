@@ -16,7 +16,7 @@ export const ResponseContainer: React.FC = () => {
   const [ref, { width, height }] = useMeasure<HTMLDivElement>();
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-1/2">
       {/** ai の反応をもらう */}
       <AssistantResponse />
 

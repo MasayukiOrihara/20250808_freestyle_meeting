@@ -8,7 +8,9 @@ import { MessageOutput } from "./message/MessageOutput";
 
 export const MainPage: React.FC = () => {
   return (
-    <div className="flex flex-col max-w-[1440px] h-full m-auto bg-white overflow-hidden">
+    <div className="flex flex-col max-w-[1440px] h-full m-auto overflow-hidden relative">
+      {/* ぼかし背景 */}
+      <div className="absolute inset-0 bg-[url('/background/gptlike_blue-and-yello.png')] bg-center bg-cover filter blur-sm opacity-60" />
       <AssistantDataProvider>
         <ChatMessageProvider>
           <ResponseContainer />
