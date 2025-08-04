@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useMeasure } from "react-use";
+import Image from "next/image";
 
 import { useAssistantData } from "../provider/AssistantDataProvider";
 import { AssistantResponse } from "./AssistantResponse";
@@ -14,6 +15,7 @@ import {
   CardTitle,
 } from "../ui/card";
 import { DUMMY_ICON_PATH } from "@/lib/contents";
+import { MessageOutput } from "../message/MessageOutput";
 
 type AssistantCard = {
   id: string;
@@ -29,7 +31,7 @@ type AssistantCard = {
  */
 export const ResponseContainer: React.FC = () => {
   const assistantData = useAssistantData();
-  const { assistantMessages } = useChatMessages();
+  const { assistantMessages, userMessages } = useChatMessages();
   const [ref, { width, height }] = useMeasure<HTMLDivElement>();
 
   const [assistantCards, setAssistantCards] = useState<AssistantCard[]>(
@@ -54,30 +56,41 @@ export const ResponseContainer: React.FC = () => {
   }, [assistantMessages]);
 
   return (
-    <div className="w-full h-1/2">
+    <div className="w-full h-2/3 mt-10">
       {/** ai の反応をもらう */}
       <AssistantResponse />
 
       {/* 新表示ver.2 */}
       <div className="flex md:flex-row flex-col md:w-[1080px] w-full m-auto">
         {/* 司会者 */}
-        <div className="md:w-1/2 w-full">
+        <div className="md:w-1/2 w-full border">
+          <h2 className="px-2 py-1 font-bold">司会者ロボ</h2>
           <AssistantIcon
-            iconSrc={DUMMY_ICON_PATH}
+            iconSrc={"/facilitator/ai_character01_smile.png"}
             size={200}
-            className="rounded-full border-8 border-double border-zinc-400"
+            className=" ml-4 rounded-full border-8 border-double border-zinc-400"
           />
-          {assistantMessages.map((msg) => (
-            <div key={msg.key}>
-              {msg.key === "facilitator" && <div>{msg.content}</div>}
-            </div>
-          ))}
+          <div className="h-30 mx-10 mt-[-10px] text-xl  bg-blue-300 rounded">
+            {assistantMessages
+              .filter((msg) => msg.key === "facilitator")
+              .map((msg) => (
+                <div key={msg.key} className="px-4 py-2">
+                  {msg.content}
+                </div>
+              ))}
+          </div>
+
+          {/* ユーザーメッセージ（一時） */}
+          <div>
+            <p>user message</p>
+            <MessageOutput />
+          </div>
         </div>
 
         {/* ご意見番 */}
         <div
           ref={ref}
-          className="flex flex-col md:w-1/2 w-full h-full m-auto z-5 border"
+          className="flex flex-col md:w-1/2 w-full h-full md:mt-[96px] m-auto z-5 border"
         >
           {Object.entries(assistantCards).map(([id, data], i, array) => {
             const cardWidth = 800; // card の幅
