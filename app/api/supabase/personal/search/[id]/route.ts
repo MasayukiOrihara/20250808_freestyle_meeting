@@ -5,10 +5,10 @@ import { supabaseClient } from "@/lib/models";
 /** supabase から保存してた human_profile を取り出す */
 export async function GET(
   _: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params; // セッション ID
+    const { id } = await context.params; // セッション ID
 
     // DB から読み込み
     const { data, error } = await supabaseClient()

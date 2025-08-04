@@ -86,6 +86,13 @@ export const ResponseContainer: React.FC = () => {
             </div>
           );
         })}
+        <div>
+          {assistantMessages.map((msg) => (
+            <div key={msg.key}>
+              {msg.key === "facilitator" && <div>{msg.content}</div>}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
