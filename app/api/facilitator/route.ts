@@ -17,11 +17,15 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
+    const assistantMessages = body.assistantLog ?? [];
+
     const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🎤 FACILITATOR API");
     console.log("session: " + body.sessionId);
     console.log("turns: " + body.count);
+
+    console.log(assistantMessages);
 
     // 記憶のID用
     const threadId = "facilitator_" + body.sessionId;
@@ -92,7 +96,7 @@ export async function POST(req: Request) {
       {
         context: context,
         history: memory,
-        ai_message: "",
+        ai_message: assistantMessages,
         user_message: currentUserMessage,
       },
       "stream"

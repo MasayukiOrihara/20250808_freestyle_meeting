@@ -36,10 +36,5 @@ export const useAllChats = (count: number) => {
       api: "api/persona-ai/mentor",
       ...commonChatOptions("mentor"),
     }),
-    // 司会者ロボ
-    facilitator: useChat({
-      api: "api/facilitator",
-      ...commonChatOptions("facilitator"),
-    }),
   };
 };

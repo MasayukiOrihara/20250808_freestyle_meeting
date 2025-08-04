@@ -7,6 +7,8 @@ import { assistantData } from "@/lib/assistantData";
 import { useAssistantData } from "../provider/AssistantDataProvider";
 import { useAllChats } from "@/hooks/chathooks";
 import { useSendCount } from "@/hooks/useSentCount";
+import { useSessionId } from "@/hooks/useSessionId";
+import { ChatMessage, ChatMessageInput } from "@/lib/types";
 
 // 変数
 const chatTargets = Object.keys(
@@ -31,12 +33,24 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
  */
 export const AssistantResponse = () => {
   // プロバイダーから取得
-  const { chatMessages, userMessages, addChatMessage } = useChatMessages();
+  const { chatMessages, userMessages, addChatMessage, assistantMessages } =
+    useChatMessages();
+  // ご意見番AI のデータを取得
   const assistantData = useAssistantData();
+  // 現在のセッション ID
+  const sessionId = useSessionId();
+  // 現在のセッション中に何回 LLM に送っているか
   const { count, increment } = useSendCount();
+
+  // 最新のチャットメッセージを取得
+  const latest = chatMessages[chatMessages.length - 1];
+  // ご意見番AI が待機中になったかどうかを判定する
   const isReadyAiRef =
     useRef<Record<(typeof chatTargets)[number], boolean>>(chatTargetFlags);
+  // 司会者AI が待機中になったかどうかを判定する
   const isReadyFacilitatorRef = useRef(false);
+  // 現在ターンにAPI に送るメッセージ
+  const assistantMessagesRef = useRef<ChatMessageInput[]>([]);
 
   // isReadyAssistantsRef変更用（pasonaAIのみ）
   const changeFlag = (key: string, bool: boolean) => {
@@ -51,10 +65,23 @@ export const AssistantResponse = () => {
     ChatKey,
     ReturnType<typeof useChat>
   >;
+  // 司会者ロボ
+  const facilitator = useChat({
+    api: "api/facilitator",
+    body: { key: "facilitator", sessionId, count },
+    onError: (error: Error) => {
+      console.error("Chat error:", error);
+    },
+  });
 
-  // AIのメッセージを取得する共通関数
-  function useChatReadyEffect(key: ChatKey) {
-    const chatEntry = chatMap[key];
+  // AIのメッセージを ChatMessage に登録する関数
+  async function useChatReadyEffect(key: ChatKey) {
+    let chatEntry;
+    if (key !== "facilitator") {
+      chatEntry = chatMap[key];
+    } else {
+      chatEntry = facilitator;
+    }
     const latestMessage = getLatestAssistantMessage(chatEntry.messages);
 
     useEffect(() => {
@@ -65,31 +92,26 @@ export const AssistantResponse = () => {
         changeFlag(key, true);
         console.log(`${key} が ready に到達しました`);
 
-        // 最新AIメッセージの送信（関連性なしと返ってきた場合は送信しない）
-        addChatMessage({
+        // 最新AIメッセージの登録
+        const chatMessage: ChatMessageInput = {
           content: latestMessage.content,
           role: "assistant",
           assistantId: key,
-        });
-      } else {
-        changeFlag(key, false);
+        };
+
+        // メモリ更新／保存
+        const messages = assistantMessagesRef.current;
+        const index = messages.findIndex((msg) => msg.assistantId === key);
+        if (index !== -1) {
+          messages[index] = chatMessage;
+        } else {
+          messages.push(chatMessage);
+        }
+
+        // providor へ
+        addChatMessage(chatMessage);
       }
     }, [chatEntry.status, chatEntry.messages.length, latestMessage, key]);
-
-    // 全員のメッセージが出そろったら司会者のメッセージを取得する
-    const all = Object.values(isReadyAiRef.current).every((v) => v === true);
-    if (all && key === "facilitator" && !isReadyFacilitatorRef.current) {
-      console.log("全てtrueになりました");
-
-      // 司会者に送信
-      const latest = userMessages[userMessages.length - 1];
-      if (!latest || latest.role !== "user") return;
-      chatMap["facilitator"].append({
-        role: "user",
-        content: latest.content,
-      });
-      isReadyFacilitatorRef.current = true;
-    }
   }
 
   // ユーザーメッセージの送信
@@ -97,7 +119,6 @@ export const AssistantResponse = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const latest = chatMessages[chatMessages.length - 1];
     if (!latest || latest.role !== "user") return;
 
     // それぞれのAPIにユーザーメッセージを送信
@@ -109,10 +130,40 @@ export const AssistantResponse = () => {
         });
       }
     });
+    isReadyFacilitatorRef.current = false;
+
     // 送信回数を増やす
     increment();
-    isReadyFacilitatorRef.current = false;
-  }, [chatMessages, assistantData, increment]);
+  }, [latest, assistantData, increment]);
+
+  // 司会者の処理
+  useEffect(() => {
+    console.log(isReadyAiRef.current);
+    console.log(isReadyFacilitatorRef.current);
+    const all = Object.values(isReadyAiRef.current).every((v) => v === true);
+    if (all && !isReadyFacilitatorRef.current) {
+      console.log("全てtrueになりました");
+
+      // 司会者に送信
+      const latestUserMessage = userMessages[userMessages.length - 1];
+      if (!latest || !latestUserMessage) return;
+
+      const assistantLog = assistantMessagesRef.current;
+      facilitator.append(
+        {
+          role: "user",
+          content: latestUserMessage.content,
+        },
+        { body: { assistantLog } }
+      );
+      isReadyFacilitatorRef.current = true;
+      chatTargets.forEach((key) => {
+        changeFlag(key, false);
+      });
+      // 使ったら初期化
+      assistantMessagesRef.current = [];
+    }
+  }, [latest]);
 
   // 各APIごとの個別useEffect
   useChatReadyEffect("comment");

@@ -45,14 +45,15 @@ export const ResponseContainer: React.FC = () => {
 
   // assistant message が着次第追加
   useEffect(() => {
-    assistantMessages.forEach((msg) => {
-      assistantCards.forEach((card) => {
-        if (msg.key == card.id) {
-          card.message = msg.content;
-        }
-        console.log(assistantCards);
-      });
-    });
+    // 新しい配列を作成して更新
+    setAssistantCards((prevCards) =>
+      prevCards.map((card) => {
+        const matchedMsg = assistantMessages.find((msg) => msg.key === card.id);
+        return matchedMsg
+          ? { ...card, message: matchedMsg.content } // メッセージを更新
+          : card; // 変更なし
+      })
+    );
   }, [assistantMessages]);
 
   return (
@@ -63,7 +64,7 @@ export const ResponseContainer: React.FC = () => {
       {/* 新表示ver.2 */}
       <div className="flex md:flex-row flex-col md:w-[1080px] w-full m-auto">
         {/* 司会者 */}
-        <div className="md:w-1/2 w-full border">
+        <div className="md:w-1/2 w-full">
           <h2 className="px-2 py-1 font-bold">司会者ロボ</h2>
           <AssistantIcon
             iconSrc={"/facilitator/ai_character01_smile.png"}
@@ -98,16 +99,7 @@ export const ResponseContainer: React.FC = () => {
             const icon = cardHeight; // アイコンサイズ
 
             return (
-              <Card
-                key={id}
-                className="flex flex-row w-full md:h-24 h-12"
-                style={
-                  {
-                    //width: `${cardWidth}px`,
-                    // height: `${cardHeight}px`,
-                  }
-                }
-              >
+              <Card key={id} className="flex flex-row w-full md:h-24 h-12">
                 <AssistantIcon iconSrc={data.iconPath} size={60} />
                 <div className="ml-1">
                   <CardHeader>
