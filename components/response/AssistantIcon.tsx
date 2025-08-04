@@ -7,6 +7,7 @@ export const AssistantIcon: React.FC<IconProps> = ({
   iconSrc,
   size = 60,
   title = "",
+  className,
 }) => {
   return (
     <Image
@@ -15,7 +16,7 @@ export const AssistantIcon: React.FC<IconProps> = ({
       title={title}
       width={size}
       height={size}
-      className="rounded"
+      className={`rounded ${className}`}
     />
   );
 };

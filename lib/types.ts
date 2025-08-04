@@ -11,6 +11,7 @@ export type IconProps = {
   iconSrc?: string;
   size?: number;
   title?: string;
+  className?: string;
 };
 
 /** format-timestamp で使うprops */

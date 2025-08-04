@@ -144,14 +144,14 @@ export const MessageInput = () => {
             </div>
           </div>
 
-          {showScreen && (
+          {/* {showScreen && (
             <div
               style={{ marginTop: 20, padding: 20, backgroundColor: "#f0f0f0" }}
             >
               <h2>これは表示された画面です</h2>
               <p>ボタンを押したので表示されました。</p>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* 全体の非表示 */}
@@ -165,7 +165,7 @@ export const MessageInput = () => {
           </div>
         )}
       </div>
-      <div className="text-xs text-zinc-400">
+      <div className="mt-0.5 text-xs text-zinc-400">
         得られたデータは研究目的で利用されます。個人情報は記入しないでください。
       </div>
     </div>
