@@ -73,26 +73,33 @@ export const ResponseContainer: React.FC = () => {
         <div className="md:w-1/2 md:ml-4">
           <div>
             <div className="flex flex-col w-1/2 mb-1">
-              <h2 className="px-2 py-1 m-auto mb-1 bg-blue-200 text-blue-800 rounded font-bold">
+              <h2 className="px-2 py-1 m-auto mb-1 bg-blue-200 text-blue-900 rounded font-bold">
                 司会者ロボ
               </h2>
               <AssistantIcon
                 iconSrc={FACILITATOR_ICON_PATH}
                 size={200}
-                className="rounded-full border-6 border-double border-blue-200"
+                className="rounded-full border-6 border-double border-blue-100"
               />
             </div>
             <div
               className={`md:h-28 md:mr-10 h-14 md:text-xl text-sm ${
-                hasTextFacilitator ? "bg-blue-200" : ""
+                hasTextFacilitator ? "bg-blue-100" : ""
               } rounded`}
             >
               {assistantMessages
                 .filter((msg) => msg.key === "facilitator")
                 .map((msg) => (
-                  <div key={msg.key} className="px-4 py-2">
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.25 }}
+                    className="px-6 py-4 text-sm font-bold text-blue-900"
+                  >
                     {msg.content}
-                  </div>
+                  </motion.div>
                 ))}
             </div>
           </div>
@@ -100,7 +107,6 @@ export const ResponseContainer: React.FC = () => {
           {/* ユーザーメッセージ（一時） */}
           <div className="h-1/4 mt-4 mr-4">
             <h3 className="mb-0.5 text-sm text-zinc-400">送信したメッセージ</h3>
-            <div></div>
             <MessageOutput />
           </div>
         </div>

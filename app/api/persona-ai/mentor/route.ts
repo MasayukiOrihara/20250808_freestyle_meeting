@@ -81,7 +81,7 @@ export async function POST(req: Request) {
       {
         context: context,
         question_context: contexts,
-        history: memory,
+        history: memory.join("\n"),
         user_message: currentUserMessage,
       },
       "stream"

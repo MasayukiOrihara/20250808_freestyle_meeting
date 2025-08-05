@@ -114,10 +114,10 @@ export async function POST(req: Request) {
       prompt,
       {
         context: context,
-        history: memory,
+        history: memory.join("\n"),
         user_message: currentUserMessage,
         freestyle_summary: FREESTYLE_COMPANY_SUMMARY_EN,
-        info: company,
+        info: company.join("\n"),
       },
       "stream"
     );

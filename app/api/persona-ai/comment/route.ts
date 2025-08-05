@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       prompt,
       {
         context: context,
-        history: memory,
+        history: memory.join("\n"),
         user_message: currentUserMessage,
       },
       "stream"

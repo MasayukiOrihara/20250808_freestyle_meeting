@@ -98,13 +98,12 @@ export async function POST(req: Request) {
       console.warn("🎤 会話記憶が取得できませんでした: " + error);
     }
 
-    console.log(assistantContexts.join("\n"));
     // ストリーム
     const stream = await runWithFallback(
       prompt,
       {
         context: context,
-        history: memory,
+        history: memory.join("\n"),
         ai_message: assistantContexts.join("\n"),
         user_message: currentUserMessage,
       },

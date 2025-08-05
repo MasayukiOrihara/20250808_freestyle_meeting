@@ -58,8 +58,10 @@ export async function POST(req: Request) {
     // 検索結果の取得状況によってプロンプト取得
     let prompt;
     const info: string[] | null = await infoPromise;
+    let infoContext = "";
     if (info && info.length > 0) {
       prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT);
+      infoContext = info.join("\n");
     } else {
       prompt = PromptTemplate.fromTemplate(TEACHER_PROMPT_NO_INFO);
     }
@@ -69,9 +71,9 @@ export async function POST(req: Request) {
       prompt,
       {
         context: context,
-        history: memory,
+        history: memory.join("\n"),
         user_message: currentUserMessage,
-        info: info,
+        info: infoContext,
       },
       "stream"
     );
