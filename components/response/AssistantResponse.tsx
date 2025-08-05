@@ -9,6 +9,7 @@ import { useAllChats } from "@/hooks/chathooks";
 import { useSendCount } from "@/hooks/useSentCount";
 import { useSessionId } from "@/hooks/useSessionId";
 import { ChatMessage, ChatMessageInput } from "@/lib/types";
+import { useAiState } from "../provider/AiStateProvider";
 
 // 変数
 const chatTargets = Object.keys(
@@ -35,6 +36,7 @@ export const AssistantResponse = () => {
   // プロバイダーから取得
   const { chatMessages, userMessages, addChatMessage, assistantMessages } =
     useChatMessages();
+  const { setAiState } = useAiState();
   // ご意見番AI のデータを取得
   const assistantData = useAssistantData();
   // 現在のセッション ID
@@ -90,7 +92,7 @@ export const AssistantResponse = () => {
       // メッセージが受付状態になった
       if (chatEntry.status === "ready") {
         changeFlag(key, true);
-        console.log(`${key} が ready に到達しました`);
+        // console.log(`${key} が ready に到達しました`);
 
         // 最新AIメッセージの登録
         const chatMessage: ChatMessageInput = {
@@ -122,6 +124,7 @@ export const AssistantResponse = () => {
     if (!latest || latest.role !== "user") return;
 
     // それぞれのAPIにユーザーメッセージを送信
+    setAiState("loading");
     chatTargets.forEach((key) => {
       if (assistantData[key]?.isUse) {
         chatEntryRef.current[key].append({
@@ -138,12 +141,8 @@ export const AssistantResponse = () => {
 
   // 司会者の処理
   useEffect(() => {
-    console.log(isReadyAiRef.current);
-    console.log(isReadyFacilitatorRef.current);
     const all = Object.values(isReadyAiRef.current).every((v) => v === true);
     if (all && !isReadyFacilitatorRef.current) {
-      console.log("全てtrueになりました");
-
       // 司会者に送信
       const latestUserMessage = userMessages[userMessages.length - 1];
       if (!latest || !latestUserMessage) return;
@@ -162,6 +161,8 @@ export const AssistantResponse = () => {
       });
       // 使ったら初期化
       assistantMessagesRef.current = [];
+      // 全通知
+      setAiState("ready");
     }
   }, [latest]);
 

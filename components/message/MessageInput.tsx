@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useChatMessages } from "../provider/ChatMessageProvider";
-import { useSessionId } from "@/hooks/useSessionId";
-import { requestApi } from "@/lib/utils";
 import { NotebookText, Send, UserCog } from "lucide-react";
+import BottomPopup from "./messageui/BottomPopup";
+import DetailButton from "./messageui/DetailButton";
+import { generateSummary } from "./handle/generateSummary";
+import { generateMinutes } from "./handle/generateMinutes";
+import { useAiState } from "../provider/AiStateProvider";
 
 const MAX_LENGTH = 140;
-const ANALYZE_SAVE_PATH = "/api/analyze/save";
-const ANARYZE_SUMMARY_PATH = "/api/analyze/summary";
-const ANARYZE_MINUTES_PATH = "/api/analyze/minutes";
 
 /**
  * 入力UI
@@ -16,9 +16,11 @@ const ANARYZE_MINUTES_PATH = "/api/analyze/minutes";
 export const MessageInput = () => {
   const [text, setText] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
-  const [showScreen, setShowScreen] = useState(false);
-  const { chatMessages, userMessages, addChatMessage } = useChatMessages();
-  const sessionId = useSessionId();
+  const [showScreen, setShowScreen] = useState(false); // 画面の表示
+  const [summary, setSummary] = useState(""); // 要約保持
+  const [minutes, setMinutes] = useState(""); // 議事録保持
+  const { addChatMessage } = useChatMessages();
+  const { aiState } = useAiState();
 
   const isOverLimit = text.length > MAX_LENGTH;
 
@@ -52,34 +54,19 @@ export const MessageInput = () => {
 
   // 要約ボタン
   const handleSummaryButton = async () => {
-    if (userMessages.length != 0) {
-      // 1. プロファイル情報を作成して DB に保存
-      await requestApi("", ANALYZE_SAVE_PATH, {
-        method: "POST",
-        body: { userMessages, sessionId },
-      });
+    const parsonalSummary = await generateSummary();
+    if (parsonalSummary) return;
 
-      // 2. 要約を作成し取得
-      const parsonalSummary = await requestApi("", ANARYZE_SUMMARY_PATH, {
-        method: "POST",
-        body: { sessionId },
-      });
-      console.log(parsonalSummary);
-    }
-
+    setSummary(parsonalSummary);
     setShowScreen(true); // 表示に切り替える
   };
 
   // 議事録ボタン
   const handleMinutesButton = async () => {
-    if (userMessages.length != 0) {
-      //  議事録を作成し取得
-      const conversationMinutes = await requestApi("", ANARYZE_MINUTES_PATH, {
-        method: "POST",
-        body: { chatMessages, sessionId },
-      });
-      console.log(conversationMinutes);
-    }
+    const conversationMinutes = await generateMinutes();
+    if (conversationMinutes) return;
+
+    setMinutes(conversationMinutes);
     setShowScreen(true); // 表示に切り替える
   };
 
@@ -101,23 +88,31 @@ export const MessageInput = () => {
           {/* まとめボタン  */}
           <div>
             {/* 議事録 */}
-            <button
+            <DetailButton
               title="今回の会話の議事録を作成する"
               onClick={handleMinutesButton}
               disabled={isDisabled}
-              className="cursor-pointer px-3 py-2 border border-white hover:border-gray-400 active:bg-gray-100 text-gray-700 rounded transition"
-            >
-              <NotebookText className="w-4 h-4 text-zinc-600" />
-            </button>
-            {/* パーソナライズ */}
-            <button
-              title="パーソナライズを作成する"
+              name="minutes"
+              icon={NotebookText}
+            />
+            {/* アナライズ */}
+            <DetailButton
+              title="あなたを分析する"
               onClick={handleSummaryButton}
               disabled={isDisabled}
-              className="cursor-pointer px-3 py-2 border border-white hover:border-gray-400 active:bg-gray-100 text-gray-700 rounded transition"
-            >
-              <UserCog className="w-4 h-4 text-zinc-600" />
-            </button>
+              name="analyze"
+              icon={UserCog}
+            />
+          </div>
+
+          <div className="flex items-center">
+            {aiState === "" && <p className="text-xs">ステータス: unknown</p>}
+            {aiState === "ready" && (
+              <p className="text-xs">ステータス: 🟢 入力できます</p>
+            )}
+            {aiState === "loading" && (
+              <p className="text-xs">ステータス: ⌛ 読み込み中...</p>
+            )}
           </div>
 
           <div className="flex items-center">
@@ -144,14 +139,22 @@ export const MessageInput = () => {
             </div>
           </div>
 
-          {/* {showScreen && (
-            <div
-              style={{ marginTop: 20, padding: 20, backgroundColor: "#f0f0f0" }}
-            >
-              <h2>これは表示された画面です</h2>
-              <p>ボタンを押したので表示されました。</p>
-            </div>
-          )} */}
+          {/* ポップアップ本体 */}
+          {/* 議事録 */}
+          <BottomPopup
+            isOpen={showScreen}
+            onClose={() => setShowScreen(false)}
+            title="議事録"
+            text={minutes}
+          />
+
+          {/* アナライズ */}
+          <BottomPopup
+            isOpen={showScreen}
+            onClose={() => setShowScreen(false)}
+            title="会話から分かるあなたについて"
+            text={summary}
+          />
         </div>
 
         {/* 全体の非表示 */}

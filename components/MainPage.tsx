@@ -5,6 +5,7 @@ import { ResponseContainer } from "./response/ResponseContainer";
 import { MessageInput } from "./message/MessageInput";
 import { AssistantDataProvider } from "./provider/AssistantDataProvider";
 import { MessageOutput } from "./message/MessageOutput";
+import { AiStateProvider } from "./provider/AiStateProvider";
 
 export const MainPage: React.FC = () => {
   return (
@@ -14,9 +15,10 @@ export const MainPage: React.FC = () => {
       <div className="flex flex-col max-w-[1440px] h-full m-auto overflow-hidden">
         <AssistantDataProvider>
           <ChatMessageProvider>
-            <ResponseContainer />
-            {/*<MessageOutput />*/}
-            <MessageInput />
+            <AiStateProvider>
+              <ResponseContainer />
+              <MessageInput />
+            </AiStateProvider>
           </ChatMessageProvider>
         </AssistantDataProvider>
       </div>

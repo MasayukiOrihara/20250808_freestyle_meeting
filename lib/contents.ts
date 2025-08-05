@@ -33,6 +33,9 @@ export const CONVERSATION_CREATE_PATH = "/api/supabase/conversation/create";
 export const MESSAGE_CREATE_PATH = "/api/supabase/conversation/message/create/";
 export const PERSONAL_CREATE_PATH = "/api/supabase/personal/create";
 export const PERSONAL_SEARCH_PATH = "/api/supabase/personal/search/";
+export const ANALYZE_SAVE_PATH = "/api/analyze/save";
+export const ANARYZE_SUMMARY_PATH = "/api/analyze/summary";
+export const ANARYZE_MINUTES_PATH = "/api/analyze/minutes";
 
 // アイコンパス
 export const CAT_ICON_PATH = "/icon/cat_comment.jpg";
