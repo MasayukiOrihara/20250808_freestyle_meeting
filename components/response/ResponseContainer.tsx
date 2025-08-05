@@ -82,7 +82,7 @@ export const ResponseContainer: React.FC = () => {
               />
             </div>
             <div
-              className={`h-30 mr-10 text-xl ${
+              className={`md:h-28 md:mr-10 h-14 md:text-xl text-sm ${
                 hasTextFacilitator ? "bg-blue-200" : ""
               } rounded`}
             >
@@ -108,7 +108,7 @@ export const ResponseContainer: React.FC = () => {
           ref={ref}
           className="flex flex-col md:w-1/2 w-full h-full md:mt-4 z-5 border shadow-sm rounded"
         >
-          <h2 className="px-4 py-4 text-sm font-bold">AI コメント</h2>
+          <h2 className="md:p-4 p-1 text-sm font-bold">AI コメント</h2>
           {Object.entries(assistantCards).map(([id, data], i, array) => {
             const cardWidth = 800; // card の幅
             const cardHeight = 60; // card の高さ
@@ -117,7 +117,7 @@ export const ResponseContainer: React.FC = () => {
             return (
               <Card
                 key={id}
-                className="flex flex-row w-full md:h-28 h-12 px-4 py-4"
+                className="flex flex-row w-full md:h-28 h-20 md:p-4 p-1"
               >
                 <div className="w-12">
                   <AssistantIcon iconSrc={data.iconPath} size={60} />
