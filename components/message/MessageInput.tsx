@@ -84,7 +84,7 @@ export const MessageInput = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full mb-10 flex flex-col justify-center items-center z-10">
+    <div className="fixed bottom-0 left-0 w-full mb-2 flex flex-col justify-center items-center z-10">
       <div className="relative px-2 py-1 bg-white shadow-xl rounded-xl">
         {/* テキストエリア */}
         <textarea

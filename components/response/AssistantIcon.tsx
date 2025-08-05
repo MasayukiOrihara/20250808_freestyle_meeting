@@ -10,13 +10,15 @@ export const AssistantIcon: React.FC<IconProps> = ({
   className,
 }) => {
   return (
-    <Image
-      src={iconSrc || DUMMY_ICON_PATH}
-      alt="icon"
-      title={title}
-      width={size}
-      height={size}
-      className={`rounded ${className}`}
-    />
+    <div className=" aspect-[1/1]">
+      <Image
+        src={iconSrc || DUMMY_ICON_PATH}
+        alt="icon"
+        title={title}
+        width={size}
+        height={size}
+        className={`rounded w-full h-full ${className}`}
+      />
+    </div>
   );
 };

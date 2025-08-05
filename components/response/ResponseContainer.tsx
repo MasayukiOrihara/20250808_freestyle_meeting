@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { DUMMY_ICON_PATH } from "@/lib/contents";
+import { DUMMY_ICON_PATH, FACILITATOR_ICON_PATH } from "@/lib/contents";
 import { MessageOutput } from "../message/MessageOutput";
 
 type AssistantCard = {
@@ -56,34 +56,49 @@ export const ResponseContainer: React.FC = () => {
     );
   }, [assistantMessages]);
 
+  // 司会者ロボに文字がないことを判定
+  const hasTextFacilitator = !!assistantMessages
+    .find((msg) => msg.key === "facilitator")
+    ?.content?.trim();
+
   return (
-    <div className="w-full h-2/3 mt-10">
+    <div className="w-full h-2/3 mt-4">
       {/** ai の反応をもらう */}
       <AssistantResponse />
 
       {/* 新表示ver.2 */}
       <div className="flex md:flex-row flex-col md:w-[1080px] w-full m-auto">
         {/* 司会者 */}
-        <div className="md:w-1/2 w-full">
-          <h2 className="px-2 py-1 font-bold">司会者ロボ</h2>
-          <AssistantIcon
-            iconSrc={"/facilitator/ai_character01_smile.png"}
-            size={200}
-            className=" ml-4 rounded-full border-8 border-double border-zinc-400"
-          />
-          <div className="h-30 mx-10 mt-[-10px] text-xl  bg-blue-300 rounded">
-            {assistantMessages
-              .filter((msg) => msg.key === "facilitator")
-              .map((msg) => (
-                <div key={msg.key} className="px-4 py-2">
-                  {msg.content}
-                </div>
-              ))}
+        <div className="md:w-1/2 md:ml-4">
+          <div>
+            <div className="flex flex-col w-1/2 mb-1">
+              <h2 className="px-2 py-1 m-auto mb-1 bg-blue-200 text-blue-800 rounded font-bold">
+                司会者ロボ
+              </h2>
+              <AssistantIcon
+                iconSrc={FACILITATOR_ICON_PATH}
+                size={200}
+                className="rounded-full border-6 border-double border-blue-200"
+              />
+            </div>
+            <div
+              className={`h-30 mr-10 text-xl ${
+                hasTextFacilitator ? "bg-blue-200" : ""
+              } rounded`}
+            >
+              {assistantMessages
+                .filter((msg) => msg.key === "facilitator")
+                .map((msg) => (
+                  <div key={msg.key} className="px-4 py-2">
+                    {msg.content}
+                  </div>
+                ))}
+            </div>
           </div>
 
           {/* ユーザーメッセージ（一時） */}
-          <div>
-            <p>user message</p>
+          <div className="">
+            <h3 className="text-zinc-400">送信したメッセージ</h3>
             <MessageOutput />
           </div>
         </div>
@@ -91,20 +106,26 @@ export const ResponseContainer: React.FC = () => {
         {/* ご意見番 */}
         <div
           ref={ref}
-          className="flex flex-col md:w-1/2 w-full h-full md:mt-[96px] m-auto z-5 border"
+          className="flex flex-col md:w-1/2 w-full h-full md:mt-4 z-5 border shadow-sm rounded"
         >
+          <h2 className="px-4 py-4 text-sm font-bold">AI コメント</h2>
           {Object.entries(assistantCards).map(([id, data], i, array) => {
             const cardWidth = 800; // card の幅
             const cardHeight = 60; // card の高さ
             const icon = cardHeight; // アイコンサイズ
 
             return (
-              <Card key={id} className="flex flex-row w-full md:h-24 h-12">
-                <AssistantIcon iconSrc={data.iconPath} size={60} />
-                <div className="ml-1">
-                  <CardHeader>
+              <Card
+                key={id}
+                className="flex flex-row w-full md:h-28 h-12 px-4 py-4"
+              >
+                <div className="w-12">
+                  <AssistantIcon iconSrc={data.iconPath} size={60} />
+                </div>
+                <div className="w-full ml-2">
+                  <CardHeader className="mb-2">
                     <CardTitle>{data.name}</CardTitle>
-                    <CardDescription className="ml-1">
+                    <CardDescription className="ml-2">
                       {data.description}
                     </CardDescription>
                   </CardHeader>

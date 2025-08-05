@@ -35,10 +35,11 @@ export const PERSONAL_CREATE_PATH = "/api/supabase/personal/create";
 export const PERSONAL_SEARCH_PATH = "/api/supabase/personal/search/";
 
 // アイコンパス
-export const CAT_ICON_PATH = "/icon/cat_comment.png";
-export const DOG_ICON_PATH = "/icon/dog_teacher.png";
-export const OWL_ICON_PATH = "/icon/owl_mentor.png";
+export const CAT_ICON_PATH = "/icon/cat_comment.jpg";
+export const DOG_ICON_PATH = "/icon/dog_teacher.jpg";
+export const OWL_ICON_PATH = "/icon/owl_mentor.jpg";
 export const DUMMY_ICON_PATH = "/icon/human_dummy.png";
+export const FACILITATOR_ICON_PATH = "/facilitator/facilitator_icon.jpg";
 
 // プロンプト
 export const START_MESSAGE =
