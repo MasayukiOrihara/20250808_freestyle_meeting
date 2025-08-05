@@ -136,16 +136,15 @@ export const MessageInput = () => {
         </div>
 
         {/* 全体の非表示 */}
-        {isDisabled ||
-          (aiState === "loading" && (
-            <div className="absolute inset-0 bg-zinc-400 opacity-80 shadow-xl rounded-xl transition">
-              <div className="flex justify-center items-center">
-                <span className="mt-4 text-white text-xl text-center">
-                  [ 待機中 ... ]
-                </span>
-              </div>
+        {(isDisabled || aiState === "loading") && (
+          <div className="absolute inset-0 bg-zinc-400 opacity-80 shadow-xl rounded-xl transition">
+            <div className="flex justify-center items-center">
+              <span className="mt-4 text-white text-xl text-center">
+                [ 待機中 ... ]
+              </span>
             </div>
-          ))}
+          </div>
+        )}
       </div>
       <div className="mt-0.5 text-xs text-zinc-400">
         得られたデータは研究目的で利用されます。個人情報は記入しないでください。
