@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useChatMessages } from "../provider/ChatMessageProvider";
-import { NotebookText, Send, UserCog } from "lucide-react";
+import { Send } from "lucide-react";
 import BottomPopup from "./messageui/BottomPopup";
-import DetailButton from "./messageui/DetailButton";
-import { generateSummary } from "./handle/generateSummary";
-import { generateMinutes } from "./handle/generateMinutes";
 import { useAiState } from "../provider/AiStateProvider";
+import { SummaryButton } from "./handle/SummaryButton";
+import { MinutesButton } from "./handle/MinutesButton";
 
 const MAX_LENGTH = 140;
 
@@ -52,24 +51,6 @@ export const MessageInput = () => {
     }
   };
 
-  // 要約ボタン
-  const handleSummaryButton = async () => {
-    const parsonalSummary = await generateSummary();
-    if (parsonalSummary) return;
-
-    setSummary(parsonalSummary);
-    setShowScreen(true); // 表示に切り替える
-  };
-
-  // 議事録ボタン
-  const handleMinutesButton = async () => {
-    const conversationMinutes = await generateMinutes();
-    if (conversationMinutes) return;
-
-    setMinutes(conversationMinutes);
-    setShowScreen(true); // 表示に切り替える
-  };
-
   return (
     <div className="fixed bottom-0 left-0 w-full mb-2 flex flex-col justify-center items-center z-10">
       <div className="relative px-2 py-1 bg-white border shadow-xl rounded-xl">
@@ -88,20 +69,17 @@ export const MessageInput = () => {
           {/* まとめボタン  */}
           <div>
             {/* 議事録 */}
-            <DetailButton
-              title="今回の会話の議事録を作成する"
-              onClick={handleMinutesButton}
-              disabled={isDisabled}
-              name="minutes"
-              icon={NotebookText}
+            <MinutesButton
+              setMinutes={setMinutes}
+              setShowScreen={setShowScreen}
+              isDisabled={isDisabled}
             />
+
             {/* アナライズ */}
-            <DetailButton
-              title="あなたを分析する"
-              onClick={handleSummaryButton}
-              disabled={isDisabled}
-              name="analyze"
-              icon={UserCog}
+            <SummaryButton
+              setSummary={setSummary}
+              setShowScreen={setShowScreen}
+              isDisabled={isDisabled}
             />
           </div>
 
