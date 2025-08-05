@@ -1,7 +1,3 @@
-import { motion } from "framer-motion";
-import { useMeasure } from "react-use";
-import Image from "next/image";
-
 import { useAssistantData } from "../provider/AssistantDataProvider";
 import { AssistantResponse } from "./AssistantResponse";
 import { useChatMessages } from "../provider/ChatMessageProvider";
@@ -14,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { DUMMY_ICON_PATH, FACILITATOR_ICON_PATH } from "@/lib/contents";
+import { FACILITATOR_ICON_PATH } from "@/lib/contents";
 import { MessageOutput } from "../message/MessageOutput";
 
 type AssistantCard = {
@@ -31,8 +27,7 @@ type AssistantCard = {
  */
 export const ResponseContainer: React.FC = () => {
   const assistantData = useAssistantData();
-  const { assistantMessages, userMessages } = useChatMessages();
-  const [ref, { width, height }] = useMeasure<HTMLDivElement>();
+  const { assistantMessages } = useChatMessages();
 
   const [assistantCards, setAssistantCards] = useState<AssistantCard[]>(
     Object.values(assistantData).map((data) => ({
@@ -105,16 +100,9 @@ export const ResponseContainer: React.FC = () => {
         </div>
 
         {/* ご意見番 */}
-        <div
-          ref={ref}
-          className="flex flex-col md:w-1/2 w-full h-full md:mt-2 z-5 border shadow-sm rounded"
-        >
+        <div className="flex flex-col md:w-1/2 w-full h-full md:mt-2 z-5 border shadow-sm rounded">
           <h2 className="md:p-4 p-1 text-sm font-bold">AI コメント</h2>
-          {Object.entries(assistantCards).map(([id, data], i, array) => {
-            const cardWidth = 800; // card の幅
-            const cardHeight = 60; // card の高さ
-            const icon = cardHeight; // アイコンサイズ
-
+          {Object.entries(assistantCards).map(([id, data]) => {
             return (
               <Card
                 key={id}
@@ -123,7 +111,7 @@ export const ResponseContainer: React.FC = () => {
                 <div className="w-12">
                   <AssistantIcon iconSrc={data.iconPath} size={60} />
                 </div>
-                <div className="w-full ml-2">
+                <div className="w-full ml-4">
                   <CardHeader className="mb-2">
                     <CardTitle>{data.name}</CardTitle>
                     <CardDescription className="ml-2">
