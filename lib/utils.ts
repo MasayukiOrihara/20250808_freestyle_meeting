@@ -72,3 +72,34 @@ export const requestApi = async (
   }
   throw new Error("最大リトライ回数を超えました");
 };
+
+// バイナリから手動で降り除く
+export const decodeStreamChunk = (value: Uint8Array): string => {
+  const decoder = new TextDecoder("utf-8");
+  const chars: string[] = [];
+
+  let i = 0;
+  while (i < value.length) {
+    // パターン: 48 58 34 → '0:"'
+    if (value[i] === 48 && value[i + 1] === 58 && value[i + 2] === 34) {
+      i += 3; // "0:"をスキップ
+
+      const charBytes: number[] = [];
+      while (i < value.length && value[i] !== 34) {
+        charBytes.push(value[i]);
+        i++;
+      }
+
+      const char = decoder.decode(new Uint8Array(charBytes));
+      chars.push(char);
+
+      // スキップ: 終わりの `"`（34）と改行（10）を飛ばす
+      if (value[i] === 34) i++;
+      if (value[i] === 10) i++;
+    } else {
+      i++; // パターン外のバイトは無視
+    }
+  }
+
+  return chars.join("");
+};

@@ -11,6 +11,7 @@ import { useSessionId } from "@/hooks/useSessionId";
 import { ChatMessageInput } from "@/lib/types";
 import { useAiState } from "../provider/AiStateProvider";
 import { useStreamMessages } from "../provider/StreamMessagesProvider";
+import { decodeStreamChunk } from "@/lib/utils";
 
 // 変数
 const chatTargets = Object.keys(
@@ -79,25 +80,21 @@ export const AssistantResponse = () => {
 
   // 最初のメッセージ
   useEffect(() => {
-    console.log("最初のメッセージ");
-
+    // 最初の応答を受け取りに行く
     const fetchStream = async () => {
       const response = await fetch("/api/facilitator/first");
       const reader = response.body?.getReader();
-      const decoder = new TextDecoder("utf-8");
-
       let done = false;
 
       while (!done && reader) {
         const { value, done: readerDone } = await reader.read();
         done = readerDone;
 
-        console.log(value);
-        const chunk = decoder.decode(value, { stream: true }); // ← valueはUint8Array
-        const cleanedChunk = chunk.replace(/0:\s*"(.*?)"\s*/g, "$1");
-        console.log("chunk:", cleanedChunk); // ← ここが "こ", "は" などの文字列になるはず！
-        console.log("typeof chunk:", typeof chunk);
-        addStreamMessages(cleanedChunk);
+        if (value) {
+          const cleaned = decodeStreamChunk(value);
+          console.log("chunk:", cleaned);
+          addStreamMessages(cleaned);
+        }
       }
     };
     fetchStream();

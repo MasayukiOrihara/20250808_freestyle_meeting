@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Send } from "lucide-react";
 
 import { useChatMessages } from "../provider/ChatMessageProvider";
@@ -23,6 +23,7 @@ export const MessageInput = () => {
   const { aiState } = useAiState();
 
   const isOverLimit = text.length > MAX_LENGTH;
+  const isFirstSubmitRef = useRef(false); // 最初の提出
 
   // 提出時の反応
   const submitMessage = () => {
@@ -48,6 +49,7 @@ export const MessageInput = () => {
   const handleEnterKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      isFirstSubmitRef.current = true;
       submitMessage();
     }
   };
@@ -63,7 +65,13 @@ export const MessageInput = () => {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleEnterKey}
           disabled={isDisabled}
-          placeholder={isDisabled ? "" : " [ ENTER で 送信 ... ]"}
+          placeholder={
+            isDisabled
+              ? ""
+              : isFirstSubmitRef.current
+              ? " [ ENTER で 送信 ... ]"
+              : "わたしの 名前は 〇〇 です... [ ENTER で 送信 ... ]"
+          }
         />
 
         <div className="flex justify-between">
@@ -86,7 +94,7 @@ export const MessageInput = () => {
 
           <div className="flex items-center">
             {aiState === "" && <p className="text-xs">ステータス: unknown</p>}
-            {aiState === "ready" && (
+            {(aiState === "ready" || aiState === "start") && (
               <p className="text-xs">ステータス: 🟢 入力できます</p>
             )}
             {aiState === "loading" && (

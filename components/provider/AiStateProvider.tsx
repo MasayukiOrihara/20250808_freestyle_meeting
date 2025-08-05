@@ -13,7 +13,7 @@ const AiStateContext = createContext<AiStateContextType | undefined>(undefined);
  * @returns
  */
 export const AiStateProvider = ({ children }: { children: ReactNode }) => {
-  const [aiState, setAiState] = useState<string>("");
+  const [aiState, setAiState] = useState<string>("start");
 
   return (
     <AiStateContext.Provider value={{ aiState, setAiState }}>

@@ -17,6 +17,7 @@ export const AssistantIcon: React.FC<IconProps> = ({
         title={title}
         width={size}
         height={size}
+        priority
         className={`rounded w-full h-full ${className}`}
       />
     </div>
