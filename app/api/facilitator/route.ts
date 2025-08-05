@@ -9,6 +9,8 @@ import {
 } from "@/lib/contents";
 import { runWithFallback } from "@/lib/models";
 import { requestApi } from "@/lib/utils";
+import { ChatMessageInput } from "@/lib/types";
+import { assistantData } from "@/lib/assistantData";
 
 /**
  * 司会者 AI
@@ -17,15 +19,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
-    const assistantMessages = body.assistantLog ?? [];
+    const assistantMessages: ChatMessageInput[] = body.assistantLog ?? [];
 
     const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🎤 FACILITATOR API");
     console.log("session: " + body.sessionId);
     console.log("turns: " + body.count);
-
-    console.log(assistantMessages);
 
     // 記憶のID用
     const threadId = "facilitator_" + body.sessionId;
@@ -42,8 +42,18 @@ export async function POST(req: Request) {
       },
     });
 
+    // assistant メッセージの作成
+    const assistantContexts: string[] = assistantMessages.map((msg) => {
+      const assistantId = msg.assistantId;
+      const assistantName =
+        assistantId && assistantData[assistantId]?.name
+          ? assistantData[assistantId].name
+          : "司会者ロボ（あなた）";
+      return `${assistantName}: ${msg.content}`;
+    });
+
     // プロンプトの確認
-    const FACILITATOR_PROMPT = `"あなたは複数のAIを取りまとめ、ユーザーとの会話を進行させる司会者AIです。
+    const FACILITATOR_PROMPT = `あなたは複数のAIを取りまとめ、ユーザーとの会話を進行させる司会者AIです。
     
     # キャラ性格
     - 名前：司会者ロボ
@@ -51,9 +61,10 @@ export async function POST(req: Request) {
     - 口調：ですます口調。
     
     # 指示
-    - userから次の返答を得るために、userに質問を投げかけてください。
-    - 質問は他のAIの返答を汲み、現在の話題から会話が続くようにしてください。
-    - 出力は80文字程度です。
+    - AI Commentの中から特にユーザーの回答と関連があるコメントを、そのAIの名前とともに取り上げてください。
+    - userから次の返答を得るために、最後にひとつuserに質問を投げかけてください。
+    - プロンプトの語尾に引っ張られないでください。
+    - 出力は140文字程度です。
     
     # context
     {context}
@@ -62,10 +73,11 @@ export async function POST(req: Request) {
     {history}
     ---
 
-    AI: 
+    AI Comment: 
     {ai_message} 
     
-    user: {user_message}
+    user:
+    {user_message}
     
     assistant: `;
     const prompt = PromptTemplate.fromTemplate(FACILITATOR_PROMPT);
@@ -82,21 +94,18 @@ export async function POST(req: Request) {
     let memory: string[] = [];
     try {
       memory = await memoryResPromise;
-
-      console.log("💿 記憶 ---");
-      console.log(memory);
-      console.log(" --- ");
     } catch (error) {
       console.warn("🎤 会話記憶が取得できませんでした: " + error);
     }
 
+    console.log(assistantContexts.join("\n"));
     // ストリーム
     const stream = await runWithFallback(
       prompt,
       {
         context: context,
         history: memory,
-        ai_message: assistantMessages,
+        ai_message: assistantContexts.join("\n"),
         user_message: currentUserMessage,
       },
       "stream"
