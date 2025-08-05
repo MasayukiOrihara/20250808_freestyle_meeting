@@ -8,8 +8,9 @@ import { useAssistantData } from "../provider/AssistantDataProvider";
 import { useAllChats } from "@/hooks/chathooks";
 import { useSendCount } from "@/hooks/useSentCount";
 import { useSessionId } from "@/hooks/useSessionId";
-import { ChatMessage, ChatMessageInput } from "@/lib/types";
+import { ChatMessageInput } from "@/lib/types";
 import { useAiState } from "../provider/AiStateProvider";
+import { useStreamMessages } from "../provider/StreamMessagesProvider";
 
 // 変数
 const chatTargets = Object.keys(
@@ -34,9 +35,9 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
  */
 export const AssistantResponse = () => {
   // プロバイダーから取得
-  const { chatMessages, userMessages, addChatMessage, assistantMessages } =
-    useChatMessages();
+  const { chatMessages, userMessages, addChatMessage } = useChatMessages();
   const { setAiState } = useAiState();
+  const { addStreamMessages } = useStreamMessages();
   // ご意見番AI のデータを取得
   const assistantData = useAssistantData();
   // 現在のセッション ID
@@ -76,8 +77,34 @@ export const AssistantResponse = () => {
     },
   });
 
+  // 最初のメッセージ
+  useEffect(() => {
+    console.log("最初のメッセージ");
+
+    const fetchStream = async () => {
+      const response = await fetch("/api/facilitator/first");
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder("utf-8");
+
+      let done = false;
+
+      while (!done && reader) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+
+        console.log(value);
+        const chunk = decoder.decode(value, { stream: true }); // ← valueはUint8Array
+        const cleanedChunk = chunk.replace(/0:\s*"(.*?)"\s*/g, "$1");
+        console.log("chunk:", cleanedChunk); // ← ここが "こ", "は" などの文字列になるはず！
+        console.log("typeof chunk:", typeof chunk);
+        addStreamMessages(cleanedChunk);
+      }
+    };
+    fetchStream();
+  }, []);
+
   // AIのメッセージを ChatMessage に登録する関数
-  async function useChatReadyEffect(key: ChatKey) {
+  function useChatReadyEffect(key: ChatKey) {
     let chatEntry;
     if (key !== "facilitator") {
       chatEntry = chatMap[key];

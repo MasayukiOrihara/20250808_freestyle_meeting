@@ -111,9 +111,9 @@ export async function runWithFallback(
 }
 
 export /** フェイク用のモデルを使用して、そのまま応答を送信 */
-const getFakeStream = async () => {
+const getFakeStream = async (responses: string[]) => {
   const fakeModel = new FakeListChatModel({
-    responses: ["関連性なし"],
+    responses: responses,
   });
   const prompt = PromptTemplate.fromTemplate("TEMPLATE1");
 

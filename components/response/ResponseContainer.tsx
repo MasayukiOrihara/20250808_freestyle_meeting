@@ -13,6 +13,7 @@ import {
 import { FACILITATOR_ICON_PATH } from "@/lib/contents";
 import { MessageOutput } from "../message/MessageOutput";
 import { motion } from "framer-motion";
+import { useStreamMessages } from "../provider/StreamMessagesProvider";
 
 type AssistantCard = {
   id: string;
@@ -29,6 +30,7 @@ type AssistantCard = {
 export const ResponseContainer: React.FC = () => {
   const assistantData = useAssistantData();
   const { assistantMessages } = useChatMessages();
+  const { streamMessages } = useStreamMessages();
 
   const [assistantCards, setAssistantCards] = useState<AssistantCard[]>(
     Object.values(assistantData).map((data) => ({
@@ -84,9 +86,15 @@ export const ResponseContainer: React.FC = () => {
             </div>
             <div
               className={`md:h-28 md:mr-10 h-14 md:text-xl text-sm ${
-                hasTextFacilitator ? "bg-blue-100" : ""
+                hasTextFacilitator ? "bg-blue-100" : "bg-blue-100"
               } rounded`}
             >
+              {/* 始めのメッセージ */}
+              {streamMessages && !hasTextFacilitator && (
+                <div className="px-6 py-4 text-sm font-bold text-blue-900">
+                  {streamMessages}
+                </div>
+              )}
               {assistantMessages
                 .filter((msg) => msg.key === "facilitator")
                 .map((msg) => (

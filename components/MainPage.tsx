@@ -4,8 +4,8 @@ import { ChatMessageProvider } from "./provider/ChatMessageProvider";
 import { ResponseContainer } from "./response/ResponseContainer";
 import { MessageInput } from "./message/MessageInput";
 import { AssistantDataProvider } from "./provider/AssistantDataProvider";
-import { MessageOutput } from "./message/MessageOutput";
 import { AiStateProvider } from "./provider/AiStateProvider";
+import { StreamMessagesProvider } from "./provider/StreamMessagesProvider";
 
 export const MainPage: React.FC = () => {
   return (
@@ -15,10 +15,12 @@ export const MainPage: React.FC = () => {
       <div className="flex flex-col max-w-[1440px] h-full m-auto overflow-hidden">
         <AssistantDataProvider>
           <ChatMessageProvider>
-            <AiStateProvider>
-              <ResponseContainer />
-              <MessageInput />
-            </AiStateProvider>
+            <StreamMessagesProvider>
+              <AiStateProvider>
+                <ResponseContainer />
+                <MessageInput />
+              </AiStateProvider>
+            </StreamMessagesProvider>
           </ChatMessageProvider>
         </AssistantDataProvider>
       </div>

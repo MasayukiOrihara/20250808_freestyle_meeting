@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useChatMessages } from "../provider/ChatMessageProvider";
 import { Send } from "lucide-react";
+
+import { useChatMessages } from "../provider/ChatMessageProvider";
 import BottomPopup from "./messageui/BottomPopup";
 import { useAiState } from "../provider/AiStateProvider";
 import { SummaryButton } from "./handle/SummaryButton";
