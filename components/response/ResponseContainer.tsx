@@ -97,8 +97,9 @@ export const ResponseContainer: React.FC = () => {
           </div>
 
           {/* ユーザーメッセージ（一時） */}
-          <div className="">
-            <h3 className="text-zinc-400">送信したメッセージ</h3>
+          <div className="h-1/4 mt-4 mr-4">
+            <h3 className="mb-0.5 text-sm text-zinc-400">送信したメッセージ</h3>
+            <div></div>
             <MessageOutput />
           </div>
         </div>
@@ -106,7 +107,7 @@ export const ResponseContainer: React.FC = () => {
         {/* ご意見番 */}
         <div
           ref={ref}
-          className="flex flex-col md:w-1/2 w-full h-full md:mt-4 z-5 border shadow-sm rounded"
+          className="flex flex-col md:w-1/2 w-full h-full md:mt-2 z-5 border shadow-sm rounded"
         >
           <h2 className="md:p-4 p-1 text-sm font-bold">AI コメント</h2>
           {Object.entries(assistantCards).map(([id, data], i, array) => {
@@ -117,7 +118,7 @@ export const ResponseContainer: React.FC = () => {
             return (
               <Card
                 key={id}
-                className="flex flex-row w-full md:h-28 h-20 md:p-4 p-1"
+                className="flex flex-row w-full md:h-30 h-20 md:px-4 md:py-2 p-1"
               >
                 <div className="w-12">
                   <AssistantIcon iconSrc={data.iconPath} size={60} />
