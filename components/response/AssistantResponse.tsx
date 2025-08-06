@@ -186,7 +186,7 @@ export const AssistantResponse = () => {
       // 全通知
       setAiState("facilitator");
     }
-  }, [userMessages, isReadyAi, setAiState]);
+  }, [userMessages, isReadyAi, facilitator, setAiState]);
 
   useEffect(() => {
     console.log(aiState);

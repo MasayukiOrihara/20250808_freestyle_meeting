@@ -67,7 +67,6 @@ export const ResponseContainer: React.FC = () => {
           className={`mx-4 md:text-xl text-sm bg-blue-200 border-blue-300/opacity-50 shadow-sm rounded-md`}
         >
           {/* メッセージ */}
-
           <motion.div
             key={facilitatorMessage}
             initial={{ opacity: 0, y: 20 }}
@@ -83,7 +82,7 @@ export const ResponseContainer: React.FC = () => {
 
       {/* ユーザーメッセージ */}
       {aiState !== "start" && (
-        <div className="h-1/4 mt-4 mr-4">
+        <div className="h-1/4 mt-4 mr-4 mx-4">
           <h3 className="mb-0.5 text-sm text-zinc-400">送信したメッセージ</h3>
           <MessageOutput />
         </div>
