@@ -36,7 +36,7 @@ function getLatestAssistantMessage(messages: UIMessage[]) {
  */
 export const AssistantResponse = () => {
   // プロバイダーから取得
-  const { chatMessages, userMessages, addChatMessage } = useChatMessages();
+  const { userMessages, addChatMessage } = useChatMessages();
   const { aiState, setAiState } = useAiState();
   const { addStreamMessages } = useStreamMessages();
   // ご意見番AI のデータを取得
@@ -97,7 +97,7 @@ export const AssistantResponse = () => {
       }
     };
     fetchStream();
-  }, []);
+  }, [addStreamMessages]);
 
   // AIのメッセージを ChatMessage に登録する関数
   function useChatReadyEffect(key: ChatKey) {
@@ -159,7 +159,7 @@ export const AssistantResponse = () => {
 
     // 送信回数を増やす
     increment();
-  }, [userMessages, increment]);
+  }, [userMessages, setAiState, increment]);
 
   // 司会者の処理
   useEffect(() => {
@@ -186,14 +186,14 @@ export const AssistantResponse = () => {
       // 全通知
       setAiState("facilitator");
     }
-  }, [userMessages, isReadyAi]);
+  }, [userMessages, isReadyAi, setAiState]);
 
   useEffect(() => {
     console.log(aiState);
     if (aiState === "facilitator" && facilitator.status === "ready") {
       setAiState("ready");
     }
-  }, [aiState, facilitator.status]);
+  }, [aiState, facilitator.status, setAiState]);
 
   // 各APIごとの個別useEffect
   useChatReadyEffect("comment");

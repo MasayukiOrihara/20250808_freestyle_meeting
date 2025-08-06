@@ -51,7 +51,7 @@ export const ResponseContainer: React.FC = () => {
       // 読み込み中の文字
       setFacilitatorMessage("...");
     }
-  }, [streamMessages, assistantMessages]);
+  }, [streamMessages, assistantMessages, aiState]);
 
   return (
     <div className="w-full h-auto">

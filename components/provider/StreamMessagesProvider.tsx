@@ -1,4 +1,10 @@
-import React, { createContext, ReactNode, useContext, useState } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
 
 type StreamMessagesContextType = {
   streamMessages: string;
@@ -23,8 +29,9 @@ export const StreamMessagesProvider = ({
 }) => {
   const [streamMessages, setStreamMessages] = useState<string>("");
 
-  const addStreamMessages = (chunk: string) =>
+  const addStreamMessages = useCallback((chunk: string) => {
     setStreamMessages((prev) => prev + chunk);
+  }, []);
 
   return (
     <StreamMessagesContext.Provider

@@ -64,11 +64,11 @@ export const MessageInput = () => {
   };
 
   return (
-    <div className="w-full mb-2 justify-center items-center mt-2 z-10">
+    <div className="w-full  mb-2 justify-center items-center mt-2 z-10">
       <div className="relative px-2 py-1 mx-4 bg-white border shadow-xl rounded-xl">
         {/* テキストエリア */}
         <textarea
-          className="resize-none focus:outline-none md:w-2xl w-md p-2 text-zinc-400 placeholder:text-neutral-400 transition-colors duration-300"
+          className="resize-none focus:outline-none w-full p-2 text-zinc-400 placeholder:text-neutral-400 transition-colors duration-300"
           rows={2}
           value={text}
           onChange={(e) => setText(e.target.value)}

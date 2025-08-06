@@ -27,7 +27,7 @@ export const Contents: React.FC = () => {
       </div>
       {/* 右 */}
       {aiState !== "start" && (
-        <div key="assistant-comment" className="w-full h-full">
+        <div key="assistant-comment" className="md:w-2/5 w-full h-full">
           <AssistantComment />
         </div>
       )}
