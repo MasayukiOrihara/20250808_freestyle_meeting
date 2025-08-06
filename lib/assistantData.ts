@@ -14,6 +14,7 @@ type AssistantMetadata = {
   model: string; // AIのモデル名
   prompt: string; // AIのプロンプト
   description?: string; // AIの説明
+  imageColor?: string; // キャラのイメージカラー
   exampleMessages?: string[]; // AIの例となるメッセージ
 };
 export type AssistantData = {
@@ -40,6 +41,7 @@ export const assistantData: Record<string, AssistantData> = {
       model: "OpenAi",
       prompt: MENTOR_PROMPT,
       description: "不思議な雰囲気のメンターAI",
+      imageColor: "#a78bfa",
       exampleMessages: [""],
     },
   },
@@ -53,6 +55,7 @@ export const assistantData: Record<string, AssistantData> = {
       model: "OpenAi",
       prompt: TEACHER_PROMPT,
       description: "データ大好き教えたがりのAI",
+      imageColor: "#60a5fa",
       exampleMessages: [""],
     },
   },
@@ -66,6 +69,7 @@ export const assistantData: Record<string, AssistantData> = {
       model: "OpenAi",
       prompt: COMMENT_PROMPT,
       description: "あなたの気分を上げる陽気なAI",
+      imageColor: "#fbbf24",
       exampleMessages: [""],
     },
   },
@@ -78,7 +82,8 @@ export const assistantData: Record<string, AssistantData> = {
       version: "1.0",
       model: "OpenAi",
       prompt: FREESTYLE_PROMPT,
-      description: "フリースタイルの社内情報を熟知したAI",
+      description: "FSの社内情報を熟知したAI",
+      imageColor: "#93c5fd",
       exampleMessages: [""],
     },
   },

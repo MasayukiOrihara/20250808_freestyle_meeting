@@ -1,34 +1,21 @@
-import { useAssistantData } from "../provider/AssistantDataProvider";
 import { AssistantResponse } from "./AssistantResponse";
 import { useChatMessages } from "../provider/ChatMessageProvider";
-import { AssistantIcon, FacilitatorIcon } from "./AssistantIcon";
-import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
-import {
-  FACILITATOR_ICON_PATH_01,
-  FACILITATOR_ICON_PATH_01_hand,
-  FACILITATOR_ICON_PATH_NOHAND,
-} from "@/lib/contents";
+import { FacilitatorIcon } from "./AssistantIcon";
 import { MessageOutput } from "../message/MessageOutput";
 import { motion } from "framer-motion";
 import { useStreamMessages } from "../provider/StreamMessagesProvider";
-import { AssistantComment } from "./AssistantComment";
 import { useAiState } from "../provider/AiStateProvider";
+import { useState } from "react";
 
 /**
- * AI が出力したメッセージを表示する
+ * AI が出力したメッセージを表示する(司会者ロボ)
  * @returns
  */
 export const ResponseContainer: React.FC = () => {
   const { assistantMessages } = useChatMessages();
   const { streamMessages } = useStreamMessages();
   const { aiState } = useAiState();
+  const [facilitatorMessage, setFacilitatorMessage] = useState();
 
   // 司会者ロボに文字がないことを判定
   const hasTextFacilitator = !!assistantMessages
@@ -48,9 +35,7 @@ export const ResponseContainer: React.FC = () => {
           </h2>
           <FacilitatorIcon />
         </div>
-        <div
-          className={`md:h-28 h-14 mx-4 md:text-xl text-sm bg-blue-200 rounded`}
-        >
+        <div className={`mx-4 md:text-xl text-sm bg-blue-200 rounded`}>
           {/* メッセージ */}
           {hasTextFacilitator
             ? assistantMessages

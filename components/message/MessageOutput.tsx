@@ -4,7 +4,7 @@ import { useChatMessages } from "../provider/ChatMessageProvider";
 import { motion } from "framer-motion";
 
 // 定数
-const MAX_ROW_LENGTH = 5; // 最大行数
+const MAX_ROW_LENGTH = 6; // 最大行数
 const MAX_TEXT_COUNT = 35; // 最大文字数
 
 /**

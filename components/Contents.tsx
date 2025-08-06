@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { ResponseContainer } from "./response/ResponseContainer";
 import { MessageInput } from "./message/MessageInput";
@@ -11,7 +11,7 @@ export const Contents: React.FC = () => {
   return (
     <motion.div
       key="start-motion"
-      className="flex md:flex-row flex-col md:w-[1080px] w-full h-full m-auto my-4"
+      className="flex md:flex-row flex-col md:w-[1080px] w-full h-full m-auto my-8"
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 50 }}
