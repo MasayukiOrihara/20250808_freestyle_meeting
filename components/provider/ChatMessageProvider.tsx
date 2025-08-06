@@ -42,7 +42,6 @@ export const ChatMessageProvider = ({ children }: { children: ReactNode }) => {
       timestamp: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }),
       assistantId: assistantId,
     };
-    console.log(msg);
 
     // assistant の最新メッセージのみ蓄積
     if (role === "assistant") {

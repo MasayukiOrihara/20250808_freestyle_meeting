@@ -92,7 +92,6 @@ export const AssistantResponse = () => {
 
         if (value) {
           const cleaned = decodeStreamChunk(value);
-          console.log("chunk:", cleaned);
           addStreamMessages(cleaned);
         }
       }
@@ -147,13 +146,20 @@ export const AssistantResponse = () => {
 
     if (!latest || latest.role !== "user") return;
 
+    // もし規定文字以上ならカットする
+    const MAX_LATEST_LENGTH = 140;
+    let slice = latest.content ?? "";
+    if (latest.content.length > MAX_LATEST_LENGTH) {
+      slice = latest.content.slice(0, MAX_LATEST_LENGTH);
+    }
+
     // それぞれのAPIにユーザーメッセージを送信
     setAiState("loading");
     chatTargets.forEach((key) => {
       if (assistantData[key]?.isUse) {
         chatEntryRef.current[key].append({
           role: "user",
-          content: latest.content,
+          content: slice,
         });
       }
     });

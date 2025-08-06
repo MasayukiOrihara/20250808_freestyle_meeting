@@ -5,7 +5,7 @@ import { MessageOutput } from "../message/MessageOutput";
 import { motion } from "framer-motion";
 import { useStreamMessages } from "../provider/StreamMessagesProvider";
 import { useAiState } from "../provider/AiStateProvider";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * AI が出力したメッセージを表示する(司会者ロボ)
@@ -15,12 +15,44 @@ export const ResponseContainer: React.FC = () => {
   const { assistantMessages } = useChatMessages();
   const { streamMessages } = useStreamMessages();
   const { aiState } = useAiState();
-  const [facilitatorMessage, setFacilitatorMessage] = useState();
+  const [facilitatorMessage, setFacilitatorMessage] = useState("");
 
   // 司会者ロボに文字がないことを判定
-  const hasTextFacilitator = !!assistantMessages
-    .find((msg) => msg.key === "facilitator")
-    ?.content?.trim();
+  const hasTextFacilitatorRef = useRef(
+    !!assistantMessages
+      .find((msg) => msg.key === "facilitator")
+      ?.content?.trim()
+  );
+
+  // 司会者の喋る文字を管理
+  const oldRef = useRef("");
+  useEffect(() => {
+    // 初期メッセージ
+    if (!hasTextFacilitatorRef.current && aiState === "start") {
+      const message = streamMessages ?? "";
+
+      setFacilitatorMessage(message);
+      oldRef.current = message;
+      return;
+    }
+
+    // 通常返答
+    if (aiState === "ready") {
+      const message = assistantMessages
+        .filter((msg) => msg.key === "facilitator")
+        .map((msg) => msg.content);
+
+      // 前のメッセージと同じ
+      if (oldRef.current !== message[message.length - 1]) {
+        setFacilitatorMessage(message[message.length - 1]);
+        oldRef.current = message[message.length - 1];
+        return;
+      }
+    } else {
+      // 読み込み中の文字
+      setFacilitatorMessage("...");
+    }
+  }, [streamMessages, assistantMessages]);
 
   return (
     <div className="w-full h-auto">
@@ -37,26 +69,16 @@ export const ResponseContainer: React.FC = () => {
         </div>
         <div className={`mx-4 md:text-xl text-sm bg-blue-200 rounded`}>
           {/* メッセージ */}
-          {hasTextFacilitator
-            ? assistantMessages
-                .filter((msg) => msg.key === "facilitator")
-                .map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.25 }}
-                    className="px-6 py-4 text-sm font-bold text-blue-900"
-                  >
-                    {msg.content}
-                  </motion.div>
-                ))
-            : streamMessages && (
-                <div className="px-6 py-4 text-sm font-bold text-blue-900">
-                  {streamMessages}
-                </div>
-              )}
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25 }}
+            className="px-6 py-4 text-sm font-bold text-blue-900"
+          >
+            {facilitatorMessage}
+          </motion.div>
         </div>
       </div>
 

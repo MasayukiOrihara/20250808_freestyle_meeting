@@ -28,7 +28,6 @@ export const MinutesButton = ({
       method: "POST",
       body: { chatMessages, sessionId },
     });
-    console.log(conversationMinutes);
 
     setMinutes(conversationMinutes);
     setShowScreen(true); // 表示に切り替える

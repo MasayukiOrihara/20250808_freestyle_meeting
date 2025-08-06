@@ -35,7 +35,6 @@ export const SummaryButton = ({
       method: "POST",
       body: { sessionId },
     });
-    console.log(parsonalSummary);
 
     setSummary(parsonalSummary);
     setShowScreen(true); // 表示に切り替える
