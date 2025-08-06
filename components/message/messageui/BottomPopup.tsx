@@ -20,7 +20,7 @@ export default function BottomPopup({
     <div
       className={`fixed bottom-0 left-0 w-full h-2/5 bg-white shadow-lg p-4 border-t transition-transform duration-300 z-40 ${
         isOpen ? "translate-y-0" : "translate-y-full"
-      }`}
+      } overflow-y-auto`}
     >
       <div className="w-1/3 m-auto">
         <div className="flex justify-between items-center mb-2">

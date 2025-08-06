@@ -16,11 +16,12 @@ const MAX_LENGTH = 140;
 export const MessageInput = () => {
   const [text, setText] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
-  const [showScreen, setShowScreen] = useState(false); // 画面の表示
+  const [showSummaryScreen, setShowSummaryScreen] = useState(false); // 画面の表示
+  const [showMinutesScreen, setShowMinutesScreen] = useState(false); // 画面の表示
   const [summary, setSummary] = useState(""); // 要約保持
   const [minutes, setMinutes] = useState(""); // 議事録保持
   const { addChatMessage } = useChatMessages();
-  const { aiState } = useAiState();
+  const { aiState, setAiState } = useAiState();
 
   const isOverLimit = text.length > MAX_LENGTH;
   const isFirstSubmitRef = useRef(false); // 最初の提出
@@ -54,6 +55,14 @@ export const MessageInput = () => {
     }
   };
 
+  // ポップアップウィンドウを閉じた時の処理
+  const handleClosePoupup = () => {
+    // loading
+    setAiState("ready");
+    setShowMinutesScreen(false);
+    setShowSummaryScreen(false);
+  };
+
   return (
     <div className="w-full mb-2 justify-center items-center mt-4 z-10">
       <div className="relative px-2 py-1 mx-4 bg-white border shadow-xl rounded-xl">
@@ -80,14 +89,14 @@ export const MessageInput = () => {
             {/* 議事録 */}
             <MinutesButton
               setMinutes={setMinutes}
-              setShowScreen={setShowScreen}
+              setShowScreen={setShowMinutesScreen}
               isDisabled={isDisabled}
             />
 
             {/* アナライズ */}
             <SummaryButton
               setSummary={setSummary}
-              setShowScreen={setShowScreen}
+              setShowScreen={setShowSummaryScreen}
               isDisabled={isDisabled}
             />
           </div>
@@ -129,16 +138,16 @@ export const MessageInput = () => {
           {/* ポップアップ本体 */}
           {/* 議事録 */}
           <BottomPopup
-            isOpen={showScreen}
-            onClose={() => setShowScreen(false)}
+            isOpen={showMinutesScreen}
+            onClose={handleClosePoupup}
             title="議事録"
             text={minutes}
           />
 
           {/* アナライズ */}
           <BottomPopup
-            isOpen={showScreen}
-            onClose={() => setShowScreen(false)}
+            isOpen={showSummaryScreen}
+            onClose={handleClosePoupup}
             title="会話から分かるあなたについて"
             text={summary}
           />

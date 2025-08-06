@@ -5,6 +5,7 @@ import { useSessionId } from "@/hooks/useSessionId";
 import { ANARYZE_MINUTES_PATH } from "@/lib/contents";
 import { requestApi } from "@/lib/utils";
 import DetailButton from "../messageui/DetailButton";
+import { useAiState } from "@/components/provider/AiStateProvider";
 
 type MinutesButtonProps = {
   setMinutes: (minutes: string) => void;
@@ -19,10 +20,14 @@ export const MinutesButton = ({
 }: MinutesButtonProps) => {
   const { userMessages, chatMessages } = useChatMessages();
   const sessionId = useSessionId();
+  const { setAiState } = useAiState();
 
   const hasMessage = userMessages.length != 0;
 
   const handleClick = async () => {
+    // loading
+    setAiState("loading");
+
     //  議事録を作成し取得
     const conversationMinutes = await requestApi("", ANARYZE_MINUTES_PATH, {
       method: "POST",

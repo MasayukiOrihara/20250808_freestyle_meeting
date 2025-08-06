@@ -5,6 +5,7 @@ import { useSessionId } from "@/hooks/useSessionId";
 import { ANALYZE_SAVE_PATH, ANARYZE_SUMMARY_PATH } from "@/lib/contents";
 import { requestApi } from "@/lib/utils";
 import DetailButton from "../messageui/DetailButton";
+import { useAiState } from "@/components/provider/AiStateProvider";
 
 type SummaryButtonProps = {
   setSummary: (summary: string) => void;
@@ -20,10 +21,14 @@ export const SummaryButton = ({
 }: SummaryButtonProps) => {
   const { userMessages } = useChatMessages();
   const sessionId = useSessionId();
+  const { setAiState } = useAiState();
 
   const hasMessage = userMessages.length != 0;
 
   const handleClick = async () => {
+    // loading
+    setAiState("loading");
+
     // 1. プロファイル情報を作成して DB に保存
     await requestApi("", ANALYZE_SAVE_PATH, {
       method: "POST",
