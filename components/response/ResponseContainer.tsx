@@ -1,4 +1,3 @@
-import { AssistantResponse } from "./AssistantResponse";
 import { useChatMessages } from "../provider/ChatMessageProvider";
 import { FacilitatorIcon } from "./AssistantIcon";
 import { MessageOutput } from "../message/MessageOutput";
@@ -56,9 +55,6 @@ export const ResponseContainer: React.FC = () => {
 
   return (
     <div className="w-full h-auto">
-      {/** ai の反応をもらう */}
-      <AssistantResponse />
-
       {/* 司会者 */}
       <div className="w-full">
         <div className="flex flex-col w-1/2 mb-1.5 m-auto">
@@ -71,6 +67,7 @@ export const ResponseContainer: React.FC = () => {
           {/* メッセージ */}
 
           <motion.div
+            key={facilitatorMessage}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}

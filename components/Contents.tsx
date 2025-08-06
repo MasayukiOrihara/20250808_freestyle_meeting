@@ -4,6 +4,7 @@ import { ResponseContainer } from "./response/ResponseContainer";
 import { MessageInput } from "./message/MessageInput";
 import { AssistantComment } from "./response/AssistantComment";
 import { useAiState } from "./provider/AiStateProvider";
+import { AssistantResponse } from "./response/AssistantResponse";
 
 export const Contents: React.FC = () => {
   const { aiState } = useAiState();
@@ -17,6 +18,8 @@ export const Contents: React.FC = () => {
       exit={{ opacity: 0, x: 50 }}
       transition={{ duration: 0.3 }}
     >
+      {/** ai の反応をもらう */}
+      <AssistantResponse />
       {/* 左 */}
       <div className="flex flex-col md:w-3/5 w-full h-full m-auto">
         <ResponseContainer />

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { AssistantResponse } from "./AssistantResponse";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -57,51 +56,46 @@ export const AssistantComment: React.FC = () => {
   );
 
   return (
-    <div className="w-full h-auto">
-      {/** ai の反応をもらう */}
-      <AssistantResponse />
-
+    <div className="flex flex-col w-full h-auto md:mt-2 z-5 border shadow-sm rounded">
       {/* ご意見番 */}
-      <div className="flex flex-col w-full md:mt-2 z-5 border shadow-sm rounded">
-        <h2 className="md:p-4 p-1 text-sm font-bold">AI コメント</h2>
-        {filteredCards.length > 0 ? (
-          filteredCards.map(([id, data]) => (
-            <motion.div
-              key={id + data.message}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25 }}
+      <h2 className="md:p-4 p-1 text-sm font-bold">AI コメント</h2>
+      {filteredCards.length > 0 ? (
+        filteredCards.map(([id, data]) => (
+          <motion.div
+            key={id + data.message}
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Card
+              className="flex flex-row w-full md:px-4 md:py-2 p-1 border-l-4"
+              style={{
+                borderColor: `${data.color}`,
+              }}
             >
-              <Card
-                className="flex flex-row w-full md:px-4 md:py-2 p-1 border-l-4"
-                style={{
-                  borderColor: `${data.color}`,
-                }}
-              >
-                <div className="w-12">
-                  <AssistantIcon iconSrc={data.iconPath} size={60} />
-                </div>
-                <div className="w-full ml-4">
-                  <CardHeader className="mb-2">
-                    <CardTitle>{data.name}</CardTitle>
-                    <CardDescription className="ml-2">
-                      {data.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>{data.message}</CardContent>
-                </div>
-              </Card>
-            </motion.div>
-          ))
-        ) : (
-          // ダミーメッセージをここに表示
-          <Card className="w-full p-4 text-center text-gray-500">
-            ここに AI からのコメントが並びます
-          </Card>
-        )}
-      </div>
+              <div className="w-12">
+                <AssistantIcon iconSrc={data.iconPath} size={60} />
+              </div>
+              <div className="w-full ml-4">
+                <CardHeader className="mb-2">
+                  <CardTitle>{data.name}</CardTitle>
+                  <CardDescription className="ml-2">
+                    {data.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>{data.message}</CardContent>
+              </div>
+            </Card>
+          </motion.div>
+        ))
+      ) : (
+        // ダミーメッセージをここに表示
+        <Card className="w-full p-4 text-center text-gray-500">
+          ここに AI からのコメントが並びます
+        </Card>
+      )}
     </div>
   );
 };
