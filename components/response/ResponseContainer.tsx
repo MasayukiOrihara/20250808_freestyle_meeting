@@ -58,12 +58,14 @@ export const ResponseContainer: React.FC = () => {
       {/* 司会者 */}
       <div className="w-full">
         <div className="flex flex-col w-1/2 mb-1.5 m-auto">
-          <h2 className="px-8 py-2 m-auto mb-1 bg-blue-200 text-blue-900 rounded-xl font-bold">
+          <h2 className="px-8 py-2 m-auto mb-1 bg-blue-200 text-blue-900 border-blue-300/opacity-50 shadow-sm rounded-xl font-bold">
             司会者ロボ
           </h2>
           <FacilitatorIcon />
         </div>
-        <div className={`mx-4 md:text-xl text-sm bg-blue-200 rounded`}>
+        <div
+          className={`mx-4 md:text-xl text-sm bg-blue-200 border-blue-300/opacity-50 shadow-sm rounded-md`}
+        >
           {/* メッセージ */}
 
           <motion.div

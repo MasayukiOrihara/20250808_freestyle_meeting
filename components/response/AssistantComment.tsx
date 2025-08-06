@@ -56,7 +56,7 @@ export const AssistantComment: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col w-full h-auto md:mt-2 z-5 border shadow-sm rounded">
+    <div className="flex flex-col w-full h-auto md:mt-2 z-5 bg-white border shadow-sm rounded">
       {/* ご意見番 */}
       <h2 className="md:p-4 p-1 text-sm font-bold">AI コメント</h2>
       {filteredCards.length > 0 ? (
@@ -70,10 +70,10 @@ export const AssistantComment: React.FC = () => {
             transition={{ duration: 0.25 }}
           >
             <Card
-              className="flex flex-row w-full md:px-4 md:py-2 p-1 border-l-4"
               style={{
                 borderColor: `${data.color}`,
               }}
+              className="flex flex-row w-full md:px-4 md:py-2 p-1 border-l-4 hover:bg-blue-50"
             >
               <div className="w-12">
                 <AssistantIcon iconSrc={data.iconPath} size={60} />
