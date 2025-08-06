@@ -55,8 +55,8 @@ export const MessageInput = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full mb-2 flex flex-col justify-center items-center z-10">
-      <div className="relative px-2 py-1 bg-white border shadow-xl rounded-xl">
+    <div className="w-full mb-2 justify-center items-center mt-4 z-10">
+      <div className="relative px-2 py-1 mx-4 bg-white border shadow-xl rounded-xl">
         {/* テキストエリア */}
         <textarea
           className="resize-none focus:outline-none md:w-2xl w-md p-2 text-zinc-400 placeholder:text-neutral-400 transition-colors duration-300"
@@ -155,7 +155,7 @@ export const MessageInput = () => {
           </div>
         )}
       </div>
-      <div className="mt-0.5 text-xs text-zinc-400">
+      <div className="mt-0.5 text-center text-xs text-zinc-400">
         得られたデータは研究目的で利用されます。個人情報は記入しないでください。
       </div>
     </div>
