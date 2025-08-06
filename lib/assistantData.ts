@@ -3,6 +3,7 @@ import {
   COMMENT_PROMPT,
   DOG_ICON_PATH,
   FREESTYLE_PROMPT,
+  FS_ICON_PATH,
   MENTOR_PROMPT,
   OWL_ICON_PATH,
   TEACHER_PROMPT,
@@ -29,16 +30,16 @@ export type AssistantDataState = {
 
 /** AIのデータ */
 export const assistantData: Record<string, AssistantData> = {
-  comment: {
-    id: "comment",
-    name: "ノリノリねこ",
+  mentor: {
+    id: "mentor",
+    name: "メローフクロウ",
     isUse: true,
-    icon: CAT_ICON_PATH,
+    icon: OWL_ICON_PATH,
     aiMeta: {
       version: "1.0",
       model: "OpenAi",
-      prompt: COMMENT_PROMPT,
-      description: "あなたの気分を上げる陽気なAI",
+      prompt: MENTOR_PROMPT,
+      description: "不思議な雰囲気のメンターAI",
       exampleMessages: [""],
     },
   },
@@ -55,28 +56,29 @@ export const assistantData: Record<string, AssistantData> = {
       exampleMessages: [""],
     },
   },
+  comment: {
+    id: "comment",
+    name: "ノリノリねこ",
+    isUse: true,
+    icon: CAT_ICON_PATH,
+    aiMeta: {
+      version: "1.0",
+      model: "OpenAi",
+      prompt: COMMENT_PROMPT,
+      description: "あなたの気分を上げる陽気なAI",
+      exampleMessages: [""],
+    },
+  },
   freestyle: {
     id: "freestyle",
     name: "FSマスコット",
     isUse: true,
+    icon: FS_ICON_PATH,
     aiMeta: {
       version: "1.0",
       model: "OpenAi",
       prompt: FREESTYLE_PROMPT,
       description: "フリースタイルの社内情報を熟知したAI",
-      exampleMessages: [""],
-    },
-  },
-  mentor: {
-    id: "mentor",
-    name: "メローフクロウ",
-    isUse: true,
-    icon: OWL_ICON_PATH,
-    aiMeta: {
-      version: "1.0",
-      model: "OpenAi",
-      prompt: MENTOR_PROMPT,
-      description: "不思議な雰囲気のメンターAI",
       exampleMessages: [""],
     },
   },

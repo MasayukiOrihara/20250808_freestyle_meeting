@@ -1,7 +1,7 @@
 import { useAssistantData } from "../provider/AssistantDataProvider";
 import { AssistantResponse } from "./AssistantResponse";
 import { useChatMessages } from "../provider/ChatMessageProvider";
-import { AssistantIcon } from "./AssistantIcon";
+import { AssistantIcon, FacilitatorIcon } from "./AssistantIcon";
 import { useEffect, useState } from "react";
 import {
   Card,
@@ -10,7 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { FACILITATOR_ICON_PATH } from "@/lib/contents";
+import {
+  FACILITATOR_ICON_PATH_01,
+  FACILITATOR_ICON_PATH_01_hand,
+  FACILITATOR_ICON_PATH_NOHAND,
+} from "@/lib/contents";
 import { MessageOutput } from "../message/MessageOutput";
 import { motion } from "framer-motion";
 import { useStreamMessages } from "../provider/StreamMessagesProvider";
@@ -72,43 +76,38 @@ export const ResponseContainer: React.FC = () => {
       {/* 新表示ver.2 */}
       <div className="flex md:flex-row flex-col md:w-[1080px] w-full m-auto">
         {/* 司会者 */}
-        <div className="md:w-1/2 md:ml-4">
-          <div>
-            <div className="flex flex-col w-1/2 mb-1">
-              <h2 className="px-2 py-1 m-auto mb-1 bg-blue-200 text-blue-900 rounded font-bold">
+        <div className="md:w-3/5">
+          <div className="">
+            <div className="flex flex-col w-1/2 mb-1.5 m-auto">
+              <h2 className="px-8 py-2 m-auto mb-1 bg-blue-200 text-blue-900 rounded-xl font-bold">
                 司会者ロボ
               </h2>
-              <AssistantIcon
-                iconSrc={FACILITATOR_ICON_PATH}
-                size={200}
-                className="rounded-full border-6 border-double border-blue-100"
-              />
+              <FacilitatorIcon />
             </div>
             <div
-              className={`md:h-28 md:mr-10 h-14 md:text-xl text-sm ${
-                hasTextFacilitator ? "bg-blue-100" : "bg-blue-100"
-              } rounded`}
+              className={`md:h-28 h-14 mx-4 md:text-xl text-sm bg-blue-200 rounded`}
             >
-              {/* 始めのメッセージ */}
-              {streamMessages && !hasTextFacilitator && (
-                <div className="px-6 py-4 text-sm font-bold text-blue-900">
-                  {streamMessages}
-                </div>
-              )}
-              {assistantMessages
-                .filter((msg) => msg.key === "facilitator")
-                .map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.25 }}
-                    className="px-6 py-4 text-sm font-bold text-blue-900"
-                  >
-                    {msg.content}
-                  </motion.div>
-                ))}
+              {/* メッセージ */}
+              {hasTextFacilitator
+                ? assistantMessages
+                    .filter((msg) => msg.key === "facilitator")
+                    .map((msg) => (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.25 }}
+                        className="px-6 py-4 text-sm font-bold text-blue-900"
+                      >
+                        {msg.content}
+                      </motion.div>
+                    ))
+                : streamMessages && (
+                    <div className="px-6 py-4 text-sm font-bold text-blue-900">
+                      {streamMessages}
+                    </div>
+                  )}
             </div>
           </div>
 

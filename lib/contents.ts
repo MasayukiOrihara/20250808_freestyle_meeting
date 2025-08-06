@@ -38,11 +38,21 @@ export const ANARYZE_SUMMARY_PATH = "/api/analyze/summary";
 export const ANARYZE_MINUTES_PATH = "/api/analyze/minutes";
 
 // アイコンパス
-export const CAT_ICON_PATH = "/icon/cat_comment.jpg";
-export const DOG_ICON_PATH = "/icon/dog_teacher.jpg";
+export const CAT_ICON_PATH = "/icon/norinorineko_v02.png";
+export const DOG_ICON_PATH = "/icon/detasearchinu_v02.png";
 export const OWL_ICON_PATH = "/icon/owl_mentor.jpg";
+export const FS_ICON_PATH = "/icon/freestyle_v01.png";
 export const DUMMY_ICON_PATH = "/icon/human_dummy.png";
-export const FACILITATOR_ICON_PATH = "/facilitator/facilitator_icon.jpg";
+export const FACILITATOR_ICON_PATH_01 =
+  "/facilitator/pro/facilitator_icon_01.png";
+export const FACILITATOR_ICON_PATH_02 =
+  "/facilitator/pro/facilitator_icon_02.png";
+export const FACILITATOR_ICON_PATH_NOHAND =
+  "/facilitator/pro/facilitator_icon_nohand.png";
+export const FACILITATOR_ICON_PATH_01_hand =
+  "/facilitator/pro/facilitator_icon_01_hand.png";
+export const FACILITATOR_ICON_PATH_02_hand =
+  "/facilitator/pro/facilitator_icon_02_hand.png";
 
 // プロンプト
 export const START_MESSAGE =
