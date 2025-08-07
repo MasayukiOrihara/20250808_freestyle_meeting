@@ -38,10 +38,10 @@ export const ANARYZE_SUMMARY_PATH = "/api/analyze/summary";
 export const ANARYZE_MINUTES_PATH = "/api/analyze/minutes";
 
 // アイコンパス
-export const CAT_ICON_PATH = "/icon/norinorineko_v02.png";
-export const DOG_ICON_PATH = "/icon/detasearchinu_v02.png";
-export const OWL_ICON_PATH = "/icon/owl_mentor.jpg";
-export const FS_ICON_PATH = "/icon/freestyle_v01.png";
+export const CAT_ICON_PATH = "/icon/norinorineko_v03.png";
+export const DOG_ICON_PATH = "/icon/detasearchinu_v03.png";
+export const OWL_ICON_PATH = "/icon/owl_mentor_v01.png";
+export const FS_ICON_PATH = "/icon/freestyle_v02.png";
 export const DUMMY_ICON_PATH = "/icon/human_dummy.png";
 export const FACILITATOR_ICON_PATH_01 =
   "/facilitator/pro/facilitator_icon_01.png";

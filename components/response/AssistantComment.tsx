@@ -75,8 +75,13 @@ export const AssistantComment: React.FC = () => {
               }}
               className="flex flex-row w-full md:px-4 md:py-2 p-1 border-l-4 hover:bg-blue-50"
             >
-              <div className="w-12">
-                <AssistantIcon iconSrc={data.iconPath} size={60} />
+              <div className="relative w-12">
+                <div className="absolute w-full h-10 rounded-full bg-zinc-200 z-0"></div>
+                <AssistantIcon
+                  iconSrc={data.iconPath}
+                  size={60}
+                  className="absolute z-10"
+                />
               </div>
               <div className="w-full ml-4">
                 <CardHeader className="mb-2">
