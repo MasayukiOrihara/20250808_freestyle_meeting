@@ -33,6 +33,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
+    // langsmith トレース管理
+    process.env.LANGCHAIN_TRACING_V2 = "false";
+
     const { baseUrl } = getBaseUrl(req);
 
     console.log(" --- \n🏢 FS API");

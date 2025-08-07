@@ -45,6 +45,9 @@ export const getTavilyInfo = async (query: string) => {
 
 // クエリの取得 + 検索するかどうかの決定
 export const searchWeb = async (userMessage: string) => {
+  // langsmith トレース管理
+  process.env.LANGCHAIN_TRACING_V2 = "false";
+
   try {
     const template = `次のユーザーメッセージから検索するためのクエリを作成し、クエリだけを出力してください。コードブロックなどは不要です。
   作成できない場合は空欄で出力してください。

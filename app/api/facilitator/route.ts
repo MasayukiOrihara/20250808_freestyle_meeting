@@ -99,6 +99,8 @@ export async function POST(req: Request) {
     }
 
     // ストリーム
+    // langsmith トレース管理
+    process.env.LANGCHAIN_TRACING_V2 = "true";
     const stream = await runWithFallback(
       prompt,
       {

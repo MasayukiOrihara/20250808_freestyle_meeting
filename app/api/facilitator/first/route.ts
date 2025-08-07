@@ -11,6 +11,9 @@ export async function GET() {
   try {
     console.log(" --- \n🎤 FACILITATOR FIRST API");
 
+    // langsmith トレース管理
+    process.env.LANGCHAIN_TRACING_V2 = "false";
+
     // ストリーム
     const responses = [
       "ここはあなたの言葉に複数のAIが反応する空間です。何か入力してみてください。",

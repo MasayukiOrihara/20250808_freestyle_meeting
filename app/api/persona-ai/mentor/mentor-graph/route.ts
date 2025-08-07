@@ -111,6 +111,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
+    // langsmith トレース管理
+    process.env.LANGCHAIN_TRACING_V2 = "false";
+
     console.log("💛 MENTOR GRAPH API ");
     console.log("---");
 

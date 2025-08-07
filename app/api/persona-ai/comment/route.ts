@@ -20,6 +20,9 @@ export async function POST(req: Request) {
     const messages = body.messages ?? [];
     const { baseUrl } = getBaseUrl(req);
 
+    // langsmith トレース管理
+    process.env.LANGCHAIN_TRACING_V2 = "false";
+
     console.log(" --- \n💬 COMMENT API");
     console.log("session: " + body.sessionId);
     console.log("turns: " + body.count);

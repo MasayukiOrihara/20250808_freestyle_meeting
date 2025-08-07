@@ -229,6 +229,9 @@ export async function POST(req: Request) {
     const threadId = body.threadId ?? "memory-abc123";
     const turn = body.turn ?? 0;
 
+    // langsmith トレース管理
+    process.env.LANGCHAIN_TRACING_V2 = "false";
+
     const { baseUrl } = getBaseUrl(req);
     globalCaseUrl = baseUrl;
 
