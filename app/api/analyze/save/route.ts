@@ -156,6 +156,9 @@ export async function POST(req: Request) {
     const userMessages = body.userMessages;
     const threadId = body.sessionId ?? "analyze-abc123";
 
+    // langsmith トレース管理
+    process.env.LANGCHAIN_TRACING_V2 = "false";
+
     // URL を取得
     const { baseUrl } = getBaseUrl(req);
     globalBaseUrl = baseUrl;
