@@ -146,21 +146,17 @@ export const AssistantResponse = () => {
     if (!msg) return;
 
     // それぞれのAPIにユーザーメッセージを送信
-    (async () => {
-      setAiState("loading");
-      await Promise.all(
-        chatTargets.map(async (key) => {
-          if (assistantDataRef.current[key]?.isUse) {
-            await chatEntryRef.current[key].append({
-              role: "user",
-              content: msg.content,
-            });
-          }
-        })
-      );
-      isReadyFacilitatorRef.current = false;
-      increment(); // 送信回数を増やす
-    })();
+    setAiState("loading");
+    chatTargets.forEach((key) => {
+      if (assistantDataRef.current[key]?.isUse) {
+        chatEntryRef.current[key].append({
+          role: "user",
+          content: msg.content,
+        });
+      }
+    });
+    isReadyFacilitatorRef.current = false;
+    increment(); // 送信回数を増やす
   }, [userMessages, setAiState, increment]);
 
   // 司会者の処理
