@@ -146,19 +146,21 @@ export const AssistantResponse = () => {
     if (!msg) return;
 
     // それぞれのAPIにユーザーメッセージを送信
-    setAiState("loading");
-    chatTargets.forEach((key) => {
-      if (assistantDataRef.current[key]?.isUse) {
-        chatEntryRef.current[key].append({
-          role: "user",
-          content: msg.content,
-        });
-      }
-    });
-    isReadyFacilitatorRef.current = false;
-
-    // 送信回数を増やす
-    increment();
+    (async () => {
+      setAiState("loading");
+      await Promise.all(
+        chatTargets.map(async (key) => {
+          if (assistantDataRef.current[key]?.isUse) {
+            await chatEntryRef.current[key].append({
+              role: "user",
+              content: msg.content,
+            });
+          }
+        })
+      );
+      isReadyFacilitatorRef.current = false;
+      increment(); // 送信回数を増やす
+    })();
   }, [userMessages, setAiState, increment]);
 
   // 司会者の処理
@@ -170,26 +172,29 @@ export const AssistantResponse = () => {
       if (!msg) return;
 
       const assistantLog = assistantMessagesRef.current;
-      facilitator.append(
-        {
-          role: "user",
-          content: msg.content,
-        },
-        { body: { assistantLog } }
-      );
+
+      (async () => {
+        setAiState("loading");
+        await facilitator.append(
+          {
+            role: "user",
+            content: msg.content,
+          },
+          { body: { assistantLog } }
+        );
+        setAiState("facilitator"); // 全通知
+      })();
+
       isReadyFacilitatorRef.current = true;
       chatTargets.forEach((key) => {
         changeFlag(key, false);
       });
       // 使ったら初期化
       assistantMessagesRef.current = [];
-      // 全通知
-      setAiState("facilitator");
     }
   }, [userMessages, isReadyAi, facilitator, setAiState]);
 
   useEffect(() => {
-    console.log(aiState);
     if (aiState === "facilitator" && facilitator.status === "ready") {
       setAiState("ready");
     }
