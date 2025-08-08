@@ -156,7 +156,9 @@ export const AssistantResponse = () => {
       }
     });
     isReadyFacilitatorRef.current = false;
-    increment(); // 送信回数を増やす
+
+    // 送信回数を増やす
+    increment();
   }, [userMessages, setAiState, increment]);
 
   // 司会者の処理
@@ -168,29 +170,26 @@ export const AssistantResponse = () => {
       if (!msg) return;
 
       const assistantLog = assistantMessagesRef.current;
-
-      (async () => {
-        setAiState("loading");
-        await facilitator.append(
-          {
-            role: "user",
-            content: msg.content,
-          },
-          { body: { assistantLog } }
-        );
-        setAiState("facilitator"); // 全通知
-      })();
-
+      facilitator.append(
+        {
+          role: "user",
+          content: msg.content,
+        },
+        { body: { assistantLog } }
+      );
       isReadyFacilitatorRef.current = true;
       chatTargets.forEach((key) => {
         changeFlag(key, false);
       });
       // 使ったら初期化
       assistantMessagesRef.current = [];
+      // 全通知
+      setAiState("facilitator");
     }
   }, [userMessages, isReadyAi, facilitator, setAiState]);
 
   useEffect(() => {
+    console.log(aiState);
     if (aiState === "facilitator" && facilitator.status === "ready") {
       setAiState("ready");
     }
