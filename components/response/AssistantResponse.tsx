@@ -170,13 +170,15 @@ export const AssistantResponse = () => {
       if (!msg) return;
 
       const assistantLog = assistantMessagesRef.current;
-      facilitator.append(
-        {
-          role: "user",
-          content: msg.content,
-        },
-        { body: { assistantLog } }
-      );
+      (async () => {
+        await facilitator.append(
+          {
+            role: "user",
+            content: msg.content,
+          },
+          { body: { assistantLog } }
+        );
+      })();
       isReadyFacilitatorRef.current = true;
       chatTargets.forEach((key) => {
         changeFlag(key, false);
